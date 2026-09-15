@@ -2667,6 +2667,8 @@ tr:hover td{
                 💎 الباقات
             </button>
 
+            <button id="tabAdmin" class="tab hidden" onclick="switchTab('admin')">🛡️ الإدارة</button>
+
         </div>
 
 
@@ -2996,6 +2998,27 @@ tr:hover td{
         <div class="modal-footer">
             <button class="btn btn-secondary" onclick="closeModal('paymentModal')">إلغاء</button>
             <button class="btn btn-primary" onclick="submitPaymentRequest()">إرسال طلب التفعيل</button>
+        </div>
+    </div>
+</div>
+
+<!-- ADMIN PANEL -->
+<div id="adminTab" class="hidden">
+    <div class="card">
+        <div class="card-header">
+            <div>
+                <div class="card-title">🛡️ لوحة الإدارة</div>
+                <div class="muted" style="margin-top:5px;">حسابات المستخدمين المسجلين بالبريد الإلكتروني.</div>
+            </div>
+            <button class="btn btn-secondary btn-small" onclick="loadAdminUsers()">🔄 تحديث</button>
+        </div>
+        <div class="card-body">
+            <div id="adminMessage" class="muted" style="margin-bottom:12px;"></div>
+            <div class="search-box" style="margin-bottom:14px;">
+                <span class="search-icon">🔎</span>
+                <input id="adminUserSearch" class="input" placeholder="ابحث بالبريد الإلكتروني..." oninput="renderAdminUsers()">
+            </div>
+            <div id="adminUsersList"></div>
         </div>
     </div>
 </div>
@@ -4566,6 +4589,8 @@ async function showApp(){
             currentUser.email;
 
     }
+
+    setupAdminAccess();
 
     showLoading();
 
@@ -6709,7 +6734,8 @@ function switchTab(tab){
         "dashboardTab",
         "customersTab",
         "invoicesTab",
-        "projectsTab"
+        "projectsTab",
+        "adminTab"
     ]
     .forEach(id=>{
 
@@ -6723,7 +6749,8 @@ function switchTab(tab){
         "tabDashboard",
         "tabCustomers",
         "tabInvoices",
-        "tabProjects"
+        "tabProjects",
+        "tabAdmin"
     ]
     .forEach(id=>{
 
@@ -6757,6 +6784,12 @@ function switchTab(tab){
             [
                 "projectsTab",
                 "tabProjects"
+            ],
+
+        admin:
+            [
+                "adminTab",
+                "tabAdmin"
             ]
 
     };
@@ -6766,6 +6799,14 @@ function switchTab(tab){
 
     if(!selected)
         return;
+
+    if(tab === "admin") {
+        if(!isAdminUser()) {
+            toast("غير مصرح لك بالدخول إلى لوحة الإدارة.", "error");
+            return;
+        }
+        loadAdminUsers();
+    }
 
     $(selected[0])
         .classList
@@ -7396,6 +7437,50 @@ renderAll = function(){
     bindInvoiceImagePickers();
     renderInvoiceArchive();
 };
+
+const ADMIN_EMAIL = "ayob2041@gmail.com";
+let adminUsers = [];
+
+function isAdminUser(){
+    return String(currentUser?.email || "").trim().toLowerCase() === ADMIN_EMAIL;
+}
+
+function setupAdminAccess(){
+    const tab=$("tabAdmin");
+    if(!tab) return;
+    if(isAdminUser()) tab.classList.remove("hidden");
+    else tab.classList.add("hidden");
+}
+
+function escapeHtml(value){
+    return String(value ?? "").replace(/[&<>\"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[ch]));
+}
+
+function renderAdminUsers(){
+    const box=$("adminUsersList"); if(!box) return;
+    const q=String($("adminUserSearch")?.value||"").trim().toLowerCase();
+    const list=adminUsers.filter(u=>!q || String(u.email||"").toLowerCase().includes(q));
+    if(!list.length){ box.innerHTML='<div class="empty-state">لا توجد حسابات مطابقة.</div>'; return; }
+    box.innerHTML=list.map((u,i)=>`<div class="card" style="margin-bottom:10px;background:rgba(15,23,42,.55);"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div style="font-weight:900;direction:ltr;text-align:right;">${escapeHtml(u.email||"")}</div><div class="muted" style="margin-top:5px;font-size:12px;">تاريخ التسجيل: ${u.created_at ? new Date(u.created_at).toLocaleString('ar-LY') : 'غير متاح'}</div></div><div class="current-plan">#${i+1}</div></div></div>`).join("");
+}
+
+async function loadAdminUsers(){
+    if(!isAdminUser()) return;
+    const box=$("adminUsersList"), msg=$("adminMessage");
+    if(box) box.innerHTML='<div class="muted">جاري تحميل المستخدمين...</div>';
+    try{
+        const {data,error}=await sb.rpc("admin_list_users");
+        if(error) throw error;
+        adminUsers=Array.isArray(data)?data:[];
+        if(msg) msg.textContent=`عدد الحسابات المسجلة: ${adminUsers.length}`;
+        renderAdminUsers();
+    }catch(error){
+        console.error("admin_list_users",error);
+        adminUsers=[];
+        if(msg) msg.textContent="تعذر تحميل المستخدمين. يجب إنشاء دالة الإدارة الآمنة في Supabase.";
+        if(box) box.innerHTML="";
+    }
+}
 
 document.addEventListener("DOMContentLoaded",()=>{
     const signupBtn = document.getElementById("showSignupButton");

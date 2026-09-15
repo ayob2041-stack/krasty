@@ -2080,8 +2080,10 @@ tr:hover td{
                         </button>
 
                         <button
+                            id="showSignupButton"
+                            type="button"
                             class="auth-link"
-                            onclick="showSignup()"
+                            onclick="showSignup(event)"
                         >
                             إنشاء حساب
                         </button>
@@ -2155,7 +2157,7 @@ tr:hover td{
 
                     <button
                         class="btn btn-primary"
-                        onclick="signup()"
+                        onclick="signup(event)"
                     >
                         إنشاء الحساب
                     </button>
@@ -2167,8 +2169,10 @@ tr:hover td{
                         </span>
 
                         <button
+                            id="showLoginFromSignupButton"
+                            type="button"
                             class="auth-link"
-                            onclick="showLogin()"
+                            onclick="showLogin(event)"
                         >
                             تسجيل الدخول
                         </button>
@@ -2250,8 +2254,10 @@ tr:hover td{
                     >
 
                         <button
+                            id="showSignupButton"
+                            type="button"
                             class="auth-link"
-                            onclick="showSignup()"
+                            onclick="showSignup(event)"
                         >
                             تغيير البريد
                         </button>
@@ -2838,7 +2844,10 @@ tr:hover td{
                         <div class="card-title">باقات كراستي</div>
                         <div class="muted" style="margin-top:5px;">اختر الباقة التي تناسب طريقة عملك، ثم اتبع تعليمات الدفع.</div>
                     </div>
-                    <div id="currentPlanBadge" class="current-plan">الباقة المجانية</div>
+                    <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
+                        <div id="currentPlanBadge" class="current-plan">الباقة المجانية</div>
+                        <div id="whatsappUsageBadge" class="current-plan" style="background:rgba(34,197,94,.07);color:#bbf7d0;">واتساب: 0/10</div>
+                    </div>
                 </div>
                 <div class="card-body">
                     <div class="plan-grid">
@@ -2851,7 +2860,8 @@ tr:hover td{
                                 <li>إدارة العملاء والمشاريع</li>
                                 <li>إنشاء الفواتير ومتابعة المتبقي</li>
                                 <li>لوحة تحكم وتقارير أساسية</li>
-                                <li>إرسال الفواتير عبر واتساب</li>
+                                <li>إرسال حتى <strong>10 فواتير عبر واتساب كل 30 يوماً</strong></li>
+                                <li>بعد استنفاد الحد، يمكنك الترقية لمتابعة الإرسال دون قيود</li>
                             </ul>
                             <button class="btn btn-secondary" style="width:100%;" onclick="selectPlan('free')">الباقة الحالية / مجانية</button>
                         </div>
@@ -3831,8 +3841,9 @@ function hideAuthForms(){
 
 }
 
-function showLogin(){
+function showLogin(e){
 
+    if(e) e.preventDefault();
     hideAuthForms();
 
     $("loginForm").classList.remove("hidden");
@@ -3841,8 +3852,9 @@ function showLogin(){
 
 }
 
-function showSignup(){
+function showSignup(e){
 
+    if(e) e.preventDefault();
     hideAuthForms();
 
     $("signupForm").classList.remove("hidden");
@@ -3851,8 +3863,9 @@ function showSignup(){
 
 }
 
-function showForgot(){
+function showForgot(e){
 
+    if(e) e.preventDefault();
     hideAuthForms();
 
     $("forgotForm").classList.remove("hidden");
@@ -3894,7 +3907,7 @@ function showUpdatePassword(){
    SIGNUP
 ========================================================= */
 
-async function signup(){
+async function signup(e){
 
     const email =
         $("signupEmail")
@@ -3947,7 +3960,7 @@ async function signup(){
     }
 
     const btn =
-        event?.currentTarget;
+        e?.currentTarget;
 
     if(btn){
 
@@ -5893,7 +5906,43 @@ async function deleteInvoice(id){
    WHATSAPP
 ========================================================= */
 
+function getWhatsAppUsageKey(){
+    const uid = currentUser?.id || "guest";
+    const period = Math.floor(Date.now() / (30*24*60*60*1000));
+    return `krasty_whatsapp_usage_${uid}_${period}`;
+}
+
+function getWhatsAppUsage(){
+    return Number(localStorage.getItem(getWhatsAppUsageKey()) || 0);
+}
+
+function canSendWhatsApp(){
+    if(isPaidPlan()) return true;
+    return getWhatsAppUsage() < 10;
+}
+
+function recordWhatsAppUsage(){
+    if(isPaidPlan()) return;
+    const key=getWhatsAppUsageKey();
+    localStorage.setItem(key,String(getWhatsAppUsage()+1));
+}
+
+function showWhatsAppUpgradePrompt(){
+    const used=getWhatsAppUsage();
+    openPlansOffer();
+    toast(`استخدمت ${used} من أصل 10 رسائل واتساب في الباقة المجانية. اشترك للمتابعة دون هذا الحد.`,"info");
+}
+
 function sendInvoiceWhatsApp(id){
+
+    if(!currentUser){
+        toast("يرجى تسجيل الدخول أولاً.","error");
+        return;
+    }
+    if(!canSendWhatsApp()){
+        showWhatsAppUpgradePrompt();
+        return;
+    }
 
     const invoice =
         invoices.find(
@@ -5966,6 +6015,13 @@ function sendInvoiceWhatsApp(id){
         url,
         "_blank"
     );
+
+    recordWhatsAppUsage();
+    updatePlanBadge();
+    const used=getWhatsAppUsage();
+    if(!isPaidPlan() && used >= 10){
+        setTimeout(()=>toast("لقد استنفدت 10 رسائل واتساب المجانية. اشترك لمواصلة الإرسال دون قيود.","info"),700);
+    }
 
 }
 
@@ -7342,6 +7398,10 @@ renderAll = function(){
 };
 
 document.addEventListener("DOMContentLoaded",()=>{
+    const signupBtn = document.getElementById("showSignupButton");
+    if(signupBtn) signupBtn.addEventListener("click", (e)=>showSignup(e));
+    const loginFromSignupBtn = document.getElementById("showLoginFromSignupButton");
+    if(loginFromSignupBtn) loginFromSignupBtn.addEventListener("click", (e)=>showLogin(e));
     bindInvoiceImagePickers();
     installPullToRefresh();
 
@@ -7378,8 +7438,11 @@ function KRastyPlanKey(raw){
 }
 function isPaidPlan(){ return getCurrentPlan() !== "free"; }
 function updatePlanBadge(){
+    const plan=KRastyPlanKey(getCurrentPlan());
     const b=$("currentPlanBadge");
-    if(b) b.textContent=KRastyPlanKey(getCurrentPlan())==="free"?"الباقة المجانية":"الباقة المدفوعة — "+KRastyPlanKey(getCurrentPlan());
+    if(b) b.textContent=plan==="free"?"الباقة المجانية":"الباقة المدفوعة — "+(plan==="business"?"الاحترافية":"المتقدمة");
+    const wb=$("whatsappUsageBadge");
+    if(wb) wb.textContent=plan==="free" ? `واتساب: ${getWhatsAppUsage()}/10` : "واتساب: غير محدود";
 }
 function openPlansOffer(){
     updatePlanBadge();
@@ -7550,6 +7613,7 @@ showApp = async function(){
     updatePlanBadge();
     scheduleKrastyOffer();
 };
+window.addEventListener("focus",()=>updatePlanBadge());
 
 
 /* Android-friendly print: use a dedicated printable document, with window.print fallback */

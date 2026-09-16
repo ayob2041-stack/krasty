@@ -1981,75 +1981,6 @@ html.krasty-light td{color:#1e293b;}
 .theme-toggle-btn{min-height:42px;}
 @media(max-width:600px){.theme-toggle-btn{font-size:0;min-width:42px;padding:9px;}.theme-toggle-btn::first-letter{font-size:18px;}.user-area{gap:5px;}.user-area .current-plan{display:none;}}
 </style>
-
-<style id="krasty-light-complete-fix">
-/* Light mode: override the remaining dark hard-coded surfaces */
-html.krasty-light .topbar{background:rgba(255,255,255,.95);color:#0f172a;}
-html.krasty-light .stat-card,
-html.krasty-light .card,
-html.krasty-light .archive-card,
-html.krasty-light .admin-user-card,
-html.krasty-light .account-box,
-html.krasty-light .payment-method,
-html.krasty-light .cashflow-card,
-html.krasty-light .plan-card,
-html.krasty-light .project-bar,
-html.krasty-light .tabs,
-html.krasty-light .modal-content,
-html.krasty-light .modal-box{
-  background:#fff !important;
-  color:#0f172a;
-  border-color:rgba(15,23,42,.12) !important;
-  box-shadow:0 12px 35px rgba(15,23,42,.08);
-}
-html.krasty-light .plan-card{background:linear-gradient(145deg,#fff,#f8fafc) !important;}
-html.krasty-light .payment-method{background:#f8fafc !important;}
-html.krasty-light .admin-user-card,
-html.krasty-light .account-box{background:#f8fafc !important;}
-html.krasty-light .copy-value{background:#eef2f7;color:#0f172a;}
-html.krasty-light .card-header{border-bottom-color:rgba(15,23,42,.10);}
-html.krasty-light .stat-label,
-html.krasty-light .plan-subtitle,
-html.krasty-light .offer-banner-text,
-html.krasty-light .payment-line,
-html.krasty-light .plan-price span,
-html.krasty-light .account-box small{color:#64748b !important;}
-html.krasty-light .plan-features li{color:#334155 !important;}
-html.krasty-light .current-plan{color:#166534;background:rgba(34,197,94,.10);}
-html.krasty-light .input,
-html.krasty-light select,
-html.krasty-light textarea,
-html.krasty-light input[type="date"]{
-  background:#f8fafc !important;color:#0f172a !important;border-color:rgba(15,23,42,.14) !important;
-}
-html.krasty-light .input::placeholder,html.krasty-light textarea::placeholder{color:#94a3b8 !important;}
-html.krasty-light table{background:#fff;color:#0f172a;}
-html.krasty-light th{background:#f1f5f9;color:#475569 !important;}
-html.krasty-light td{color:#1e293b !important;border-color:rgba(15,23,42,.08);}
-html.krasty-light tr{border-color:rgba(15,23,42,.08);}
-html.krasty-light .modal-header,
-html.krasty-light .modal-footer{border-color:rgba(15,23,42,.10);}
-html.krasty-light .modal-title,
-html.krasty-light .field label,
-html.krasty-light .section-title,
-html.krasty-light .page-title,
-html.krasty-light .card-title,
-html.krasty-light .logo-text,
-html.krasty-light .stat-value,
-html.krasty-light .plan-title,
-html.krasty-light .account-box strong{color:#0f172a !important;}
-html.krasty-light .muted{color:#64748b !important;}
-html.krasty-light .close-btn,
-html.krasty-light .modal-close,
-html.krasty-light .btn-secondary{background:#eef2f7;color:#0f172a;border-color:rgba(15,23,42,.10);}
-html.krasty-light .offer-banner{background:linear-gradient(135deg,rgba(124,58,237,.08),rgba(245,158,11,.08));}
-html.krasty-light .tab{color:#64748b;}
-html.krasty-light .tab.active{color:#312e81;}
-html.krasty-light .dropdown-menu,
-html.krasty-light .menu,
-html.krasty-light .select-menu{background:#fff !important;color:#0f172a !important;border-color:rgba(15,23,42,.12) !important;}
-</style>
-
 </head>
 
 <body>
@@ -4965,7 +4896,7 @@ async function saveProfile(){
         }
 
         const savedName=nameChanged?fullName:originalName||fullName;
-        const profilePayload={
+        const {error}=await sb.from("krasty_profiles").upsert({
             user_id:currentUser.id,
             full_name:savedName,
             father_name:fatherName,
@@ -4973,28 +4904,12 @@ async function saveProfile(){
             phone,
             identity_type:identityType,
             identity_number:identityNumber,
+            identity_change_used:true,
             identity_change_used:hasExistingIdentity ? (identityChanged ? true : identityChangeUsed) : true,
             updated_at:new Date().toISOString()
-        };
+        },{onConflict:"user_id"});
 
-        // تحديث السجل الموجود أولاً، وإن لم يكن موجوداً ننشئه.
-        // هذا يمنع خطأ Duplicate Key عند وجود ملف شخصي مسبق للمستخدم.
-        const {data:existingProfile,error:findProfileError}=await sb
-            .from("krasty_profiles")
-            .select("user_id")
-            .eq("user_id",currentUser.id)
-            .maybeSingle();
-        if(findProfileError) throw findProfileError;
-
-        if(existingProfile){
-            const {error}=await sb.from("krasty_profiles")
-                .update(profilePayload)
-                .eq("user_id",currentUser.id);
-            if(error) throw error;
-        }else{
-            const {error}=await sb.from("krasty_profiles").insert(profilePayload);
-            if(error) throw error;
-        }
+        if(error) throw error;
 
         const {error:authError}=await sb.auth.updateUser({
             data:{full_name:savedName,father_name:fatherName,country_code:countryCode,phone,identity_type:identityType,identity_number:identityNumber,identity_change_used:hasExistingIdentity ? (identityChanged ? true : identityChangeUsed) : true}
@@ -8986,52 +8901,9 @@ printInvoice = async function(id){
     <tr><td>إجمالي الفاتورة</td><td>${money(invoice.total)} د.ل</td></tr>
     <tr><td>المدفوع</td><td>${money(invoice.paid)} د.ل</td></tr>
     <tr class="total"><td>المتبقي</td><td>${money(invoice.remaining)} د.ل</td></tr></table>
-    ${invoice.notes ? "<div class="notes"><b>ملاحظات:</b><br>" + escapeHtml(invoice.notes) + "</div>" : ""}
+    ${invoice.notes ? "<div class=\"notes\"><b>ملاحظات:</b><br>" + escapeHtml(invoice.notes) + "</div>" : ""}
     <div class="actions"><button onclick="window.print()">🖨️ طباعة / حفظ PDF</button><button onclick="window.close()">إغلاق</button></div>
     </div>
-
-<script id="krasty-account-status-watch-fix">
-(function(){
-  let statusWatchTimer=null;
-  let statusCheckBusy=false;
-  async function enforceAccountStatus(){
-    if(!window.currentUser || statusCheckBusy) return;
-    statusCheckBusy=true;
-    try{
-      const p=await window.loadMyProfile();
-      const status=String(p?.account_status||"active").toLowerCase();
-      window.currentAccountStatus=status;
-      if(status==="kicked" || status==="banned"){
-        if(statusWatchTimer) clearInterval(statusWatchTimer);
-        try{ await sb.auth.signOut(); }catch(e){}
-        window.currentUser=null;
-        if(typeof currentSubscriptionPlan!=="undefined") currentSubscriptionPlan="free";
-        if(typeof currentSubscriptionExpiresAt!=="undefined") currentSubscriptionExpiresAt=null;
-        document.getElementById("appSection")?.classList.add("hidden");
-        document.getElementById("authSection")?.classList.remove("hidden");
-        if(typeof showLogin==="function") showLogin();
-        if(typeof toast==="function") toast(status==="banned"?"تم حظر هذا الحساب من استخدام كراستي.":"تم طرد هذا الحساب من كراستي.","error");
-      }
-    }catch(e){ console.warn("account status check",e); }
-    finally{ statusCheckBusy=false; }
-  }
-  function startStatusWatch(){
-    if(statusWatchTimer) clearInterval(statusWatchTimer);
-    statusWatchTimer=setInterval(enforceAccountStatus,10000);
-  }
-  window.addEventListener("focus",enforceAccountStatus);
-  document.addEventListener("visibilitychange",()=>{if(!document.hidden) enforceAccountStatus();});
-  const oldShowApp=window.showApp;
-  if(typeof oldShowApp==="function"){
-    window.showApp=async function(){
-      const r=await oldShowApp.apply(this,arguments);
-      startStatusWatch();
-      return r;
-    };
-  }
-})();
-</script>
-
 </body></html>`;
 
     const w=window.open("","_blank");

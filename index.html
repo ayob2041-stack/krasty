@@ -2890,7 +2890,7 @@ html.krasty-light td{color:#1e293b;}
                 <div class="card-header">
                     <div>
                         <div class="card-title">💸 مصروفاتي</div>
-                        <div class="muted" style="margin-top:5px;font-size:12px;">سجّل المبالغ التي استلمتها والمبالغ التي صرفتها، مع طريقة الدفع وتفاصيل المصروف.</div>
+                        <div class="muted" style="margin-top:5px;font-size:12px;">سجّل المبالغ التي المبالغ المستلمةها والمبالغ التي المبالغ المصروفةها، مع طريقة الدفع وتفاصيل المصروف.</div>
                     </div>
                     <button class="btn btn-primary btn-small" onclick="openExpenseModal()">＋ إضافة حركة</button>
                 </div>
@@ -2899,7 +2899,7 @@ html.krasty-light td{color:#1e293b;}
                     <div class="invoice-search-tools" style="margin-bottom:14px;">
                         <input id="expenseDateFrom" class="input" type="date" aria-label="من تاريخ">
                         <input id="expenseDateTo" class="input" type="date" aria-label="إلى تاريخ">
-                        <select id="expenseTypeFilter" class="input"><option value="">الكل</option><option value="income">استلمت</option><option value="expense">صرفت</option></select>
+                        <select id="expenseTypeFilter" class="input"><option value="">الكل</option><option value="income">المبالغ المستلمة</option><option value="expense">المبالغ المصروفة</option></select>
                         <button class="btn btn-cyan btn-small" onclick="loadExpenses()">🔍 بحث</button>
                         <button class="btn btn-secondary btn-small" onclick="clearExpenseFilters()">مسح</button>
                         <button class="btn btn-primary btn-small" onclick="printMonthlyBusinessReport()">🖨️ تقرير شهري</button>
@@ -4747,6 +4747,8 @@ async function saveProfileRecordFromAuth(user){
 let profileNameChangedAt = null;
 let identityChangeUsed = false;
 let identitySupportUnlocked = false;
+let currentAccountStatus = "active";
+let identityRequiredByAdmin = false;
 // ضع هنا كود الدعم الذي تعطيه للمستخدم عبر واتساب عند السماح له بتعديل الهوية.
 const IDENTITY_CHANGE_SUPPORT_CODE = "CHANGE-ID-2026";
 let invoiceCameraStream = null;
@@ -4777,9 +4779,9 @@ function updateProfileNameLock(nameChangedAt){
 
 async function loadMyProfile(){
     if(!currentUser) return null;
-    const {data,error}=await sb.from("krasty_profiles").select("full_name,father_name,country_code,phone,identity_type,identity_number,identity_change_used,name_changed_at").eq("user_id",currentUser.id).maybeSingle();
+    const {data,error}=await sb.from("krasty_profiles").select("full_name,father_name,country_code,phone,identity_type,identity_number,identity_change_used,name_changed_at,identity_required,account_status").eq("user_id",currentUser.id).maybeSingle();
     if(error) throw error;
-    return data||{full_name:currentUser.user_metadata?.full_name||"",father_name:currentUser.user_metadata?.father_name||"",country_code:currentUser.user_metadata?.country_code||"+218",phone:currentUser.user_metadata?.phone||"",identity_type:currentUser.user_metadata?.identity_type||"passport",identity_number:currentUser.user_metadata?.identity_number||"",name_changed_at:null};
+    return data||{full_name:currentUser.user_metadata?.full_name||"",father_name:currentUser.user_metadata?.father_name||"",country_code:currentUser.user_metadata?.country_code||"+218",phone:currentUser.user_metadata?.phone||"",identity_type:currentUser.user_metadata?.identity_type||"passport",identity_number:currentUser.user_metadata?.identity_number||"",name_changed_at:null,identity_required:false,account_status:"active"};
 }
 async function openProfile(){
     if(!currentUser) return;
@@ -4798,6 +4800,8 @@ async function openProfile(){
         $("profileName").dataset.previousIdentityType=p.identity_type||"";
         identityChangeUsed=!!p.identity_change_used;
         identitySupportUnlocked=false;
+        identityRequiredByAdmin=!!p.identity_required;
+        currentAccountStatus=String(p.account_status||"active");
         updateIdentityLock();
         $("profileEmail").value=currentUser.email||"";
         $("accountName").textContent=p.full_name||"الملف الشخصي";
@@ -5316,9 +5320,20 @@ async function showApp(){
         $("profileEmail").value=currentUser.email||"";
         try{
             const p=await loadMyProfile();
+            currentAccountStatus=String(p.account_status||"active");
+            identityRequiredByAdmin=!!p.identity_required;
+            if(["kicked","banned"].includes(currentAccountStatus)){
+                toast(currentAccountStatus==="banned" ? "تم حظر هذا الحساب من استخدام كراستي." : "تم طرد هذا الحساب من كراستي.", "error");
+                await sb.auth.signOut();
+                return;
+            }
             $("userEmail").textContent=p.full_name || "مستخدم كراستي";
             $("accountName").textContent=p.full_name||"الملف الشخصي";
             $("accountFather").textContent=p.father_name?`اسم الأب: ${p.father_name}`:"";
+            if(identityRequiredByAdmin && !String(p.identity_number||"").trim()){
+                toast("يجب إضافة بيانات الهوية لمتابعة استخدام كراستي.", "warning");
+                setTimeout(()=>openProfile(),250);
+            }
         }catch(e){ console.warn("profile load",e); }
 
     }
@@ -8314,7 +8329,7 @@ function renderAdminUsers(){
     box.innerHTML=list.map((u,i)=>{
         const plan=KRastyPlanKey(u.plan||"free");
         const expires=u.expires_at?new Date(u.expires_at).toLocaleDateString("ar-LY"):"—";
-        return `<div class="admin-user-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div style="font-weight:900;">${escapeHtml(u.full_name||"بدون اسم")} ${u.father_name?`<span class="muted">بن ${escapeHtml(u.father_name)}</span>`:""}</div><div style="margin-top:5px;direction:ltr;text-align:right;word-break:break-all;">${escapeHtml(u.email||"")}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهاتف: ${escapeHtml((u.country_code||"")+" "+(u.phone||"—"))}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهوية: ${escapeHtml(u.identity_type==="passport"?"جواز السفر":u.identity_type==="license"?"رخصة القيادة":u.identity_type||"—")} — ${escapeHtml(u.identity_number||"—")}</div><div class="muted" style="margin-top:5px;font-size:12px;">تاريخ التسجيل: ${u.created_at ? new Date(u.created_at).toLocaleString('ar-LY') : 'غير متاح'}</div><div class="muted" style="margin-top:4px;">الباقة: <strong>${escapeHtml(KRASTY_PLANS[plan]?.name||plan)}</strong> — الانتهاء: ${escapeHtml(expires)}</div></div><div class="current-plan">#${i+1}</div></div><div class="admin-user-actions"><select id="adminPlan_${i}" class="input"><option value="free" ${plan==='free'?'selected':''}>مجانية</option><option value="premium" ${plan==='premium'?'selected':''}>20 د.ل — متقدمة</option><option value="business" ${plan==='business'?'selected':''}>50 د.ل — احترافية</option><option value="gold" ${plan==='gold'?'selected':''}>200 د.ل — ذهبية</option></select><button class="btn btn-primary btn-small" onclick='adminActivateUserByEmail(${JSON.stringify(u.email||"")},${i},false)'>تفعيل 30 يومًا</button><button class="btn btn-secondary btn-small" onclick='adminActivateUserByEmail(${JSON.stringify(u.email||"")},${i},true)'>تجديد 30 يومًا</button><button class="btn btn-danger btn-small" onclick='adminCancelSubscriptionByEmail(${JSON.stringify(u.email||"")})'>إلغاء الاشتراك</button></div></div>`;
+        return `<div class="admin-user-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div style="font-weight:900;">${escapeHtml(u.full_name||"بدون اسم")} ${u.father_name?`<span class="muted">بن ${escapeHtml(u.father_name)}</span>`:""}</div><div style="margin-top:5px;direction:ltr;text-align:right;word-break:break-all;">${escapeHtml(u.email||"")}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهاتف: ${escapeHtml((u.country_code||"")+" "+(u.phone||"—"))}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهوية: ${escapeHtml(u.identity_type==="passport"?"جواز السفر":u.identity_type==="license"?"رخصة القيادة":u.identity_type||"—")} — ${escapeHtml(u.identity_number||"—")}</div><div class="muted" style="margin-top:5px;font-size:12px;">تاريخ التسجيل: ${u.created_at ? new Date(u.created_at).toLocaleString('ar-LY') : 'غير متاح'}</div><div class="muted" style="margin-top:4px;">الباقة: <strong>${escapeHtml(KRASTY_PLANS[plan]?.name||plan)}</strong> — الانتهاء: ${escapeHtml(expires)}</div><div class="muted" style="margin-top:4px;">الحالة: <strong>${escapeHtml(String(u.account_status||"active")==="banned"?"⛔ محظور":String(u.account_status||"active")==="kicked"?"🚪 مطرود":"✅ نشط")}</strong>${u.identity_required&&!String(u.identity_number||"").trim()?' — 🪪 مطلوب إدخال الهوية':''}</div></div><div class="current-plan">#${i+1}</div></div><div class="admin-user-actions"><select id="adminPlan_${i}" class="input"><option value="free" ${plan==='free'?'selected':''}>مجانية</option><option value="premium" ${plan==='premium'?'selected':''}>20 د.ل — متقدمة</option><option value="business" ${plan==='business'?'selected':''}>50 د.ل — احترافية</option><option value="gold" ${plan==='gold'?'selected':''}>200 د.ل — ذهبية</option></select><button class="btn btn-primary btn-small" onclick='adminActivateUserByEmail(${JSON.stringify(u.email||"")},${i},false)'>تفعيل لمدة 30 يومًا</button><button class="btn btn-secondary btn-small" onclick='adminActivateUserByEmail(${JSON.stringify(u.email||"")},${i},true)'>تجديد لمدة 30 يومًا</button><button class="btn btn-danger btn-small" onclick='adminCancelSubscriptionByEmail(${JSON.stringify(u.email||"")})'>إلغاء الاشتراك</button>${!String(u.identity_number||"").trim()?`<button class="btn btn-warning btn-small" onclick='adminRequestIdentity(${JSON.stringify(u.email||"")})'>🪪 طلب هوية</button>`:""}<button class="btn btn-warning btn-small" onclick='adminKickUser(${JSON.stringify(u.email||"")})'>🚪 طرد</button><button class="btn btn-danger btn-small" onclick='adminBanUser(${JSON.stringify(u.email||"")})'>⛔ باند</button></div></div>`;
     }).join("");
     box._filteredUsers=list;
 }
@@ -8402,6 +8417,55 @@ async function adminCancelSubscription(index){
     }
 }
 
+
+async function adminRequestIdentity(email){
+    if(!isAdminUser()) return;
+    email=String(email||"").trim().toLowerCase();
+    if(!email) return;
+    if(!confirm(`هل تريد إجبار ${email} على إضافة الهوية؟\n\nسيتم منع استخدام التطبيق حتى يضيف المستخدم الهوية.`)) return;
+    try{
+        const result=await sb.rpc("krasty_admin_request_identity",{p_email:email});
+        if(result.error) throw result.error;
+        toast("تم إرسال طلب الهوية للمستخدم، وسيُطلب منه إدخالها قبل متابعة التطبيق.","success");
+        await loadAdminUsers();
+    }catch(error){
+        console.error("adminRequestIdentity",error);
+        toast(error?.message||"تعذر طلب الهوية. تأكد من تشغيل SQL الخاص بالإدارة.","error");
+    }
+}
+
+async function adminKickUser(email){
+    if(!isAdminUser()) return;
+    email=String(email||"").trim().toLowerCase();
+    if(!email) return;
+    if(!confirm(`هل تريد طرد ${email}؟\n\nسيتم منعه من استخدام التطبيق وتسجيل خروجه.`)) return;
+    try{
+        const result=await sb.rpc("krasty_admin_set_account_status",{p_email:email,p_status:"kicked"});
+        if(result.error) throw result.error;
+        toast("تم طرد المستخدم.","success");
+        await loadAdminUsers();
+    }catch(error){
+        console.error("adminKickUser",error);
+        toast(error?.message||"تعذر طرد المستخدم. تأكد من تشغيل SQL الخاص بالإدارة.","error");
+    }
+}
+
+async function adminBanUser(email){
+    if(!isAdminUser()) return;
+    email=String(email||"").trim().toLowerCase();
+    if(!email) return;
+    if(!confirm(`⚠️ هل تريد عمل باند نهائي على ${email}؟\n\nسيتم حظر الحساب من استخدام كراستي.`)) return;
+    try{
+        const result=await sb.rpc("krasty_admin_set_account_status",{p_email:email,p_status:"banned"});
+        if(result.error) throw result.error;
+        toast("تم حظر المستخدم.","success");
+        await loadAdminUsers();
+    }catch(error){
+        console.error("adminBanUser",error);
+        toast(error?.message||"تعذر حظر المستخدم. تأكد من تشغيل SQL الخاص بالإدارة.","error");
+    }
+}
+
 async function loadAdminUsers(){
     if(!isAdminUser()) return;
     const box=$("adminUsersList"), msg=$("adminMessage");
@@ -8469,7 +8533,7 @@ async function loadCurrentSubscription(){
     currentSubscriptionExpiresAt=null;
     if(!currentUser?.id) return;
     try{
-        const {data,error}=await sb.from("krasty_subscriptions").select("plan,expires_at,updated_at").eq("user_id",currentUser.id).maybeSingle();
+        const {data,error}=await sb.from("krasty_subscriptions").select("plan,expires_at,updated_at").eq("user_id",currentUser.id).order("updated_at",{ascending:false}).limit(1).maybeSingle();
         if(error) throw error;
         if(data){
             const expiry=data.expires_at ? new Date(data.expires_at).getTime() : null;
@@ -8749,6 +8813,7 @@ async function refreshSubscriptionLive(){
     const newExpires=currentSubscriptionExpiresAt||null;
     updatePlanBadge();
     renderProfileSubscription();
+    try{ updateExpensesAccessUI(); }catch(e){}
     if(newPlan!==oldPlan || newExpires!==oldExpires) showSubscriptionWelcome();
 }
 function startSubscriptionWatch(){
@@ -9318,7 +9383,7 @@ async function loadExpenses(){
         const {data,error}=await sb.from("krasty_expenses").select("*").eq("user_id",currentUser.id).eq("project_id",currentProjectId).order("expense_date",{ascending:false}).order("created_at",{ascending:false});
         if(error) throw error;
         expenses=data||[]; renderExpenses();
-    }catch(e){ console.error(e); $("expensesList") && ($("expensesList").innerHTML=emptyState("⚠️","تعذر تحميل المصروفات. تأكد من تشغيل SQL الخاص بالميزة.")); }
+    }catch(e){ console.error(e); $("expensesList") && ($("expensesList").innerHTML=emptyState("⚠️","تعذّر تحميل المصروفات. يُرجى التأكد من إعداد قاعدة البيانات الخاصة بالميزة.")); }
 }
 function renderExpenses(){
     const box=$("expensesList"), stats=$("expenseStats"); if(!box||!stats) return;
@@ -9327,9 +9392,9 @@ function renderExpenses(){
     const received=list.filter(x=>x.type==="income").reduce((s,x)=>s+Number(x.amount||0),0);
     const spent=list.filter(x=>x.type==="expense").reduce((s,x)=>s+Number(x.amount||0),0);
     const net=received-spent;
-    stats.innerHTML=`<div class="stat-card"><div class="stat-label">إجمالي ما استلمت</div><div class="stat-value">${money(received)}</div><div class="stat-icon">💰</div></div><div class="stat-card"><div class="stat-label">إجمالي ما صرفت</div><div class="stat-value">${money(spent)}</div><div class="stat-icon">💸</div></div><div class="stat-card"><div class="stat-label">الصافي</div><div class="stat-value">${money(net)}</div><div class="stat-icon">📊</div></div>`;
-    if(!list.length){ box.innerHTML=emptyState("💸","لا توجد حركات في الفترة المحددة"); return; }
-    box.innerHTML=`<div class="table-wrap"><table><thead><tr><th>النوع</th><th>المبلغ</th><th>طريقة الدفع</th><th>في إيش</th><th>التفاصيل</th><th>التاريخ</th><th>إجراء</th></tr></thead><tbody>${list.map(x=>`<tr class="expense-row-${x.type}"><td>${x.type==="income"?'<span class="badge badge-success">استلمت</span>':'<span class="badge badge-danger">صرفت</span>'}</td><td><strong>${money(x.amount)} د.ل</strong></td><td>${x.payment_method==="card"?"💳 بطاقة":"💵 كاش"}</td><td>${escapeHtml(x.category||"—")}</td><td>${escapeHtml(x.notes||"—")}</td><td>${escapeHtml(x.expense_date||"—")}</td><td><button class="btn btn-secondary btn-small" onclick="openExpenseModal('${x.id}')">تعديل</button><button class="btn btn-danger btn-small" onclick="deleteExpense('${x.id}')">حذف</button></td></tr>`).join("")}</tbody></table></div>`;
+    stats.innerHTML=`<div class="stat-card"><div class="stat-label">إجمالي ما المبالغ المستلمة</div><div class="stat-value">${money(received)}</div><div class="stat-icon">💰</div></div><div class="stat-card"><div class="stat-label">إجمالي ما المبالغ المصروفة</div><div class="stat-value">${money(spent)}</div><div class="stat-icon">💸</div></div><div class="stat-card"><div class="stat-label">الصافي</div><div class="stat-value">${money(net)}</div><div class="stat-icon">📊</div></div>`;
+    if(!list.length){ box.innerHTML=emptyState("💸","لا توجد حركات مالية في الفترة المحددة"); return; }
+    box.innerHTML=`<div class="table-wrap"><table><thead><tr><th>النوع</th><th>المبلغ</th><th>طريقة الدفع</th><th>في ماذا</th><th>التفاصيل</th><th>التاريخ</th><th>إجراء</th></tr></thead><tbody>${list.map(x=>`<tr class="expense-row-${x.type}"><td>${x.type==="income"?'<span class="badge badge-success">المبالغ المستلمة</span>':'<span class="badge badge-danger">المبالغ المصروفة</span>'}</td><td><strong>${money(x.amount)} د.ل</strong></td><td>${x.payment_method==="card"?"💳 بطاقة":"💵 نقدًا"}</td><td>${escapeHtml(x.category||"—")}</td><td>${escapeHtml(x.notes||"—")}</td><td>${escapeHtml(x.expense_date||"—")}</td><td><button class="btn btn-secondary btn-small" onclick="openExpenseModal('${x.id}')">تعديل</button><button class="btn btn-danger btn-small" onclick="deleteExpense('${x.id}')">حذف</button></td></tr>`).join("")}</tbody></table></div>`;
 }
 function openExpenseModal(id=null){
     if(!requireGoldFeature()) return;
@@ -9340,17 +9405,17 @@ function openExpenseModal(id=null){
 }
 async function saveExpense(){
     if(!requireGoldFeature()) return;
-    const amount=Number($("expenseAmount")?.value||0); if(amount<=0){toast("اكتب مبلغاً صحيحاً.","error");return;}
+    const amount=Number($("expenseAmount")?.value||0); if(amount<=0){toast("أدخل مبلغًا صحيحًا.","error");return;}
     const payload={user_id:currentUser.id,project_id:currentProjectId,type:$("expenseType").value,amount,payment_method:$("expensePayment").value,category:$("expenseCategory").value.trim(),notes:$("expenseNotes").value.trim(),expense_date:$("expenseDate").value||today(),updated_at:new Date().toISOString()};
     try{
         if(editingExpenseId){ const {data,error}=await sb.from("krasty_expenses").update(payload).eq("id",editingExpenseId).eq("user_id",currentUser.id).select().single(); if(error)throw error; expenses=expenses.map(x=>x.id===data.id?data:x); }
         else { const {data,error}=await sb.from("krasty_expenses").insert(payload).select().single(); if(error)throw error; expenses=[data,...expenses]; }
         closeModal("expenseModal"); renderExpenses(); toast("تم حفظ الحركة المالية.","success");
-    }catch(e){console.error(e);toast(e.message||"تعذر حفظ الحركة.","error");}
+    }catch(e){console.error(e);toast(e.message||"تعذّر حفظ الحركة.","error");}
 }
 async function deleteExpense(id){
     if(!requireGoldFeature())return; const x=expenses.find(e=>e.id===id); if(!x||!confirm("هل تريد حذف هذه الحركة؟"))return;
-    try{const {error}=await sb.from("krasty_expenses").delete().eq("id",id).eq("user_id",currentUser.id);if(error)throw error;expenses=expenses.filter(e=>e.id!==id);renderExpenses();toast("تم حذف الحركة.","success");}catch(e){toast(e.message||"تعذر الحذف.","error");}
+    try{const {error}=await sb.from("krasty_expenses").delete().eq("id",id).eq("user_id",currentUser.id);if(error)throw error;expenses=expenses.filter(e=>e.id!==id);renderExpenses();toast("تم حذف الحركة.","success");}catch(e){toast(e.message||"تعذّر حذف الحركة.","error");}
 }
 function clearExpenseFilters(){ $("expenseDateFrom").value="";$("expenseDateTo").value="";$("expenseTypeFilter").value="";renderExpenses(); }
 function printMonthlyBusinessReport(){
@@ -9363,15 +9428,15 @@ function printMonthlyBusinessReport(){
     const invoiceTotal=inv.reduce((s,x)=>s+Number(x.total||0),0), invoicePaid=inv.reduce((s,x)=>s+Number(x.paid||0),0), invoiceRemaining=inv.reduce((s,x)=>s+Number(x.remaining||0),0);
     const project=projects.find(p=>p.id===currentProjectId);
     const rows=inv.map(i=>`<tr><td>${escapeHtml(i.invoice_number||"-")}</td><td>${escapeHtml(customerName(i.customer_id))}</td><td>${escapeHtml(i.invoice_date||"-")}</td><td>${money(i.total)} د.ل</td><td>${money(i.paid)} د.ل</td><td>${money(i.remaining)} د.ل</td></tr>`).join("");
-    const expRows=mov.map(x=>`<tr><td>${x.type==="income"?"استلمت":"صرفت"}</td><td>${money(x.amount)} د.ل</td><td>${x.payment_method==="card"?"بطاقة":"كاش"}</td><td>${escapeHtml(x.category||"-")}</td><td>${escapeHtml(x.notes||"-")}</td><td>${escapeHtml(x.expense_date||"-")}</td></tr>`).join("");
+    const expRows=mov.map(x=>`<tr><td>${x.type==="income"?"المبالغ المستلمة":"المبالغ المصروفة"}</td><td>${money(x.amount)} د.ل</td><td>${x.payment_method==="card"?"بطاقة":"نقدًا"}</td><td>${escapeHtml(x.category||"-")}</td><td>${escapeHtml(x.notes||"-")}</td><td>${escapeHtml(x.expense_date||"-")}</td></tr>`).join("");
     const w=window.open("","_blank"); if(!w){toast("المتصفح منع نافذة التقرير.","error");return;}
-    w.document.write(`<html dir="rtl"><head><meta charset="utf-8"><title>تقرير شهري - ${month}</title><style>body{font-family:Arial,sans-serif;padding:30px;color:#111}h1,h2{text-align:center}.cards{display:flex;gap:10px;flex-wrap:wrap}.card{border:1px solid #ddd;border-radius:10px;padding:12px;flex:1;min-width:150px}.num{font-size:20px;font-weight:800}table{width:100%;border-collapse:collapse;margin:15px 0}th,td{border:1px solid #ddd;padding:8px;text-align:right}th{background:#f3f4f6}.muted{color:#666}</style></head><body><h1>تقرير شهري للأعمال</h1><h2>${escapeHtml(project?.name||"المشروع")} — ${month}</h2><div class="cards"><div class="card">عدد الفواتير<div class="num">${inv.length}</div></div><div class="card">إجمالي الفواتير<div class="num">${money(invoiceTotal)} د.ل</div></div><div class="card">المدفوع<div class="num">${money(invoicePaid)} د.ل</div></div><div class="card">المتبقي<div class="num">${money(invoiceRemaining)} د.ل</div></div><div class="card">استلمت<div class="num">${money(received)} د.ل</div></div><div class="card">صرفت<div class="num">${money(spent)} د.ل</div></div><div class="card">الصافي<div class="num">${money(received-spent)} د.ل</div></div></div><h2>تفاصيل الفواتير</h2><table><thead><tr><th>رقم</th><th>العميل</th><th>التاريخ</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th></tr></thead><tbody>${rows||'<tr><td colspan="6">لا توجد فواتير</td></tr>'}</tbody></table><h2>تفاصيل الحركات المالية</h2><table><thead><tr><th>النوع</th><th>المبلغ</th><th>الدفع</th><th>في إيش</th><th>التفاصيل</th><th>التاريخ</th></tr></thead><tbody>${expRows||'<tr><td colspan="6">لا توجد حركات</td></tr>'}</tbody></table><p class="muted">تم إنشاء التقرير من بيانات كراستي.</p></body></html>`); w.document.close(); setTimeout(()=>{w.focus();w.print();},500);
+    w.document.write(`<html dir="rtl"><head><meta charset="utf-8"><title>تقرير شهري - ${month}</title><style>body{font-family:Arial,sans-serif;padding:30px;color:#111}h1,h2{text-align:center}.cards{display:flex;gap:10px;flex-wrap:wrap}.card{border:1px solid #ddd;border-radius:10px;padding:12px;flex:1;min-width:150px}.num{font-size:20px;font-weight:800}table{width:100%;border-collapse:collapse;margin:15px 0}th,td{border:1px solid #ddd;padding:8px;text-align:right}th{background:#f3f4f6}.muted{color:#666}</style></head><body><h1>تقرير شهري للأعمال</h1><h2>${escapeHtml(project?.name||"المشروع")} — ${month}</h2><div class="cards"><div class="card">عدد الفواتير<div class="num">${inv.length}</div></div><div class="card">إجمالي الفواتير<div class="num">${money(invoiceTotal)} د.ل</div></div><div class="card">المدفوع<div class="num">${money(invoicePaid)} د.ل</div></div><div class="card">المتبقي<div class="num">${money(invoiceRemaining)} د.ل</div></div><div class="card">المبالغ المستلمة<div class="num">${money(received)} د.ل</div></div><div class="card">المبالغ المصروفة<div class="num">${money(spent)} د.ل</div></div><div class="card">الصافي<div class="num">${money(received-spent)} د.ل</div></div></div><h2>تفاصيل الفواتير</h2><table><thead><tr><th>رقم</th><th>العميل</th><th>التاريخ</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th></tr></thead><tbody>${rows||'<tr><td colspan="6">لا توجد فواتير</td></tr>'}</tbody></table><h2>تفاصيل الحركات المالية</h2><table><thead><tr><th>النوع</th><th>المبلغ</th><th>الدفع</th><th>في ماذا</th><th>التفاصيل</th><th>التاريخ</th></tr></thead><tbody>${expRows||'<tr><td colspan="6">لا توجد حركات</td></tr>'}</tbody></table><p class="muted">تم إنشاء التقرير من بيانات كراستي.</p></body></html>`); w.document.close(); setTimeout(()=>{w.focus();w.print();},500);
 }
 
 // Expense modal markup injected once, so it stays compatible with the existing single-file app.
 function ensureExpenseModal(){
     if($("expenseModal")) return;
-    const d=document.createElement("div"); d.id="expenseModal"; d.className="modal hidden"; d.innerHTML=`<div class="modal-content"><div class="modal-header"><div id="expenseModalTitle" class="modal-title">إضافة حركة مالية</div><button class="modal-close" onclick="closeModal('expenseModal')">×</button></div><div class="modal-body"><div class="field"><label>النوع</label><select id="expenseType" class="input"><option value="expense">صرفت</option><option value="income">استلمت</option></select></div><div class="field"><label>المبلغ</label><input id="expenseAmount" class="input" type="number" min="0" step="0.01" placeholder="0.00"></div><div class="field"><label>طريقة الدفع</label><select id="expensePayment" class="input"><option value="cash">💵 كاش</option><option value="card">💳 بطاقة</option></select></div><div class="field"><label>في إيش صرفتهم / مصدر المبلغ</label><input id="expenseCategory" class="input" placeholder="مثلاً مواد، بنزين، عمالة، استلام من عميل..."></div><div class="field"><label>التفاصيل</label><textarea id="expenseNotes" class="input" rows="3" placeholder="اكتب تفاصيل إضافية"></textarea></div><div class="field"><label>التاريخ</label><input id="expenseDate" class="input" type="date"></div></div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('expenseModal')">إلغاء</button><button class="btn btn-primary" onclick="saveExpense()">حفظ</button></div></div>`; document.body.appendChild(d);
+    const d=document.createElement("div"); d.id="expenseModal"; d.className="modal hidden"; d.innerHTML=`<div class="modal-box"><div class="modal-header"><div id="expenseModalTitle" class="modal-title">إضافة حركة مالية</div><button class="modal-close" onclick="closeModal('expenseModal')">×</button></div><div class="modal-body"><div class="field"><label>النوع</label><select id="expenseType" class="input"><option value="expense">المبالغ المصروفة</option><option value="income">المبالغ المستلمة</option></select></div><div class="field"><label>المبلغ</label><input id="expenseAmount" class="input" type="number" min="0" step="0.01" placeholder="0.00"></div><div class="field"><label>طريقة الدفع</label><select id="expensePayment" class="input"><option value="cash">💵 نقدًا</option><option value="card">💳 بطاقة</option></select></div><div class="field"><label>في ماذا المبالغ المصروفةهم / مصدر المبلغ</label><input id="expenseCategory" class="input" placeholder="مثل المواد أو الوقود أو العمالة أو المبالغ المستلمة من عميل..."></div><div class="field"><label>التفاصيل</label><textarea id="expenseNotes" class="input" rows="3" placeholder="اكتب تفاصيل إضافية"></textarea></div><div class="field"><label>التاريخ</label><input id="expenseDate" class="input" type="date"></div></div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('expenseModal')">إلغاء</button><button class="btn btn-primary" onclick="saveExpense()">حفظ</button></div></div>`; document.body.appendChild(d);
 }
 ensureExpenseModal();
 updateExpensesAccessUI();

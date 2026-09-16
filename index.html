@@ -2864,7 +2864,7 @@ html.krasty-light td{color:#1e293b;}
                             <div class="plan-subtitle">لمن يعتمد على كراستي بشكل يومي ويريد تجربة موسعة للصور والأرشيف.</div>
                             <ul class="plan-features">
                                 <li>كل مميزات الباقة المتقدمة</li>
-                                <li>رفع صور الفواتير وأرشفتها بشكل موسع</li>
+                                <li>رفع صور الفواتير وأرشفتها بشكل موسع</li>\n                                <li>حد أقصى <strong>60</strong> فاتورة وصورة وطباعة و60 رسالة واتساب شهرياً</li>
                                 <li>الوصول السريع إلى أرشيف الصور</li>
                                 <li>متابعة حسابات العملاء والدفعات بسهولة</li>
                                 <li>بدون نافذة العروض الترويجية داخل التطبيق</li>
@@ -2915,8 +2915,9 @@ html.krasty-light td{color:#1e293b;}
 
                 <div class="card-header">
 
-                    <div class="card-title">
-                        المشاريع
+                    <div>
+                        <div class="card-title">المشاريع</div>
+                        <div class="muted" style="margin-top:5px;font-size:12px;">📅 السجل الشهري والطباعة متاحان للباقة الذهبية فقط.</div>
                     </div>
 
                     <button
@@ -6857,6 +6858,7 @@ function renderProjects(){
 
                                 <div style="display:flex;gap:6px;flex-wrap:wrap;">
                                 <button class="btn btn-primary btn-small" onclick="selectProject('${project.id}');switchTab('dashboard')">فتح</button>
+                                <button class="btn btn-secondary btn-small" onclick="openKrastyMonthlyProjectReport('${project.id}')">📅 السجل الشهري</button>
                                 <button class="btn btn-secondary btn-small" onclick="renameProject('${project.id}')">✏️ تغيير الاسم</button>
                                 <button class="btn btn-danger btn-small" onclick="deleteProject('${project.id}')">🗑️ حذف</button>
                             </div>
@@ -8066,7 +8068,10 @@ function updatePlanBadge(){
     const top=$("topSubscriptionBadge");
     if(top) top.textContent=label;
     const wb=$("whatsappUsageBadge");
-    if(wb) wb.textContent=plan==="free" ? `واتساب: ${getWhatsAppUsage()}/10` : "واتساب: غير محدود";
+    if(wb) wb.textContent=(() => {
+        const lim=plan==="gold" ? Infinity : (KRASTY_USAGE_LIMITS[plan]?.whatsapp ?? (plan==="free" ? 10 : 30));
+        return lim===Infinity ? "واتساب: غير محدود" : `واتساب: ${getWhatsAppUsage()}/${lim}`;
+    })();
 }
 function openPlansOffer(){
     updatePlanBadge();
@@ -8460,7 +8465,7 @@ let invoiceImageRemoved = false;
 const KRASTY_USAGE_LIMITS = {
     free:     { invoices:5,  images:5,  prints:5  },
     premium:  { invoices:30, images:30, prints:30 },
-    business: { invoices:Infinity, images:Infinity, prints:Infinity },
+    business: { invoices:60, images:60, prints:60, whatsapp:60 },
     gold:     { invoices:Infinity, images:Infinity, prints:Infinity }
 };
 
@@ -8486,7 +8491,7 @@ function usageAllowed(type){
     return limit===Infinity || getUsage(type)<limit;
 }
 function usageLabel(type){
-    const names={invoices:"الفواتير",images:"صور الفواتير",prints:"الطباعـة"};
+    const names={invoices:"الفواتير",images:"صور الفواتير",prints:"الطباعة",whatsapp:"رسائل واتساب"};
     const limit=getPlanLimit(type);
     if(limit===Infinity) return `${names[type]}: غير محدودة`;
     return `${names[type]}: ${getUsage(type)}/${limit}`;
@@ -8501,12 +8506,12 @@ function maybeWarnUsage(type){
     if(limit===Infinity) return;
     const remaining=usageRemaining(type);
     if(remaining>0 && remaining<=2){
-        const names={invoices:"الفواتير",images:"صور الفواتير",prints:"الطباعة"};
-        toast(`⚠️ تنبيه: متبقي لك ${remaining} من ${names[type]} في الباقة المجانية. بعد انتهاء الحد ستحتاج إلى الاشتراك.`,`warning`);
+        const names={invoices:"الفواتير",images:"صور الفواتير",prints:"الطباعة",whatsapp:"رسائل واتساب"};
+        toast(`⚠️ تنبيه: متبقي لك ${remaining} من ${names[type]} في باقتك الحالية. بعد انتهاء الحد ستحتاج إلى الترقية.`,`warning`);
     }
 }
 function showUsageUpgrade(type, extra=""){
-    const names={invoices:"الفواتير",images:"صور الفواتير",prints:"الطباعة"};
+    const names={invoices:"الفواتير",images:"صور الفواتير",prints:"الطباعة",whatsapp:"رسائل واتساب"};
     const limit=getPlanLimit(type);
     const used=getUsage(type);
     openPlansOffer();
@@ -9148,77 +9153,126 @@ renderInvoices=function(){
         content.insertBefore(actions, content.firstChild);
     };
 
-    window.printMonthlyBusinessReport = function(){
+    window.openKrastyMonthlyProjectReport = async function(projectId){
         if(typeof requireGoldFeature === "function" && !requireGoldFeature()) return;
-        if(!currentUser) return;
+        if(!currentUser){ toast("يرجى تسجيل الدخول أولاً.","error"); return; }
 
-        const w = window.open("", "_blank");
+        const project=(projects||[]).find(p=>p.id===projectId);
+        if(!project){ toast("المشروع غير موجود.","error"); return; }
+
+        // Open immediately from the click so popup blockers do not prevent printing later.
+        const w=window.open("","_blank");
         if(!w){
-            if(typeof toast === "function") toast("المتصفح منع نافذة التقرير. اسمح بالنوافذ المنبثقة ثم حاول مرة أخرى.","error");
+            toast("المتصفح منع نافذة السجل الشهري. اسمح بالنوافذ المنبثقة ثم حاول مرة أخرى.","error");
             return;
         }
 
-        const month = prompt("اكتب الشهر بصيغة YYYY-MM لإصدار التقرير الشهري:", new Date().toISOString().slice(0,7));
+        const month=prompt(
+            "اكتب الشهر بصيغة YYYY-MM لإصدار السجل الشهري:",
+            new Date().toISOString().slice(0,7)
+        );
         if(!month || !/^\d{4}-\d{2}$/.test(month)){
             try{w.close();}catch(e){}
             return;
         }
 
-        const inv = typeof projectInvoices === "function"
-            ? projectInvoices().filter(i=>String(i.invoice_date||"").startsWith(month))
-            : (invoices||[]).filter(i=>i.project_id===currentProjectId && String(i.invoice_date||"").startsWith(month));
+        try{
+            const inv=(invoices||[]).filter(i =>
+                i.project_id===projectId &&
+                String(i.invoice_date||"").startsWith(month)
+            );
 
-        const mov = (typeof expenses !== "undefined" ? expenses : []).filter(x=>String(x.expense_date||"").startsWith(month));
-        const received = mov.filter(x=>x.type==="income").reduce((s,x)=>s+Number(x.amount||0),0);
-        const spent = mov.filter(x=>x.type==="expense").reduce((s,x)=>s+Number(x.amount||0),0);
-        const invoiceTotal = inv.reduce((s,x)=>s+Number(x.total||0),0);
-        const invoicePaid = inv.reduce((s,x)=>s+Number(x.paid||0),0);
-        const invoiceRemaining = inv.reduce((s,x)=>s+Number(x.remaining||0),0);
-        const project = (projects||[]).find(p=>p.id===currentProjectId);
+            // Load movements for the selected project, not only the currently opened project.
+            let mov=[];
+            if(sb && currentUser?.id){
+                const {data,error}=await sb.from("krasty_expenses")
+                    .select("*")
+                    .eq("user_id",currentUser.id)
+                    .eq("project_id",projectId)
+                    .gte("expense_date",month+"-01")
+                    .lt("expense_date",new Date(
+                        Number(month.slice(0,4)),
+                        Number(month.slice(5,7)),
+                        1
+                    ).toISOString().slice(0,10))
+                    .order("expense_date",{ascending:true})
+                    .order("created_at",{ascending:true});
+                if(error) throw error;
+                mov=data||[];
+            }
 
-        const rows = inv.length ? inv.map(i =>
-            '<tr><td>' + escapeForPrint(i.invoice_number||"-") + '</td>' +
-            '<td>' + escapeForPrint(typeof customerName==="function" ? customerName(i.customer_id) : "-") + '</td>' +
-            '<td>' + escapeForPrint(i.invoice_date||"-") + '</td>' +
-            '<td>' + money(i.total) + ' د.ل</td><td>' + money(i.paid) + ' د.ل</td><td>' + money(i.remaining) + ' د.ل</td></tr>'
-        ).join("") : '<tr><td colspan="6">لا توجد فواتير</td></tr>';
+            const received=mov.filter(x=>x.type==="income")
+                .reduce((sum,x)=>sum+Number(x.amount||0),0);
+            const spent=mov.filter(x=>x.type==="expense")
+                .reduce((sum,x)=>sum+Number(x.amount||0),0);
+            const invoiceTotal=inv.reduce((sum,x)=>sum+Number(x.total||0),0);
+            const invoicePaid=inv.reduce((sum,x)=>sum+Number(x.paid||0),0);
+            const invoiceRemaining=inv.reduce((sum,x)=>sum+Number(x.remaining||0),0);
 
-        const expRows = mov.length ? mov.map(x =>
-            '<tr><td>' + (x.type==="income" ? "استلمت" : "صرفت") + '</td>' +
-            '<td>' + money(x.amount) + ' د.ل</td><td>' + (x.payment_method==="card" ? "بطاقة" : "كاش") + '</td>' +
-            '<td>' + escapeForPrint(x.category||"-") + '</td><td>' + escapeForPrint(x.notes||"-") + '</td>' +
-            '<td>' + escapeForPrint(x.expense_date||"-") + '</td></tr>'
-        ).join("") : '<tr><td colspan="6">لا توجد حركات مالية</td></tr>';
+            const rows=inv.length ? inv.map(i =>
+                '<tr><td>'+escapeForPrint(i.invoice_number||"-")+'</td>'+
+                '<td>'+escapeForPrint(typeof customerName==="function" ? customerName(i.customer_id) : "-")+'</td>'+
+                '<td>'+escapeForPrint(i.invoice_date||"-")+'</td>'+
+                '<td>'+money(i.total)+' د.ل</td>'+
+                '<td>'+money(i.paid)+' د.ل</td>'+
+                '<td>'+money(i.remaining)+' د.ل</td></tr>'
+            ).join("") : '<tr><td colspan="6">لا توجد فواتير في هذا الشهر</td></tr>';
 
-        const html =
-            '<div class="header"><h1>كراستي</h1><div>تقرير شهري للأعمال</div></div>' +
-            '<h2>' + escapeForPrint(project?.name || "المشروع") + ' — ' + escapeForPrint(month) + '</h2>' +
-            '<div class="cards">' +
-              '<div class="card">عدد الفواتير<div class="num">' + inv.length + '</div></div>' +
-              '<div class="card">إجمالي الفواتير<div class="num">' + money(invoiceTotal) + ' د.ل</div></div>' +
-              '<div class="card">المدفوع<div class="num">' + money(invoicePaid) + ' د.ل</div></div>' +
-              '<div class="card">المتبقي<div class="num">' + money(invoiceRemaining) + ' د.ل</div></div>' +
-              '<div class="card">استلمت<div class="num">' + money(received) + ' د.ل</div></div>' +
-              '<div class="card">صرفت<div class="num">' + money(spent) + ' د.ل</div></div>' +
-              '<div class="card">الصافي<div class="num">' + money(received-spent) + ' د.ل</div></div>' +
-            '</div>' +
-            '<h2>تفاصيل الفواتير</h2>' +
-            '<table><thead><tr><th>رقم</th><th>العميل</th><th>التاريخ</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th></tr></thead><tbody>' +
-            rows + '</tbody></table>' +
-            '<h2>تفاصيل الحركات المالية</h2>' +
-            '<table><thead><tr><th>النوع</th><th>المبلغ</th><th>الدفع</th><th>في إيش</th><th>التفاصيل</th><th>التاريخ</th></tr></thead><tbody>' +
-            expRows + '</tbody></table>' +
-            '<p class="muted" style="text-align:center;">تم إنشاء التقرير من بيانات كراستي.</p>';
+            const expRows=mov.length ? mov.map(x =>
+                '<tr><td>'+(x.type==="income"?"استلمت":"صرفت")+'</td>'+
+                '<td>'+money(x.amount)+' د.ل</td>'+
+                '<td>'+(x.payment_method==="card"?"بطاقة":"كاش")+'</td>'+
+                '<td>'+escapeForPrint(x.category||"-")+'</td>'+
+                '<td>'+escapeForPrint(x.notes||"-")+'</td>'+
+                '<td>'+escapeForPrint(x.expense_date||"-")+'</td></tr>'
+            ).join("") : '<tr><td colspan="6">لا توجد حركات مالية في هذا الشهر</td></tr>';
 
-        const doc = w.document;
-        doc.open();
-        doc.write('<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير شهري - ' +
-            escapeForPrint(month) +
-            '</title><style>body{font-family:Tahoma,Arial,sans-serif;color:#111;padding:30px;line-height:1.7}.print-page{max-width:900px;margin:auto}.header{text-align:center;border-bottom:2px solid #111;padding-bottom:18px;margin-bottom:22px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.card{border:1px solid #bbb;border-radius:10px;padding:12px;text-align:center}.num{font-size:20px;font-weight:900}h1,h2{text-align:center}table{width:100%;border-collapse:collapse;margin:16px 0 24px}th,td{border:1px solid #999;padding:9px;text-align:right}th{background:#f1f1f1}.muted{color:#555}.print-actions{text-align:center;margin:25px 0}@media print{.print-actions{display:none}}@media(max-width:700px){.cards{grid-template-columns:1fr}}</style></head><body><div class="print-page">' +
-            html +
-            '<div class="print-actions"><button onclick="window.print()">🖨️ طباعة / حفظ PDF</button></div></div></body></html>');
-        doc.close();
-        setTimeout(function(){ try{w.focus();w.print();}catch(e){} },350);
+            const content=
+                '<div class="header"><h1>كراستي</h1><div>السجل الشهري للمشروع</div></div>'+
+                '<h2>'+escapeForPrint(project.name||"المشروع")+' — '+escapeForPrint(month)+'</h2>'+
+                '<div class="cards">'+
+                '<div class="card">عدد الفواتير<div class="num">'+inv.length+'</div></div>'+
+                '<div class="card">إجمالي الفواتير<div class="num">'+money(invoiceTotal)+' د.ل</div></div>'+
+                '<div class="card">المدفوع<div class="num">'+money(invoicePaid)+' د.ل</div></div>'+
+                '<div class="card">المتبقي<div class="num">'+money(invoiceRemaining)+' د.ل</div></div>'+
+                '<div class="card">استلمت<div class="num">'+money(received)+' د.ل</div></div>'+
+                '<div class="card">صرفت<div class="num">'+money(spent)+' د.ل</div></div>'+
+                '<div class="card">الصافي<div class="num">'+money(received-spent)+' د.ل</div></div>'+
+                '</div>'+
+                '<h2>تفاصيل الفواتير</h2>'+
+                '<table><thead><tr><th>رقم</th><th>العميل</th><th>التاريخ</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+                '<h2>تفاصيل الحركات المالية</h2>'+
+                '<table><thead><tr><th>النوع</th><th>المبلغ</th><th>الدفع</th><th>في إيش</th><th>التفاصيل</th><th>التاريخ</th></tr></thead><tbody>'+expRows+'</tbody></table>'+
+                '<p class="muted">تم إنشاء السجل من بيانات كراستي.</p>';
+
+            w.document.open();
+            w.document.write('<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8">'+
+                '<title>السجل الشهري - '+escapeForPrint(project.name||"المشروع")+' - '+escapeForPrint(month)+'</title>'+
+                '<style>body{font-family:Tahoma,Arial,sans-serif;color:#111;background:#fff;padding:30px;line-height:1.7}.print-page{max-width:950px;margin:auto}.header{text-align:center;border-bottom:2px solid #111;padding-bottom:18px;margin-bottom:22px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.card{border:1px solid #bbb;border-radius:10px;padding:12px;text-align:center}.num{font-size:20px;font-weight:900}h1,h2{text-align:center}table{width:100%;border-collapse:collapse;margin:16px 0 24px}th,td{border:1px solid #999;padding:9px;text-align:right}th{background:#f1f1f1}.muted{color:#555}.print-actions{text-align:center;margin:25px 0}.print-btn{border:0;border-radius:9px;padding:12px 20px;font-weight:800;cursor:pointer}@media print{.print-actions{display:none}}@media(max-width:700px){.cards{grid-template-columns:1fr}}</style>'+
+                '</head><body><div class="print-page">'+content+
+                '<div class="print-actions"><button class="print-btn" onclick="window.focus();window.print()">🖨️ طباعة / حفظ PDF</button></div>'+
+                '</div></body></html>');
+            w.document.close();
+
+            // Wait until the new document is ready, then trigger the browser print dialog.
+            const doPrint=()=>{
+                try{
+                    w.focus();
+                    setTimeout(()=>{try{w.print();}catch(e){}},250);
+                }catch(e){}
+            };
+            if(w.document.readyState==="complete") setTimeout(doPrint,350);
+            else w.addEventListener("load",doPrint,{once:true});
+
+        }catch(error){
+            console.error("monthly project report",error);
+            try{w.close();}catch(e){}
+            toast("تعذر تجهيز السجل الشهري. حاول مرة أخرى.","error");
+        }
+    };
+
+    window.printMonthlyBusinessReport = function(){
+        return window.openKrastyMonthlyProjectReport(currentProjectId);
     };
 
     window.openProjectModal = function(){

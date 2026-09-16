@@ -2148,7 +2148,7 @@ tr:hover td{
 
                     <div class="field">
                         <label>البريد الإلكتروني</label>
-                        <input id="signupEmail" class="input" type="email" placeholder="example@email.com" autocomplete="email">
+                        <input id="signupEmail" class="input" type="email" inputmode="email" spellcheck="false" autocapitalize="none" autocomplete="email" placeholder="example@gmail.com">
                     </div>
 
                     <div class="field">
@@ -4042,7 +4042,12 @@ async function signup(e){
     const fatherName=$("signupFatherName").value.trim();
     const countryCode=$("signupCountryCode").value;
     const phone=$("signupPhone").value.replace(/\s+/g,"").trim();
-    const email=$("signupEmail").value.trim().toLowerCase();
+    // تنظيف البريد من المسافات والمحارف المخفية التي قد تجعل Supabase يرفضه
+    const email=$("signupEmail").value
+        .replace(/[\u200B-\u200D\uFEFF]/g, "")
+        .replace(/\u00A0/g, " ")
+        .trim()
+        .toLowerCase();
     const password=$("signupPassword").value;
     const password2=$("signupPassword2").value;
     clearMessage("signupMessage");
@@ -4056,6 +4061,19 @@ async function signup(e){
         showMessage(
             "signupMessage",
             "اكتب البريد الإلكتروني.",
+            "error"
+        );
+
+        return;
+
+    }
+
+    // تحقق محلي واضح قبل إرسال البريد إلى Supabase
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){
+
+        showMessage(
+            "signupMessage",
+            "البريد الإلكتروني غير صحيح. مثال: example@gmail.com",
             "error"
         );
 

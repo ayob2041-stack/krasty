@@ -8363,7 +8363,7 @@ async function loadAdminUsers(){
     }catch(error){
         console.error("admin_list_users",error);
         adminUsers=[];
-        if(msg) msg.textContent="تعذر تحميل المستخدمين. شغّل ملف إعداد الإدارة المرفق في Supabase SQL Editor مرة واحدة.";
+        if(msg) msg.textContent="تعذر تحميل المستخدمين. تأكد من تشغيل دالة admin_list_users_v2 في Supabase SQL Editor.";
         if(box) box.innerHTML="";
     }
 }
@@ -8680,7 +8680,7 @@ function showSubscriptionWelcome(){
 }
 
 let subscriptionWatchTimer=null;
-async async function refreshSubscriptionLive(){
+async function refreshSubscriptionLive(){
     if(!currentUser) return;
     const oldPlan=KRastyPlanKey(currentSubscriptionPlan);
     const oldExpires=currentSubscriptionExpiresAt||null;
@@ -8780,26 +8780,6 @@ printInvoice = async function(id){
     ${invoice.notes?`<div class="notes"><b>ملاحظات:</b><br>${escapeHtml(invoice.notes)}</div>`:""}
     <div class="actions"><button onclick="window.print()">🖨️ طباعة / حفظ PDF</button><button onclick="window.close()">إغلاق</button></div>
     </div>
-<script id="krasty-theme-restore-js">
-(function(){
-  const saved=localStorage.getItem("krasty_theme")||"dark";
-  document.documentElement.classList.toggle("krasty-light",saved==="light");
-  window.updateKrastyThemeButton=function(){
-    const b=document.getElementById("themeToggleBtn"); if(!b) return;
-    const light=document.documentElement.classList.contains("krasty-light");
-    b.textContent=light?"🌙 الوضع الداكن":"☀️ الوضع الفاتح";
-    b.title=light?"الانتقال للوضع الداكن":"الانتقال للوضع الفاتح";
-  };
-  window.toggleKrastyTheme=function(){
-    const light=!document.documentElement.classList.contains("krasty-light");
-    document.documentElement.classList.toggle("krasty-light",light);
-    localStorage.setItem("krasty_theme",light?"light":"dark");
-    updateKrastyThemeButton();
-    if(typeof toast==="function") toast(light?"تم تفعيل الوضع الفاتح.":"تم تفعيل الوضع الداكن.","success");
-  };
-  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",updateKrastyThemeButton); else updateKrastyThemeButton();
-})();
-</script>
 </body></html>`;
 
     const w=window.open("","_blank");
@@ -9368,6 +9348,26 @@ renderInvoices=function(){
         const td=document.createElement("td"); td.className="invoice-select-cell"; td.innerHTML=`<input class="invoice-bulk-check" type="checkbox" value="${m[1]}">`; tr.insertBefore(td,tr.firstChild);
     });
 };
+</script>
+<script id="krasty-theme-restore-js">
+(function(){
+  const saved=localStorage.getItem("krasty_theme")||"dark";
+  document.documentElement.classList.toggle("krasty-light",saved==="light");
+  window.updateKrastyThemeButton=function(){
+    const b=document.getElementById("themeToggleBtn"); if(!b) return;
+    const light=document.documentElement.classList.contains("krasty-light");
+    b.textContent=light?"🌙 الوضع الداكن":"☀️ الوضع الفاتح";
+    b.title=light?"الانتقال للوضع الداكن":"الانتقال للوضع الفاتح";
+  };
+  window.toggleKrastyTheme=function(){
+    const light=!document.documentElement.classList.contains("krasty-light");
+    document.documentElement.classList.toggle("krasty-light",light);
+    localStorage.setItem("krasty_theme",light?"light":"dark");
+    updateKrastyThemeButton();
+    if(typeof toast==="function") toast(light?"تم تفعيل الوضع الفاتح.":"تم تفعيل الوضع الداكن.","success");
+  };
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",updateKrastyThemeButton); else updateKrastyThemeButton();
+})();
 </script>
 </body>
 </html>

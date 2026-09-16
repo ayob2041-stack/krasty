@@ -2148,7 +2148,7 @@ tr:hover td{
 
                     <div class="field">
                         <label>البريد الإلكتروني</label>
-                        <input id="signupEmail" class="input" type="email" inputmode="email" spellcheck="false" autocapitalize="none" autocomplete="email" placeholder="example@gmail.com">
+                        <input id="signupEmail" class="input" type="email" placeholder="example@email.com" autocomplete="email">
                     </div>
 
                     <div class="field">
@@ -3495,11 +3495,11 @@ tr:hover td{
                     </label>
 
                     <div class="invoice-image-actions">
-                        <label class="btn btn-secondary image-pick-btn">
+                        <label class="btn btn-secondary image-pick-btn" onclick="return requireBusinessInvoiceImage(event)">
                             📷 تصوير الفاتورة
                             <input id="invoiceCamera" type="file" accept="image/*" capture="environment" hidden>
                         </label>
-                        <label class="btn btn-secondary image-pick-btn">
+                        <label class="btn btn-secondary image-pick-btn" onclick="return requireBusinessInvoiceImage(event)">
                             🖼️ من المعرض
                             <input id="invoiceGallery" type="file" accept="image/*" hidden>
                         </label>
@@ -4042,12 +4042,7 @@ async function signup(e){
     const fatherName=$("signupFatherName").value.trim();
     const countryCode=$("signupCountryCode").value;
     const phone=$("signupPhone").value.replace(/\s+/g,"").trim();
-    // تنظيف البريد من المسافات والمحارف المخفية التي قد تجعل Supabase يرفضه
-    const email=$("signupEmail").value
-        .replace(/[\u200B-\u200D\uFEFF]/g, "")
-        .replace(/\u00A0/g, " ")
-        .trim()
-        .toLowerCase();
+    const email=$("signupEmail").value.trim().toLowerCase();
     const password=$("signupPassword").value;
     const password2=$("signupPassword2").value;
     clearMessage("signupMessage");
@@ -4061,19 +4056,6 @@ async function signup(e){
         showMessage(
             "signupMessage",
             "اكتب البريد الإلكتروني.",
-            "error"
-        );
-
-        return;
-
-    }
-
-    // تحقق محلي واضح قبل إرسال البريد إلى Supabase
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){
-
-        showMessage(
-            "signupMessage",
-            "البريد الإلكتروني غير صحيح. مثال: example@gmail.com",
             "error"
         );
 
@@ -7849,6 +7831,19 @@ async function createInvoice(){
 
     clearMessage("invoiceMessage");
 
+    if(!hasInvoiceLimitAvailable()){
+        const limit=getInvoiceMonthlyLimit();
+        showMessage("invoiceMessage",`وصلت إلى حد الفواتير لهذا الشهر (${limit} فاتورة). اشترك في باقة أعلى لزيادة الحد.`,"error");
+        openPlansOffer();
+        return;
+    }
+
+    if(imageFile && KRastyPlanKey(getCurrentPlan())!=="business"){
+        showMessage("invoiceMessage","إضافة صورة أو تصوير الفاتورة متاح في الباقة الاحترافية فقط.","error");
+        openPlansOffer();
+        return;
+    }
+
     if(!customerId){
         showMessage("invoiceMessage","اختر العميل.","error"); return;
     }
@@ -7916,9 +7911,47 @@ async function createInvoice(){
     }
 }
 
+function getInvoiceMonthlyLimit(){
+    const plan=KRastyPlanKey(getCurrentPlan());
+    if(plan==="business") return Infinity;
+    if(plan==="premium") return 30;
+    return 5;
+}
+
+function getCurrentMonthInvoiceCount(){
+    const month=today().slice(0,7);
+    return (invoices||[]).filter(i=>String(i.invoice_date||"").slice(0,7)===month).length;
+}
+
+function hasInvoiceLimitAvailable(){
+    const limit=getInvoiceMonthlyLimit();
+    return limit===Infinity || getCurrentMonthInvoiceCount()<limit;
+}
+
+function requireBusinessInvoiceImage(event){
+    const plan=KRastyPlanKey(getCurrentPlan());
+    if(plan!=="business"){
+        if(event){
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        closeModal("invoiceModal");
+        openPlansOffer();
+        toast("تصوير وإضافة صورة الفاتورة متاحة في الباقة الاحترافية فقط.","info");
+        return false;
+    }
+    return true;
+}
+
 function openInvoiceModal(){
     if(!currentProjectId){
         toast("اختر مشروعاً أولاً.","error"); return;
+    }
+    if(!hasInvoiceLimitAvailable()){
+        const limit=getInvoiceMonthlyLimit();
+        toast(`وصلت إلى حد الفواتير لهذا الشهر (${limit} فاتورة). اشترك في باقة أعلى لزيادة الحد.`,"info");
+        openPlansOffer();
+        return;
     }
     if(projectCustomers().length===0){
         toast("أضف عميلاً أولاً.","error");

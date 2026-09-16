@@ -3594,7 +3594,7 @@ html.krasty-light td{color:#1e293b;}
             </div>
 
             <div class="field"><label>الاسم</label><input id="profileName" class="input" type="text"><div id="profileNameCooldown" class="muted" style="margin-top:7px;font-size:12px;"></div></div>
-            <div class="field"><label>اسم الأب</label><input id="profileFatherName" class="input" type="text"></div>
+            <div class="field"><label>اسم الأب</label><input id="profileFatherName" class="input" type="text"><div id="profileFatherCooldown" class="muted" style="margin-top:7px;font-size:12px;"></div></div>
             <div class="field">
                 <label>رقم الهاتف</label>
                 <div class="phone-row">
@@ -3604,7 +3604,6 @@ html.krasty-light td{color:#1e293b;}
             </div>
             <div class="field"><label>نوع الهوية</label><select id="profileIdentityType" class="input"><option value="passport">جواز السفر</option><option value="license">رخصة القيادة</option></select></div>
             <div class="field"><label>رقم الهوية</label><input id="profileIdentityNumber" class="input" type="text" inputmode="numeric" autocomplete="off" placeholder="رقم الهوية"><div id="profileIdentityLockNote" class="muted" style="margin-top:7px;font-size:12px;"></div><button type="button" class="btn btn-secondary btn-small" style="margin-top:8px;" onclick="requestIdentityChange()">🔐 طلب تغيير الهوية عبر الدعم الفني</button></div>
-            <div class="field"><label>البريد الإلكتروني</label><input id="profileEmail" class="input" type="email" disabled style="display:none"></div>
             <div id="profileMessage"></div>
 
             <button class="btn btn-primary profile-save-btn" type="button" onclick="saveProfile()">💾 حفظ بيانات الملف الشخصي</button>
@@ -4561,6 +4560,7 @@ async function saveProfileRecordFromAuth(user){
     if(error) console.warn("profile sync",error);
 }
 let profileNameChangedAt = null;
+let profileFatherChangedAt = null;
 let identityChangeUsed = false;
 let identitySupportUnlocked = false;
 let identityRequiredByAdmin = false;
@@ -4592,11 +4592,27 @@ function updateProfileNameLock(nameChangedAt){
     return locked;
 }
 
+function updateProfileFatherLock(fatherChangedAt){
+    const input=$("profileFatherName"), note=$("profileFatherCooldown");
+    if(!input) return;
+    profileFatherChangedAt=fatherChangedAt||null;
+    input.dataset.originalFather=input.value||"";
+    const t=fatherChangedAt?new Date(fatherChangedAt).getTime():0;
+    const remaining=t+7*24*60*60*1000-Date.now();
+    const locked=!!t && remaining>0;
+    input.disabled=locked;
+    input.style.opacity=locked?".65":"1";
+    if(note){
+        note.textContent=locked ? `🔒 تغيير اسم الأب مغلق حالياً. يمكنك تغييره بعد ${formatRemainingDays(remaining)}.` : "يمكن تغيير اسم الأب مرة كل 7 أيام.";
+    }
+    return locked;
+}
+
 async function loadMyProfile(){
     if(!currentUser) return null;
-    const {data,error}=await sb.from("krasty_profiles").select("full_name,father_name,country_code,phone,identity_type,identity_number,identity_change_used,name_changed_at,identity_required").eq("user_id",currentUser.id).maybeSingle();
+    const {data,error}=await sb.from("krasty_profiles").select("full_name,father_name,country_code,phone,identity_type,identity_number,identity_change_used,name_changed_at,father_name_changed_at,identity_required").eq("user_id",currentUser.id).maybeSingle();
     if(error) throw error;
-    return data||{full_name:currentUser.user_metadata?.full_name||"",father_name:currentUser.user_metadata?.father_name||"",country_code:currentUser.user_metadata?.country_code||"+218",phone:currentUser.user_metadata?.phone||"",identity_type:currentUser.user_metadata?.identity_type||"passport",identity_number:currentUser.user_metadata?.identity_number||"",name_changed_at:null,identity_required:false,account_status:"active"};
+    return data||{full_name:currentUser.user_metadata?.full_name||"",father_name:currentUser.user_metadata?.father_name||"",country_code:currentUser.user_metadata?.country_code||"+218",phone:currentUser.user_metadata?.phone||"",identity_type:currentUser.user_metadata?.identity_type||"passport",identity_number:currentUser.user_metadata?.identity_number||"",name_changed_at:null,father_name_changed_at:null,identity_required:false,account_status:"active"};
 }
 async function openProfile(){
     if(!currentUser) return;
@@ -4607,6 +4623,7 @@ async function openProfile(){
         $("profileName").value=p.full_name||"";
         updateProfileNameLock(p.name_changed_at);
         $("profileFatherName").value=p.father_name||"";
+        updateProfileFatherLock(p.father_name_changed_at);
         $("profileCountryCode").value=p.country_code||"+218";
         $("profilePhone").value=p.phone||"";
         $("profileIdentityType").value=p.identity_type||"passport";
@@ -4659,6 +4676,7 @@ async function saveProfile(){
     if(!currentUser) return;
     const nameInput=$("profileName");
     const originalName=nameInput?.dataset.originalName||"";
+    const originalFather=$("profileFatherName")?.dataset.originalFather||"";
     const fullName=nameInput?.value.trim()||"";
     const fatherName=$("profileFatherName").value.trim();
     const countryCode=$("profileCountryCode").value;
@@ -4666,6 +4684,7 @@ async function saveProfile(){
     const identityType=$("profileIdentityType")?.value || "passport";
     const identityNumber=$("profileIdentityNumber")?.value.trim() || "";
     const nameChanged=fullName!==originalName;
+    const fatherChanged=fatherName!==originalFather;
 
     clearMessage("profileMessage");
     if(!fullName||!fatherName||!countryCode||!phone){ showMessage("profileMessage","يرجى إكمال الاسم واسم الأب ورقم الهاتف واختيار الدولة.","error"); return; }
@@ -4683,6 +4702,13 @@ async function saveProfile(){
         return;
     }
 
+    if(fatherChanged){
+        const locked=updateProfileFatherLock(profileFatherChangedAt);
+        if(locked){ showMessage("profileMessage",`تغيير اسم الأب مغلق. يمكنك تغييره بعد ${formatRemainingDays(new Date(profileFatherChangedAt).getTime()+7*24*60*60*1000-Date.now())}.`,"error"); return; }
+        const okFather=window.confirm("⚠️ تنبيه قبل تغيير اسم الأب\n\nبعد حفظ اسم الأب الجديد لن تتمكن من تغييره مرة أخرى إلا بعد مرور 7 أيام كاملة.\n\nهل تريد المتابعة؟");
+        if(!okFather) return;
+    }
+
     if(nameChanged){
         const locked=updateProfileNameLock(profileNameChangedAt);
         if(locked){ showMessage("profileMessage",`تغيير الاسم مغلق. يمكنك تغيير الاسم بعد ${formatRemainingDays(new Date(profileNameChangedAt).getTime()+7*24*60*60*1000-Date.now())}.`,"error"); return; }
@@ -4697,7 +4723,7 @@ async function saveProfile(){
             profileNameChangedAt=nameChangedAt||new Date().toISOString();
         }
 
-        const {error}=await sb.rpc("krasty_save_profile",{
+        const {data:profileSaveData,error}=await sb.rpc("krasty_save_profile",{
             p_full_name:nameChanged?fullName:(originalName||fullName),
             p_father_name:fatherName,
             p_country_code:countryCode,
@@ -4714,6 +4740,11 @@ async function saveProfile(){
 
         nameInput.value=savedName;
         updateProfileNameLock(profileNameChangedAt);
+        if(fatherChanged){
+            profileFatherChangedAt=profileSaveData?.father_changed_at||new Date().toISOString();
+        }
+        $("profileFatherName").value=fatherName;
+        updateProfileFatherLock(profileFatherChangedAt);
         $("accountName").textContent=savedName;
         $("accountFather").textContent=`اسم الأب: ${fatherName}`;
         identityChangeUsed=true;

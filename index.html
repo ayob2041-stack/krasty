@@ -2109,26 +2109,30 @@ tr:hover td{
                     <div id="signupMessage"></div>
 
                     <div class="field">
-
-                        <label>
-                            البريد الإلكتروني
-                        </label>
-
-                        <input
-                            id="signupEmail"
-                            class="input"
-                            type="email"
-                            placeholder="example@email.com"
-                            autocomplete="email"
-                        >
-
+                        <label>الاسم</label>
+                        <input id="signupName" class="input" type="text" placeholder="الاسم" autocomplete="given-name">
                     </div>
 
                     <div class="field">
+                        <label>اسم الأب</label>
+                        <input id="signupFatherName" class="input" type="text" placeholder="اسم الأب" autocomplete="additional-name">
+                    </div>
 
-                        <label>
-                            كلمة المرور
-                        </label>
+                    <div class="field">
+                        <label>رقم الهاتف</label>
+                        <div style="display:grid;grid-template-columns:minmax(145px,0.9fr) 1.6fr;gap:8px;">
+                            <select id="signupCountryCode" class="input" aria-label="رمز الدولة"></select>
+                            <input id="signupPhone" class="input" type="tel" inputmode="tel" placeholder="رقم الهاتف" autocomplete="tel">
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>البريد الإلكتروني</label>
+                        <input id="signupEmail" class="input" type="email" placeholder="example@email.com" autocomplete="email">
+                    </div>
+
+                    <div class="field">
+                        <label>كلمة المرور</label>
 
                         <input
                             id="signupPassword"
@@ -2434,19 +2438,9 @@ tr:hover td{
 
 
             <div class="user-area">
-
-                <span
-                    id="userEmail"
-                    class="user-email"
-                ></span>
-
-                <button
-                    class="btn btn-secondary btn-small"
-                    onclick="logout()"
-                >
-                    خروج
-                </button>
-
+                <button class="btn btn-secondary btn-small" onclick="openProfile()">👤 الملف الشخصي</button>
+                <span id="userEmail" class="user-email"></span>
+                <button class="btn btn-secondary btn-small" onclick="logout()">خروج</button>
             </div>
 
         </div>
@@ -3568,35 +3562,38 @@ tr:hover td{
                     👤
                 </div>
 
-                <div
-                    id="accountEmail"
-                    style="
-                        font-weight:900;
-                        word-break:break-all;
-                    "
-                >
-                </div>
+                <div id="accountName" style="font-weight:900;font-size:20px;">الملف الشخصي</div>
+                <div id="accountFather" class="muted" style="margin-top:6px;"></div>
+                <div id="accountEmail" class="muted" style="margin-top:6px;word-break:break-all;"></div>
+            </div>
 
-                <div
-                    class="muted"
-                    style="margin-top:7px;"
-                >
-                    حساب كراستي
+            <div class="field"><label>الاسم</label><input id="profileName" class="input" type="text"></div>
+            <div class="field"><label>اسم الأب</label><input id="profileFatherName" class="input" type="text"></div>
+            <div class="field">
+                <label>رقم الهاتف</label>
+                <div style="display:grid;grid-template-columns:minmax(145px,0.9fr) 1.6fr;gap:8px;">
+                    <select id="profileCountryCode" class="input"></select>
+                    <input id="profilePhone" class="input" type="tel" inputmode="tel">
                 </div>
+            </div>
+            <div class="field"><label>البريد الإلكتروني</label><input id="profileEmail" class="input" type="email" disabled></div>
+            <div id="profileMessage"></div>
+
+            <div class="card" style="margin-top:15px;padding:14px;">
+                <div class="card-title" style="font-size:16px;margin-bottom:10px;">🔐 تغيير كلمة المرور</div>
+                <div class="field"><label>كلمة المرور الجديدة</label><input id="profileNewPassword" class="input" type="password" placeholder="6 أحرف على الأقل"></div>
+                <div class="field"><label>تأكيد كلمة المرور</label><input id="profileNewPassword2" class="input" type="password" placeholder="أعد كتابة كلمة المرور"></div>
+                <button class="btn btn-secondary" onclick="changeProfilePassword()">تغيير كلمة المرور</button>
+            </div>
 
             </div>
 
         </div>
 
         <div class="modal-footer">
-
-            <button
-                class="btn btn-danger"
-                onclick="logout()"
-            >
-                تسجيل الخروج
-            </button>
-
+            <button class="btn btn-secondary" onclick="closeModal('accountModal')">إغلاق</button>
+            <button class="btn btn-primary" onclick="saveProfile()">حفظ التعديلات</button>
+            <button class="btn btn-danger" onclick="logout()">تسجيل الخروج</button>
         </div>
 
     </div>
@@ -3960,21 +3957,20 @@ function showUpdatePassword(){
 ========================================================= */
 
 async function signup(e){
-
-    const email =
-        $("signupEmail")
-        .value
-        .trim()
-        .toLowerCase();
-
-    const password =
-        $("signupPassword").value;
-
-    const password2 =
-        $("signupPassword2").value;
-
+    if(e) e.preventDefault();
+    const fullName=$("signupName").value.trim();
+    const fatherName=$("signupFatherName").value.trim();
+    const countryCode=$("signupCountryCode").value;
+    const phone=$("signupPhone").value.replace(/\s+/g,"").trim();
+    const email=$("signupEmail").value.trim().toLowerCase();
+    const password=$("signupPassword").value;
+    const password2=$("signupPassword2").value;
     clearMessage("signupMessage");
 
+    if(!fullName){ showMessage("signupMessage","اكتب الاسم.","error"); return; }
+    if(!fatherName){ showMessage("signupMessage","اكتب اسم الأب.","error"); return; }
+    if(!countryCode || !phone){ showMessage("signupMessage","اكتب رقم الهاتف واختر رمز الدولة.","error"); return; }
+    if(!/^\d{6,15}$/.test(phone)){ showMessage("signupMessage","رقم الهاتف يجب أن يحتوي على أرقام فقط، من 6 إلى 15 رقمًا.","error"); return; }
     if(!email){
 
         showMessage(
@@ -4039,7 +4035,15 @@ async function signup(e){
         } =
             await sb.auth.signUp({
                 email,
-                password
+                password,
+                options:{
+                    data:{
+                        full_name:fullName,
+                        father_name:fatherName,
+                        country_code:countryCode,
+                        phone:phone
+                    }
+                }
             });
 
         if(!error && data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0){
@@ -4172,8 +4176,8 @@ async function verifyEmailOTP(){
 
         }
 
-        currentUser =
-            data.user;
+        currentUser=data.user;
+        await saveProfileRecordFromAuth(currentUser);
 
         showMessage(
             "otpMessage",
@@ -4312,6 +4316,94 @@ function startResendTimer(){
 
 }
 
+
+/* =========================================================
+   PROFILE DATA / COUNTRIES
+========================================================= */
+const KRASTY_COUNTRIES = [
+["ليبيا","+218"],["مصر","+20"],["تونس","+216"],["الجزائر","+213"],["المغرب","+212"],["موريتانيا","+222"],
+["السودان","+249"],["تشاد","+235"],["النيجر","+227"],["مالي","+223"],["السنغال","+221"],["غامبيا","+220"],["سيراليون","+232"],
+["ليبيريا","+231"],["غانا","+233"],["نيجيريا","+234"],["الكاميرون","+237"],["الغابون","+241"],["الكونغو","+242"],["جمهورية الكونغو الديمقراطية","+243"],
+["إثيوبيا","+251"],["إريتريا","+291"],["جيبوتي","+253"],["الصومال","+252"],["كينيا","+254"],["أوغندا","+256"],["تنزانيا","+255"],
+["جنوب أفريقيا","+27"],["زامبيا","+260"],["زيمبابوي","+263"],["رواندا","+250"],["بوروندي","+257"],["أنغولا","+244"],["موزمبيق","+258"],
+["المملكة العربية السعودية","+966"],["الإمارات العربية المتحدة","+971"],["قطر","+974"],["الكويت","+965"],["البحرين","+973"],["عُمان","+968"],
+["اليمن","+967"],["العراق","+964"],["الأردن","+962"],["فلسطين","+970"],["لبنان","+961"],["سوريا","+963"],
+["تركيا","+90"],["إيران","+98"],["أفغانستان","+93"],["باكستان","+92"],["الهند","+91"],["بنغلاديش","+880"],["نيبال","+977"],
+["الصين","+86"],["اليابان","+81"],["كوريا الجنوبية","+82"],["إندونيسيا","+62"],["ماليزيا","+60"],["سنغافورة","+65"],["تايلاند","+66"],
+["الفلبين","+63"],["فيتنام","+84"],["أستراليا","+61"],["نيوزيلندا","+64"],["روسيا","+7"],["أوكرانيا","+380"],["بيلاروسيا","+375"],
+["بولندا","+48"],["ألمانيا","+49"],["فرنسا","+33"],["إيطاليا","+39"],["إسبانيا","+34"],["البرتغال","+351"],["هولندا","+31"],
+["بلجيكا","+32"],["سويسرا","+41"],["النمسا","+43"],["السويد","+46"],["النرويج","+47"],["الدنمارك","+45"],["فنلندا","+358"],
+["المملكة المتحدة","+44"],["أيرلندا","+353"],["اليونان","+30"],["رومانيا","+40"],["بلغاريا","+359"],["صربيا","+381"],["كرواتيا","+385"],
+["البوسنة والهرسك","+387"],["سلوفينيا","+386"],["سلوفاكيا","+421"],["التشيك","+420"],["المجر","+36"],["أيسلندا","+354"],["قبرص","+357"],
+["الولايات المتحدة","+1"],["كندا","+1"],["المكسيك","+52"],["البرازيل","+55"],["الأرجنتين","+54"],["تشيلي","+56"],["كولومبيا","+57"],["بيرو","+51"],
+["فنزويلا","+58"],["أوروغواي","+598"],["باراغواي","+595"],["بوليفيا","+591"],["كوستاريكا","+506"],["بنما","+507"],["غواتيمالا","+502"],
+["كوبا","+53"],["جامايكا","+1"],["جمهورية الدومينيكان","+1"],["ترينيداد وتوباغو","+1"],["جنوب السودان","+211"],["ناميبيا","+264"],
+["بوتسوانا","+267"],["إسواتيني","+268"],["ليسوتو","+266"],["مدغشقر","+261"],["موريشيوس","+230"],["سيشل","+248"],["مالاوي","+265"],
+["جزر القمر","+269"],["الرأس الأخضر","+238"],["ساو تومي وبرينسيب","+239"],["غينيا","+224"],["غينيا بيساو","+245"],["غينيا الاستوائية","+240"],
+["بوركينا فاسو","+226"],["بنين","+229"],["توجو","+228"],["ساحل العاج","+225"],["جمهورية أفريقيا الوسطى","+236"],["الصحراء الغربية","+212"]
+];
+function fillCountrySelect(id,value){
+    const el=$(id); if(!el) return;
+    const current=value||el.value||"+218";
+    el.innerHTML=KRASTY_COUNTRIES.map(([name,code])=>`<option value="${code}">${escapeHtml(name)} (${code})</option>`).join("");
+    el.value=current;
+    if(el.value!==current) el.value="+218";
+}
+function initCountrySelectors(){ fillCountrySelect("signupCountryCode","+218"); fillCountrySelect("profileCountryCode","+218"); }
+async function saveProfileRecordFromAuth(user){
+    if(!user?.id) return;
+    const m=user.user_metadata||{};
+    const row={user_id:user.id,full_name:m.full_name||"",father_name:m.father_name||"",country_code:m.country_code||"+218",phone:m.phone||"",updated_at:new Date().toISOString()};
+    const {error}=await sb.from("krasty_profiles").upsert(row,{onConflict:"user_id"});
+    if(error) console.warn("profile sync",error);
+}
+async function loadMyProfile(){
+    if(!currentUser) return null;
+    const {data,error}=await sb.from("krasty_profiles").select("full_name,father_name,country_code,phone").eq("user_id",currentUser.id).maybeSingle();
+    if(error) throw error;
+    return data||{full_name:currentUser.user_metadata?.full_name||"",father_name:currentUser.user_metadata?.father_name||"",country_code:currentUser.user_metadata?.country_code||"+218",phone:currentUser.user_metadata?.phone||""};
+}
+async function openProfile(){
+    if(!currentUser) return;
+    clearMessage("profileMessage");
+    try{
+        const p=await loadMyProfile();
+        $("profileName").value=p.full_name||"";
+        $("profileFatherName").value=p.father_name||"";
+        $("profileCountryCode").value=p.country_code||"+218";
+        $("profilePhone").value=p.phone||"";
+        $("profileEmail").value=currentUser.email||"";
+        $("accountName").textContent=p.full_name||"الملف الشخصي";
+        $("accountFather").textContent=p.father_name?`اسم الأب: ${p.father_name}`:"";
+        $("accountEmail").textContent=currentUser.email||"";
+        $("profileNewPassword").value=""; $("profileNewPassword2").value="";
+        $("accountModal").classList.remove("hidden");
+    }catch(e){ console.error(e); toast("تعذر تحميل الملف الشخصي.","error"); }
+}
+async function saveProfile(){
+    if(!currentUser) return;
+    const fullName=$("profileName").value.trim(), fatherName=$("profileFatherName").value.trim(), countryCode=$("profileCountryCode").value, phone=$("profilePhone").value.replace(/\s+/g,"").trim();
+    clearMessage("profileMessage");
+    if(!fullName||!fatherName||!phone){ showMessage("profileMessage","يرجى إكمال الاسم واسم الأب ورقم الهاتف.","error"); return; }
+    if(!/^\d{6,15}$/.test(phone)){ showMessage("profileMessage","رقم الهاتف يجب أن يحتوي على أرقام فقط، من 6 إلى 15 رقمًا.","error"); return; }
+    try{
+        const {error}=await sb.from("krasty_profiles").upsert({user_id:currentUser.id,full_name:fullName,father_name:fatherName,country_code:countryCode,phone,updated_at:new Date().toISOString()},{onConflict:"user_id"});
+        if(error) throw error;
+        const {error:authError}=await sb.auth.updateUser({data:{full_name:fullName,father_name:fatherName,country_code:countryCode,phone}});
+        if(authError) throw authError;
+        $("accountName").textContent=fullName; $("accountFather").textContent=`اسم الأب: ${fatherName}`;
+        showMessage("profileMessage","تم حفظ بيانات الملف الشخصي بنجاح.","success");
+        toast("تم تحديث الملف الشخصي.","success");
+    }catch(e){ console.error(e); showMessage("profileMessage",e.message||"تعذر حفظ البيانات.","error"); }
+}
+async function changeProfilePassword(){
+    const p=$("profileNewPassword").value, p2=$("profileNewPassword2").value;
+    clearMessage("profileMessage");
+    if(p.length<6){showMessage("profileMessage","كلمة المرور يجب أن تكون 6 أحرف على الأقل.","error");return;}
+    if(p!==p2){showMessage("profileMessage","كلمتا المرور غير متطابقتين.","error");return;}
+    try{ const {error}=await sb.auth.updateUser({password:p}); if(error) throw error; $("profileNewPassword").value="";$("profileNewPassword2").value="";showMessage("profileMessage","تم تغيير كلمة المرور بنجاح.","success"); }
+    catch(e){console.error(e);showMessage("profileMessage",e.message||"تعذر تغيير كلمة المرور.","error");}
+}
 
 /* =========================================================
    LOGIN
@@ -4662,9 +4754,14 @@ async function showApp(){
             .textContent =
             currentUser.email;
 
-        $("accountEmail")
-            .textContent =
-            currentUser.email;
+        $("accountEmail").textContent=currentUser.email;
+        $("profileEmail").value=currentUser.email||"";
+        try{
+            const p=await loadMyProfile();
+            $("userEmail").textContent=p.full_name ? `${p.full_name} — ${currentUser.email}` : currentUser.email;
+            $("accountName").textContent=p.full_name||"الملف الشخصي";
+            $("accountFather").textContent=p.father_name?`اسم الأب: ${p.father_name}`:"";
+        }catch(e){ console.warn("profile load",e); }
 
     }
 
@@ -7537,12 +7634,12 @@ function escapeHtml(value){
 function renderAdminUsers(){
     const box=$("adminUsersList"); if(!box) return;
     const q=String($("adminUserSearch")?.value||"").trim().toLowerCase();
-    const list=adminUsers.filter(u=>!q || String(u.email||"").toLowerCase().includes(q));
+    const list=adminUsers.filter(u=>!q || [u.email,u.full_name,u.father_name,u.phone,u.country_code].some(v=>String(v||"").toLowerCase().includes(q)));
     if(!list.length){ box.innerHTML='<div class="empty-state">لا توجد حسابات مطابقة.</div>'; return; }
     box.innerHTML=list.map((u,i)=>{
         const plan=KRastyPlanKey(u.plan||"free");
         const expires=u.expires_at?new Date(u.expires_at).toLocaleDateString("ar-LY"):"—";
-        return `<div class="admin-user-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div style="font-weight:900;direction:ltr;text-align:right;word-break:break-all;">${escapeHtml(u.email||"")}</div><div class="muted" style="margin-top:5px;font-size:12px;">تاريخ التسجيل: ${u.created_at ? new Date(u.created_at).toLocaleString('ar-LY') : 'غير متاح'}</div><div class="muted" style="margin-top:4px;">الباقة: <strong>${escapeHtml(KRASTY_PLANS[plan]?.name||plan)}</strong> — الانتهاء: ${escapeHtml(expires)}</div></div><div class="current-plan">#${i+1}</div></div><div class="admin-user-actions"><select id="adminPlan_${i}" class="input"><option value="free" ${plan==='free'?'selected':''}>مجانية</option><option value="premium" ${plan==='premium'?'selected':''}>20 د.ل — متقدمة</option><option value="business" ${plan==='business'?'selected':''}>50 د.ل — احترافية</option></select><button class="btn btn-primary btn-small" onclick="adminActivateUser(${i})">تفعيل 30 يومًا</button><button class="btn btn-secondary btn-small" onclick="adminActivateUser(${i},true)">تجديد 30 يومًا</button></div></div>`;
+        return `<div class="admin-user-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div style="font-weight:900;">${escapeHtml(u.full_name||"بدون اسم")} ${u.father_name?`<span class="muted">بن ${escapeHtml(u.father_name)}</span>`:""}</div><div style="margin-top:5px;direction:ltr;text-align:right;word-break:break-all;">${escapeHtml(u.email||"")}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهاتف: ${escapeHtml((u.country_code||"")+" "+(u.phone||"—"))}</div><div class="muted" style="margin-top:5px;font-size:12px;">تاريخ التسجيل: ${u.created_at ? new Date(u.created_at).toLocaleString('ar-LY') : 'غير متاح'}</div><div class="muted" style="margin-top:4px;">الباقة: <strong>${escapeHtml(KRASTY_PLANS[plan]?.name||plan)}</strong> — الانتهاء: ${escapeHtml(expires)}</div></div><div class="current-plan">#${i+1}</div></div><div class="admin-user-actions"><select id="adminPlan_${i}" class="input"><option value="free" ${plan==='free'?'selected':''}>مجانية</option><option value="premium" ${plan==='premium'?'selected':''}>20 د.ل — متقدمة</option><option value="business" ${plan==='business'?'selected':''}>50 د.ل — احترافية</option></select><button class="btn btn-primary btn-small" onclick="adminActivateUser(${i})">تفعيل 30 يومًا</button><button class="btn btn-secondary btn-small" onclick="adminActivateUser(${i},true)">تجديد 30 يومًا</button></div></div>`;
     }).join("");
     box._filteredUsers=list;
 }
@@ -7591,6 +7688,7 @@ document.addEventListener("DOMContentLoaded",()=>{
     const loginFromSignupBtn = document.getElementById("showLoginFromSignupButton");
     if(loginFromSignupBtn) loginFromSignupBtn.addEventListener("click", (e)=>showLogin(e));
     bindInvoiceImagePickers();
+    initCountrySelectors();
     installPullToRefresh();
 
     const search=$("invoiceSearch");

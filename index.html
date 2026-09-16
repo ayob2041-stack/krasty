@@ -2346,17 +2346,15 @@ tr:hover td{
 
                 <div id="resetOtpForm" class="hidden otp-box">
                     <div class="otp-icon">🔐</div>
-                    <h1 class="auth-title">رمز إعادة تعيين كلمة المرور</h1>
-                    <p class="auth-subtitle">سنرسل رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني.</p>
+                    <h1 class="auth-title">إعادة تعيين كلمة المرور</h1>
+                    <p class="auth-subtitle">تم طلب رابط إعادة تعيين كلمة المرور. افتح الرابط من بريدك الإلكتروني لإدخال كلمة المرور الجديدة.</p>
                     <div id="resetOtpMessage"></div>
-                    <input 
-                    <button <button id="verifyResetOtpButton" class="btn btn-primary" type="button" onclick="showForgot()">العودة وإعادة الإرسال</button>
                     <div class="resend-row">
-                        <button id="resendResetBtn" class="resend-btn" onclick="resendResetOTP()">إعادة إرسال رابط التعيين</button>
+                        <button id="resendResetBtn" class="resend-btn" type="button" onclick="resendResetOTP()">إعادة إرسال رابط التعيين</button>
                         <div id="resetResendTimer" style="margin-top:8px;color:#64748b;font-size:13px;"></div>
                     </div>
                     <div class="auth-links" style="justify-content:center">
-                        <button type="button" class="auth-link" onclick="showForgot()">تغيير البريد</button>
+                        <button type="button" class="auth-link" onclick="showForgot()">العودة</button>
                     </div>
                 </div>
 
@@ -2877,6 +2875,9 @@ tr:hover td{
                     <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end;">
                         <div id="currentPlanBadge" class="current-plan">الباقة المجانية</div>
                         <div id="whatsappUsageBadge" class="current-plan" style="background:rgba(34,197,94,.07);color:#bbf7d0;">واتساب: 0/10</div>
+                        <div id="invoiceUsageBadge" class="current-plan">الفواتير: 0/5</div>
+                        <div id="imageUsageBadge" class="current-plan">صور الفواتير: 0/5</div>
+                        <div id="printUsageBadge" class="current-plan">الطباعة: 0/5</div>
                     </div>
                 </div>
                 <div class="card-body">
@@ -2924,6 +2925,22 @@ tr:hover td{
                                 <li>بدون نافذة العروض الترويجية داخل التطبيق</li>
                             </ul>
                             <button class="btn btn-cyan" style="width:100%;" onclick="openPaymentModal('business')">الاشتراك بـ 50 د.ل</button>
+                        </div>
+
+                        <div class="plan-card" style="border-color:rgba(234,179,8,.55);background:linear-gradient(180deg,rgba(234,179,8,.10),rgba(234,179,8,.03));">
+                            <div class="plan-badge" style="background:rgba(234,179,8,.16);color:#facc15;">👑 ذهبية</div>
+                            <div class="plan-title">الباقة الذهبية</div>
+                            <div class="plan-price">200 <span>د.ل / شهرياً</span></div>
+                            <div class="plan-subtitle">للاستخدام المكثف مع أعلى مستوى من المزايا داخل كراستي.</div>
+                            <ul class="plan-features">
+                                <li>كل مميزات الباقة الاحترافية</li>
+                                <li>فواتير وصور وطباعة بدون حدود استخدام</li>
+                                <li>نسخ احتياطي واسترجاع مشفر</li>
+                                <li>أرشيف صور الفواتير ومتابعة الدفعات</li>
+                                <li>رد سريع من الدعم الفني</li>
+                                <li>بدون إعلانات Google</li>
+                            </ul>
+                            <button class="btn btn-primary" style="width:100%;" onclick="openPaymentModal('gold')">الاشتراك بـ 200 د.ل</button>
                         </div>
                     </div>
 
@@ -3157,6 +3174,12 @@ tr:hover td{
                     <div class="plan-title">50 د.ل شهرياً</div>
                     <ul class="plan-features"><li>كل مميزات الباقة المتقدمة</li><li>صور وأرشيف فواتير موسع</li><li>بدون عروض ترويجية</li></ul>
                     <button class="btn btn-cyan" style="width:100%;" onclick="closeModal('offerModal');openPaymentModal('business')">الاشتراك</button>
+                </div>
+                <div class="plan-card" style="border-color:rgba(234,179,8,.55);background:linear-gradient(180deg,rgba(234,179,8,.10),rgba(234,179,8,.03));">
+                    <div class="plan-badge" style="background:rgba(234,179,8,.16);color:#facc15;">👑 ذهبية</div>
+                    <div class="plan-title">200 د.ل شهرياً</div>
+                    <ul class="plan-features"><li>كل مميزات الباقة الاحترافية</li><li>استخدام غير محدود للفواتير والصور والطباعة</li><li>نسخ احتياطي واسترجاع مشفر</li><li>رد سريع من الدعم الفني</li><li>بدون إعلانات Google</li></ul>
+                    <button class="btn btn-primary" style="width:100%;" onclick="closeModal('offerModal');openPaymentModal('gold')">الاشتراك</button>
                 </div>
             </div>
         </div>
@@ -3495,14 +3518,8 @@ tr:hover td{
                     </label>
 
                     <div class="invoice-image-actions">
-                        <label class="btn btn-secondary image-pick-btn" onclick="return startInvoiceCamera()">
-                            📷 تصوير الفاتورة
-                            <input id="invoiceCamera" type="file" accept="image/*" capture="environment" hidden>
-                        </label>
-                        <label class="btn btn-secondary image-pick-btn" onclick="return openInvoiceGallery()">
-                            🖼️ من المعرض
-                            <input id="invoiceGallery" type="file" accept="image/*" hidden>
-                        </label>
+                        <button class="btn btn-secondary image-pick-btn" type="button" onclick="startInvoiceCamera()">📷 تصوير الفاتورة</button>
+                        <button class="btn btn-secondary image-pick-btn" type="button" onclick="openInvoiceGallery()">🖼️ من المعرض</button>
                     </div>
 
                     <input id="invoiceImage" type="file" accept="image/*" hidden>
@@ -7326,6 +7343,7 @@ async function loadAll(){
 }
 
 function renderAll(){
+    try{updateUsageBadges();}catch(e){}
 
     renderProjectSelect();
 
@@ -7705,6 +7723,8 @@ function canUseInvoiceImage(){
 
 function openInvoiceGallery(){
     if(!canUseInvoiceImage()) return false;
+    const input=$("invoiceGallery");
+    if(input) input.click();
     return true;
 }
 
@@ -8140,7 +8160,7 @@ function renderAdminUsers(){
     box.innerHTML=list.map((u,i)=>{
         const plan=KRastyPlanKey(u.plan||"free");
         const expires=u.expires_at?new Date(u.expires_at).toLocaleDateString("ar-LY"):"—";
-        return `<div class="admin-user-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div style="font-weight:900;">${escapeHtml(u.full_name||"بدون اسم")} ${u.father_name?`<span class="muted">بن ${escapeHtml(u.father_name)}</span>`:""}</div><div style="margin-top:5px;direction:ltr;text-align:right;word-break:break-all;">${escapeHtml(u.email||"")}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهاتف: ${escapeHtml((u.country_code||"")+" "+(u.phone||"—"))}</div><div class="muted" style="margin-top:5px;font-size:12px;">تاريخ التسجيل: ${u.created_at ? new Date(u.created_at).toLocaleString('ar-LY') : 'غير متاح'}</div><div class="muted" style="margin-top:4px;">الباقة: <strong>${escapeHtml(KRASTY_PLANS[plan]?.name||plan)}</strong> — الانتهاء: ${escapeHtml(expires)}</div></div><div class="current-plan">#${i+1}</div></div><div class="admin-user-actions"><select id="adminPlan_${i}" class="input"><option value="free" ${plan==='free'?'selected':''}>مجانية</option><option value="premium" ${plan==='premium'?'selected':''}>20 د.ل — متقدمة</option><option value="business" ${plan==='business'?'selected':''}>50 د.ل — احترافية</option></select><button class="btn btn-primary btn-small" onclick="adminActivateUser(${i})">تفعيل 30 يومًا</button><button class="btn btn-secondary btn-small" onclick="adminActivateUser(${i},true)">تجديد 30 يومًا</button><button class="btn btn-danger btn-small" onclick="adminCancelSubscription(${i})">إلغاء الاشتراك</button></div></div>`;
+        return `<div class="admin-user-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div style="font-weight:900;">${escapeHtml(u.full_name||"بدون اسم")} ${u.father_name?`<span class="muted">بن ${escapeHtml(u.father_name)}</span>`:""}</div><div style="margin-top:5px;direction:ltr;text-align:right;word-break:break-all;">${escapeHtml(u.email||"")}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهاتف: ${escapeHtml((u.country_code||"")+" "+(u.phone||"—"))}</div><div class="muted" style="margin-top:5px;font-size:12px;">تاريخ التسجيل: ${u.created_at ? new Date(u.created_at).toLocaleString('ar-LY') : 'غير متاح'}</div><div class="muted" style="margin-top:4px;">الباقة: <strong>${escapeHtml(KRASTY_PLANS[plan]?.name||plan)}</strong> — الانتهاء: ${escapeHtml(expires)}</div></div><div class="current-plan">#${i+1}</div></div><div class="admin-user-actions"><select id="adminPlan_${i}" class="input"><option value="free" ${plan==='free'?'selected':''}>مجانية</option><option value="premium" ${plan==='premium'?'selected':''}>20 د.ل — متقدمة</option><option value="business" ${plan==='business'?'selected':''}>50 د.ل — احترافية</option><option value="gold" ${plan==='gold'?'selected':''}>200 د.ل — ذهبية</option></select><button class="btn btn-primary btn-small" onclick="adminActivateUser(${i})">تفعيل 30 يومًا</button><button class="btn btn-secondary btn-small" onclick="adminActivateUser(${i},true)">تجديد 30 يومًا</button><button class="btn btn-danger btn-small" onclick="adminCancelSubscription(${i})">إلغاء الاشتراك</button></div></div>`;
     }).join("");
     box._filteredUsers=list;
 }
@@ -8154,7 +8174,7 @@ async function adminActivateUser(index,renew=false){
     const plan=$("adminPlan_"+index)?.value||"free";
     const days=30;
     try{
-        const {error}=await sb.rpc("krasty_admin_set_subscription",{p_user_id:u.id,p_plan:plan,p_days:days,p_renew:renew});
+        const {error}=await sb.rpc("krasty_admin_set_subscription",{p_user_id:userId,p_plan:plan,p_days:days,p_renew:renew});
         if(error) throw error;
         toast(plan==="free"?"تم تحويل الحساب إلى الباقة المجانية.":"تم تفعيل الباقة للمستخدم لمدة 30 يومًا.","success");
         await loadAdminUsers();
@@ -8169,11 +8189,12 @@ async function adminCancelSubscription(index){
     const box=$("adminUsersList");
     const list=box?box._filteredUsers||[]:[];
     const u=list[index];
-    if(!u?.id) return;
+    const userId=u?.id || u?.user_id;
+    if(!userId) return;
     const name=u.full_name||u.email||"هذا المستخدم";
     if(!confirm(`هل تريد إلغاء اشتراك ${name}؟\n\nسيتم تحويله إلى الباقة المجانية.`)) return;
     try{
-        const {error}=await sb.rpc("krasty_admin_set_subscription",{p_user_id:u.id,p_plan:"free",p_days:0,p_renew:false});
+        const {error}=await sb.rpc("krasty_admin_set_subscription",{p_user_id:userId,p_plan:"free",p_days:0,p_renew:false});
         if(error) throw error;
         toast("تم إلغاء الاشتراك وتحويل الحساب إلى المجانية.","success");
         await loadAdminUsers();
@@ -8229,7 +8250,8 @@ document.addEventListener("DOMContentLoaded",()=>{
 const KRASTY_PLANS = {
     free:{name:"الباقة المجانية",price:0},
     premium:{name:"الباقة المتقدمة",price:20},
-    business:{name:"الباقة الاحترافية",price:50}
+    business:{name:"الباقة الاحترافية",price:50},
+    gold:{name:"الباقة الذهبية",price:200}
 };
 
 function getCurrentPlan(){
@@ -8254,6 +8276,7 @@ async function loadCurrentSubscription(){
 }
 function KRastyPlanKey(raw){
     const v=String(raw||"free").toLowerCase();
+    if(v.includes("gold") || v.includes("200") || v.includes("ذهب")) return "gold";
     if(v.includes("business") || v.includes("professional") || v.includes("50") || v.includes("احتراف")) return "business";
     if(v.includes("premium") || v.includes("advanced") || v.includes("20") || v.includes("متقدم")) return "premium";
     return "free";
@@ -8276,7 +8299,7 @@ function updatePlanBadge(){
     const plan=KRastyPlanKey(getCurrentPlan());
     renderProfileSubscription();
     const b=$("currentPlanBadge");
-    if(b) b.textContent=plan==="free"?"الباقة المجانية":"الباقة المدفوعة — "+(plan==="business"?"الاحترافية":"المتقدمة");
+    if(b) b.textContent=plan==="free"?"الباقة المجانية":(KRASTY_PLANS[plan]?.name||"الباقة المدفوعة");
     const wb=$("whatsappUsageBadge");
     if(wb) wb.textContent=plan==="free" ? `واتساب: ${getWhatsAppUsage()}/10` : "واتساب: غير محدود";
 }
@@ -8454,6 +8477,14 @@ function scheduleKrastyOffer(){
 }
 
 function subscriptionFeatures(plan){
+    if(plan==="gold") return [
+        "كل مميزات الباقة الاحترافية",
+        "فواتير وصور وطباعة بدون حدود استخدام",
+        "نسخ احتياطي واسترجاع مشفر",
+        "أرشيف صور الفواتير ومتابعة الدفعات",
+        "رد سريع من الدعم الفني",
+        "بدون إعلانات Google"
+    ];
     if(plan==="business") return [
         "كل مميزات الباقة المتقدمة",
         "رفع صور الفواتير وأرشفتها بشكل موسع",
@@ -8605,7 +8636,8 @@ let invoiceImageRemoved = false;
 const KRASTY_USAGE_LIMITS = {
     free:     { invoices:5,  images:5,  prints:5  },
     premium:  { invoices:30, images:30, prints:30 },
-    business: { invoices:Infinity, images:Infinity, prints:Infinity }
+    business: { invoices:Infinity, images:Infinity, prints:Infinity },
+    gold:     { invoices:Infinity, images:Infinity, prints:Infinity }
 };
 
 function getUsagePeriod(){
@@ -8635,13 +8667,24 @@ function usageLabel(type){
     if(limit===Infinity) return `${names[type]}: غير محدودة`;
     return `${names[type]}: ${getUsage(type)}/${limit}`;
 }
+function usageRemaining(type){
+    const limit=getPlanLimit(type);
+    if(limit===Infinity) return Infinity;
+    return Math.max(0,limit-getUsage(type));
+}
+function maybeWarnUsage(type){
+    const limit=getPlanLimit(type);
+    if(limit===Infinity) return;
+    const remaining=usageRemaining(type);
+    if(remaining>0 && remaining<=2){
+        const names={invoices:"الفواتير",images:"صور الفواتير",prints:"الطباعة"};
+        toast(`⚠️ تنبيه: متبقي لك ${remaining} من ${names[type]} في الباقة المجانية. بعد انتهاء الحد ستحتاج إلى الاشتراك.`,`warning`);
+    }
+}
 function showUsageUpgrade(type, extra=""){
     const names={invoices:"الفواتير",images:"صور الفواتير",prints:"الطباعة"};
     const limit=getPlanLimit(type);
     const used=getUsage(type);
-    const msg=limit===Infinity
-        ? ""
-        : `${extra ? extra+"\n" : ""}استهلكت ${used} من أصل ${limit} من ${names[type]} في الباقة الحالية. للاستخدام بعد انتهاء الحد، اشترك في باقة مدفوعة.`;
     openPlansOffer();
     const offer=$("offerModal");
     const note=offer?.querySelector(".usage-upgrade-note");
@@ -8652,11 +8695,19 @@ function showUsageUpgrade(type, extra=""){
         offer.querySelector(".modal-body")?.prepend(el);
     }
     const finalNote=offer?.querySelector(".usage-upgrade-note");
-    if(finalNote) finalNote.textContent=msg || `ميزة ${names[type]} متاحة ضمن باقتك الحالية.`;
+    if(finalNote) finalNote.textContent=limit===Infinity ? `ميزة ${names[type]} متاحة ضمن باقتك الحالية.` : `${extra?extra+"\n":""}استهلكت ${used} من أصل ${limit} من ${names[type]}. المتبقي: 0. للاستخدام بعد انتهاء الحد، اشترك في باقة مدفوعة.`;
 }
 function updateUsageBadges(){
     const wb=$("whatsappUsageBadge");
-    if(wb) wb.textContent=KRastyPlanKey(getCurrentPlan())==="free" ? `واتساب: ${getWhatsAppUsage()}/10` : "واتساب: غير محدود";
+    if(wb) wb.textContent=KRastyPlanKey(getCurrentPlan())==="free" ? `واتساب: ${getWhatsAppUsage()}/10 — المتبقي ${Math.max(0,10-getWhatsAppUsage())}` : "واتساب: غير محدود";
+    const update=(id,type,label)=>{
+        const el=$(id); if(!el) return;
+        const limit=getPlanLimit(type);
+        el.textContent=limit===Infinity ? `${label}: غير محدودة` : `${label}: ${getUsage(type)}/${limit} — المتبقي ${Math.max(0,limit-getUsage(type))}`;
+    };
+    update("invoiceUsageBadge","invoices","الفواتير");
+    update("imageUsageBadge","images","صور الفواتير");
+    update("printUsageBadge","prints","الطباعة");
 }
 
 // WhatsApp counter remains in localStorage and survives refresh because the forced
@@ -8801,8 +8852,10 @@ async function createInvoice(){
             if(updateError) throw updateError;
             data=updated;
             recordUsage("images");
+            maybeWarnUsage("images");
         }
-        if(!editing) recordUsage("invoices");
+        if(!editing){ recordUsage("invoices"); maybeWarnUsage("invoices"); }
+        updateUsageBadges();
 
         invoices=editing ? invoices.map(i=>i.id===data.id?data:i) : [data,...invoices];
         closeModal("invoiceModal");
@@ -8909,24 +8962,12 @@ async function forgotPassword(){
     const email=$("forgotEmail")?.value.trim().toLowerCase() || "";
     clearMessage("forgotMessage");
     if(!email){showMessage("forgotMessage","اكتب بريدك الإلكتروني.","error");return;}
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){
-        showMessage("forgotMessage","البريد الإلكتروني غير صحيح.","error");return;
-    }
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){showMessage("forgotMessage","البريد الإلكتروني غير صحيح.","error");return;}
     try{
-        const {data:exists,error:existsError}=await sb.rpc("krasty_email_exists",{p_email:email});
-        if(!existsError && exists===false){
-            showMessage("forgotMessage","هذا البريد الإلكتروني غير مسجل في كراستي.","error");
-            return;
-        }
-        const redirectTo=window.location.origin+window.location.pathname;
+        const redirectTo="https://krastyapp.space/";
         const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo});
         if(error) throw error;
-        pendingResetEmail=email;
-        hideAuthForms();
-        $("resetOtpForm")?.classList.remove("hidden");
-        clearMessage("resetOtpMessage");
-        startResetResendTimer();
-        showMessage("resetOtpMessage","تم إرسال رابط إعادة تعيين كلمة المرور إلى بريدك الإلكتروني. افتح الرابط من نفس الجهاز ثم اختر كلمة المرور الجديدة.","success");
+        showMessage("forgotMessage","تم طلب رابط إعادة تعيين كلمة المرور. افحص البريد الوارد وSpam/Junk، ثم افتح الرابط.","success");
     }catch(error){
         console.error(error);
         showMessage("forgotMessage",translateAuthError(error),"error");
@@ -8938,7 +8979,7 @@ async function resendResetOTP(){
     const btn=$("resendResetBtn");
     if(btn) btn.disabled=true;
     try{
-        const redirectTo=window.location.origin+window.location.pathname;
+        const redirectTo="https://krastyapp.space/";
         const {error}=await sb.auth.resetPasswordForEmail(pendingResetEmail,{redirectTo});
         if(error) throw error;
         showMessage("resetOtpMessage","تم إرسال رابط جديد إلى بريدك الإلكتروني.","success");

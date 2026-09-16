@@ -7948,9 +7948,10 @@ function renderAdminUsers(){
     const list=adminUsers.filter(u=>!q || [u.email,u.full_name,u.father_name,u.phone,u.country_code].some(v=>String(v||"").toLowerCase().includes(q)));
     if(!list.length){ box.innerHTML='<div class="empty-state">لا توجد حسابات مطابقة.</div>'; return; }
     box.innerHTML=list.map((u,i)=>{
+        const userId = u.id || u.user_id || u.uid || u.auth_user_id || null;
         const plan=KRastyPlanKey(u.plan||"free");
         const expires=u.expires_at?new Date(u.expires_at).toLocaleDateString("ar-LY"):"—";
-        return `<div class="admin-user-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div style="font-weight:900;">${escapeHtml(u.full_name||"بدون اسم")} ${u.father_name?`<span class="muted">بن ${escapeHtml(u.father_name)}</span>`:""}</div><div style="margin-top:5px;direction:ltr;text-align:right;word-break:break-all;">${escapeHtml(u.email||"")}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهاتف: ${escapeHtml((u.country_code||"")+" "+(u.phone||"—"))}</div><div class="muted" style="margin-top:5px;font-size:12px;">تاريخ التسجيل: ${u.created_at ? new Date(u.created_at).toLocaleString('ar-LY') : 'غير متاح'}</div><div class="muted" style="margin-top:4px;">الباقة: <strong>${escapeHtml(KRASTY_PLANS[plan]?.name||plan)}</strong> — الانتهاء: ${escapeHtml(expires)}</div></div><div class="current-plan">#${i+1}</div></div><div class="admin-user-actions"><select id="adminPlan_${i}" class="input"><option value="free" ${plan==='free'?'selected':''}>مجانية</option><option value="premium" ${plan==='premium'?'selected':''}>20 د.ل — متقدمة</option><option value="business" ${plan==='business'?'selected':''}>50 د.ل — احترافية</option></select><button class="btn btn-primary btn-small" onclick="adminActivateUser(${i})">تفعيل 30 يومًا</button><button class="btn btn-secondary btn-small" onclick="adminActivateUser(${i},true)">تجديد 30 يومًا</button><button class="btn btn-small" style="background:#7f1d1d;color:#fff;border:1px solid #ef4444;" onclick="adminCancelSubscriptionById('${u.id}')">🚫 إلغاء الاشتراك</button></div></div>`;
+        return `<div class="admin-user-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div style="font-weight:900;">${escapeHtml(u.full_name||"بدون اسم")} ${u.father_name?`<span class="muted">بن ${escapeHtml(u.father_name)}</span>`:""}</div><div style="margin-top:5px;direction:ltr;text-align:right;word-break:break-all;">${escapeHtml(u.email||"")}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهاتف: ${escapeHtml((u.country_code||"")+" "+(u.phone||"—"))}</div><div class="muted" style="margin-top:5px;font-size:12px;">تاريخ التسجيل: ${u.created_at ? new Date(u.created_at).toLocaleString('ar-LY') : 'غير متاح'}</div><div class="muted" style="margin-top:4px;">الباقة: <strong>${escapeHtml(KRASTY_PLANS[plan]?.name||plan)}</strong> — الانتهاء: ${escapeHtml(expires)}</div></div><div class="current-plan">#${i+1}</div></div><div class="admin-user-actions"><select id="adminPlan_${i}" class="input"><option value="free" ${plan==='free'?'selected':''}>مجانية</option><option value="premium" ${plan==='premium'?'selected':''}>20 د.ل — متقدمة</option><option value="business" ${plan==='business'?'selected':''}>50 د.ل — احترافية</option></select><button class="btn btn-primary btn-small" onclick="adminActivateUser(${i})">تفعيل 30 يومًا</button><button class="btn btn-secondary btn-small" onclick="adminActivateUser(${i},true)">تجديد 30 يومًا</button><button class="btn btn-small" style="background:#7f1d1d;color:#fff;border:1px solid #ef4444;" onclick="adminCancelSubscriptionById('${userId||""}')">🚫 إلغاء الاشتراك</button></div></div>`;
     }).join("");
     box._filteredUsers=list;
 }
@@ -7960,11 +7961,12 @@ async function adminActivateUser(index,renew=false){
     const box=$("adminUsersList");
     const list=box?box._filteredUsers||[]:[];
     const u=list[index];
-    if(!u?.id){ toast("تعذر تحديد المستخدم.","error"); return; }
+    const userId = u?.id || u?.user_id || u?.uid || u?.auth_user_id;
+    if(!userId){ toast("تعذر تحديد المستخدم. تأكد أن دالة admin_list_users ترجع id أو user_id.","error"); return; }
     const plan=$("adminPlan_"+index)?.value||"free";
     const days=30;
     try{
-        const {error}=await sb.rpc("krasty_admin_set_subscription",{p_user_id:u.id,p_plan:plan,p_days:days,p_renew:renew});
+        const {error}=await sb.rpc("krasty_admin_set_subscription",{p_user_id:userId,p_plan:plan,p_days:days,p_renew:renew});
         if(error) throw error;
         toast(plan==="free"?"تم تحويل الحساب إلى الباقة المجانية.":"تم تفعيل الباقة للمستخدم لمدة 30 يومًا.","success");
         await loadAdminUsers();
@@ -7976,8 +7978,9 @@ async function adminActivateUser(index,renew=false){
 
 async function adminCancelSubscriptionById(userId){
     if(!isAdminUser()) return;
-    const u=adminUsers.find(x=>String(x.id)===String(userId));
-    if(!u?.id){ toast("تعذر تحديد المستخدم.","error"); return; }
+    const u=adminUsers.find(x=>String(x.id||x.user_id||x.uid||x.auth_user_id)===String(userId));
+    const resolvedUserId = u?.id || u?.user_id || u?.uid || u?.auth_user_id;
+    if(!resolvedUserId){ toast("تعذر تحديد المستخدم. تأكد أن دالة admin_list_users ترجع id أو user_id.","error"); return; }
     const currentPlan=KRastyPlanKey(u.plan||"free");
     if(currentPlan === "free"){
         toast("هذا الحساب على الباقة المجانية بالفعل.","info");
@@ -7987,7 +7990,7 @@ async function adminCancelSubscriptionById(userId){
     if(!ok) return;
     try{
         const {error}=await sb.rpc("krasty_admin_set_subscription",{
-            p_user_id:u.id,
+            p_user_id:resolvedUserId,
             p_plan:"free",
             p_days:0,
             p_renew:false

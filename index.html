@@ -2676,6 +2676,14 @@ tr:hover td{
             </button>
 
             <button
+                id="tabExpenses"
+                class="tab"
+                onclick="switchTab('expenses')"
+            >
+                💸 مصروفاتي
+            </button>
+
+            <button
                 id="tabArchive"
                 class="tab"
                 onclick="switchTab('archive')"
@@ -2822,6 +2830,10 @@ tr:hover td{
                         <button class="btn btn-primary btn-small" onclick="openInvoiceModal()">
                             ＋ فاتورة
                         </button>
+
+                        <button class="btn btn-secondary btn-small" onclick="openInvoiceBulkTools()">
+                            ☑️ تحديد الفواتير
+                        </button>
                     </div>
 
                 </div>
@@ -2834,6 +2846,31 @@ tr:hover td{
 
             </div>
 
+        </div>
+
+        <!-- EXPENSES / CASHFLOW -->
+        <div id="expensesTab" class="hidden">
+            <div class="card">
+                <div class="card-header">
+                    <div>
+                        <div class="card-title">💸 مصروفاتي</div>
+                        <div class="muted" style="margin-top:5px;font-size:12px;">سجّل المبالغ التي استلمتها والمبالغ التي صرفتها، مع طريقة الدفع وتفاصيل المصروف.</div>
+                    </div>
+                    <button class="btn btn-primary btn-small" onclick="openExpenseModal()">＋ إضافة حركة</button>
+                </div>
+                <div class="card-body">
+                    <div id="expenseStats" class="stats-grid" style="margin-bottom:16px;"></div>
+                    <div class="invoice-search-tools" style="margin-bottom:14px;">
+                        <input id="expenseDateFrom" class="input" type="date" aria-label="من تاريخ">
+                        <input id="expenseDateTo" class="input" type="date" aria-label="إلى تاريخ">
+                        <select id="expenseTypeFilter" class="input"><option value="">الكل</option><option value="income">استلمت</option><option value="expense">صرفت</option></select>
+                        <button class="btn btn-cyan btn-small" onclick="loadExpenses()">🔍 بحث</button>
+                        <button class="btn btn-secondary btn-small" onclick="clearExpenseFilters()">مسح</button>
+                        <button class="btn btn-primary btn-small" onclick="printMonthlyBusinessReport()">🖨️ تقرير شهري</button>
+                    </div>
+                    <div id="expensesList"></div>
+                </div>
+            </div>
         </div>
 
         <!-- INVOICE IMAGE ARCHIVE -->
@@ -8171,18 +8208,24 @@ async function adminActivateUser(index,renew=false){
     const box=$("adminUsersList");
     const list=box?box._filteredUsers||[]:[];
     const u=list[index];
-    const userId=u?.id || u?.user_id;
-    if(!userId){ toast("تعذر تحديد المستخدم. أعد تحميل قائمة المستخدمين.","error"); return; }
+    const email=String(u?.email||"").trim().toLowerCase();
+    const userId=u?.id || u?.user_id || u?.uid || u?.userId || null;
+    if(!email && !userId){ toast("تعذر تحديد المستخدم. أعد تحميل قائمة المستخدمين.","error"); return; }
     const plan=$("adminPlan_"+index)?.value||"free";
     const days=30;
     try{
-        const {error}=await sb.rpc("krasty_admin_set_subscription",{p_user_id:userId,p_plan:plan,p_days:days,p_renew:renew});
-        if(error) throw error;
+        let result;
+        if(userId){
+            result=await sb.rpc("krasty_admin_set_subscription",{p_user_id:userId,p_plan:plan,p_days:days,p_renew:renew});
+        }else{
+            result=await sb.rpc("krasty_admin_set_subscription_by_email",{p_email:email,p_plan:plan,p_days:days,p_renew:renew});
+        }
+        if(result.error) throw result.error;
         toast(plan==="free"?"تم تحويل الحساب إلى الباقة المجانية.":"تم تفعيل الباقة للمستخدم لمدة 30 يومًا.","success");
         await loadAdminUsers();
     }catch(error){
-        console.error(error);
-        toast("تعذر تعديل الباقة. تأكد من تشغيل ملف إعداد الإدارة في Supabase.","error");
+        console.error("adminActivateUser",error);
+        toast(error?.message || "تعذر تعديل الباقة. تأكد من إعداد الإدارة في Supabase.","error");
     }
 }
 
@@ -8191,18 +8234,21 @@ async function adminCancelSubscription(index){
     const box=$("adminUsersList");
     const list=box?box._filteredUsers||[]:[];
     const u=list[index];
-    const userId=u?.id || u?.user_id;
-    if(!userId) return;
+    const userId=u?.id || u?.user_id || u?.uid || u?.userId || null;
+    const email=String(u?.email||"").trim().toLowerCase();
+    if(!userId && !email) return;
     const name=u.full_name||u.email||"هذا المستخدم";
     if(!confirm(`هل تريد إلغاء اشتراك ${name}؟\n\nسيتم تحويله إلى الباقة المجانية.`)) return;
     try{
-        const {error}=await sb.rpc("krasty_admin_set_subscription",{p_user_id:userId,p_plan:"free",p_days:0,p_renew:false});
-        if(error) throw error;
+        const result=userId
+            ? await sb.rpc("krasty_admin_set_subscription",{p_user_id:userId,p_plan:"free",p_days:0,p_renew:false})
+            : await sb.rpc("krasty_admin_set_subscription_by_email",{p_email:email,p_plan:"free",p_days:0,p_renew:false});
+        if(result.error) throw result.error;
         toast("تم إلغاء الاشتراك وتحويل الحساب إلى المجانية.","success");
         await loadAdminUsers();
     }catch(error){
-        console.error(error);
-        toast("تعذر إلغاء الاشتراك. تأكد من إعداد دالة الإدارة في Supabase.","error");
+        console.error("adminCancelSubscription",error);
+        toast(error?.message || "تعذر إلغاء الاشتراك. تأكد من إعداد الإدارة في Supabase.","error");
     }
 }
 
@@ -8607,6 +8653,17 @@ printInvoice = async function(id){
   }
   #accountModal .modal-footer .btn{width:100% !important;min-width:0 !important;}
 }
+
+
+/* GOLD FEATURES */
+.gold-feature-note{margin:10px 0;padding:10px 12px;border-radius:12px;background:rgba(234,179,8,.10);border:1px solid rgba(234,179,8,.28);font-size:12px;}
+.bulk-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px;padding:12px;border:1px solid rgba(148,163,184,.18);border-radius:14px;background:rgba(15,23,42,.025);}
+.bulk-tools .input{min-width:170px;}
+.invoice-select-cell{width:42px;text-align:center;}
+.invoice-select-cell input{width:18px;height:18px;}
+.expense-row-income{border-right:4px solid #16a34a;}
+.expense-row-expense{border-right:4px solid #dc2626;}
+.cashflow-card{padding:14px;border-radius:14px;border:1px solid rgba(148,163,184,.18);}
 </style></head><body><div class="paper">
     <h1>كراستي</h1><div class="sub">فاتورة مبيعات</div>
     <div class="meta"><div><b>رقم الفاتورة:</b> ${escapeHtml(invoice.invoice_number||"-")}<br><br><b>التاريخ:</b> ${escapeHtml(invoice.invoice_date||"-")}</div>
@@ -9002,6 +9059,178 @@ async function verifyResetOTP(){
     showMessage("resetOtpMessage","افتح رابط إعادة تعيين كلمة المرور الذي وصلك إلى بريدك الإلكتروني.","info");
 }
 
+</script>
+
+<script>
+/* =========================================================
+   GOLD PACK — BULK INVOICE DELETE + EXPENSES + MONTHLY REPORT
+   ========================================================= */
+function isGoldPlan(){ return KRastyPlanKey(getCurrentPlan()) === "gold"; }
+function requireGoldFeature(){
+    if(isGoldPlan()) return true;
+    openPlansOffer();
+    setTimeout(()=>toast("هذه الميزة متاحة ضمن الباقة الذهبية 200 د.ل شهرياً.","info"),120);
+    return false;
+}
+
+function openInvoiceBulkTools(){
+    if(!requireGoldFeature()) return;
+    const box=$("invoicesList"); if(!box) return;
+    if($("invoiceBulkTools")){ $("invoiceBulkTools").classList.toggle("hidden"); return; }
+    const wrap=document.createElement("div");
+    wrap.id="invoiceBulkTools"; wrap.className="bulk-tools";
+    wrap.innerHTML=`
+      <label style="display:flex;align-items:center;gap:7px;font-weight:800;">
+        <input id="selectAllInvoices" type="checkbox" onchange="toggleAllInvoiceChecks(this.checked)"> تحديد الكل
+      </label>
+      <button class="btn btn-danger btn-small" onclick="deleteSelectedInvoices()">🗑️ حذف المحدد</button>
+      <button class="btn btn-danger btn-small" onclick="deleteAllProjectInvoices()">🗑️ حذف كل فواتير المشروع</button>
+      <select id="bulkCustomerSelect" class="input"><option value="">اختر عميل لحذف كل فواتيره</option></select>
+      <button class="btn btn-danger btn-small" onclick="deleteCustomerInvoices()">حذف فواتير العميل</button>
+      <span class="muted" style="font-size:12px;">⚠️ الحذف نهائي، وهذه الأدوات ضمن الباقة الذهبية.</span>`;
+    box.parentElement.insertBefore(wrap,box);
+    fillBulkCustomerSelect();
+}
+function fillBulkCustomerSelect(){
+    const sel=$("bulkCustomerSelect"); if(!sel) return;
+    sel.innerHTML='<option value="">اختر عميل لحذف كل فواتيره</option>'+projectCustomers().map(c=>`<option value="${escapeHtml(c.id)}">${escapeHtml(c.name||"بدون اسم")}</option>`).join("");
+}
+function toggleAllInvoiceChecks(checked){
+    document.querySelectorAll(".invoice-bulk-check").forEach(x=>x.checked=checked);
+}
+function selectedInvoiceIds(){ return [...document.querySelectorAll(".invoice-bulk-check:checked")].map(x=>x.value).filter(Boolean); }
+async function removeInvoiceImages(list){
+    const paths=list.map(i=>i.image_path).filter(Boolean);
+    if(paths.length) { try{ await sb.storage.from("invoice-images").remove(paths); }catch(e){ console.warn("bulk image remove",e); } }
+}
+async function deleteInvoicesList(list, confirmText){
+    if(!requireGoldFeature() || !list.length) return;
+    if(!confirm(confirmText)) return;
+    try{
+        await removeInvoiceImages(list);
+        const ids=list.map(i=>i.id);
+        const {error}=await sb.from("invoices").delete().in("id",ids).eq("user_id",currentUser.id);
+        if(error) throw error;
+        const set=new Set(ids); invoices=invoices.filter(i=>!set.has(i.id));
+        renderAll(); renderInvoiceArchive(); fillBulkCustomerSelect();
+        $("selectAllInvoices") && ($("selectAllInvoices").checked=false);
+        toast(`تم حذف ${ids.length} فاتورة بنجاح.`,"success");
+    }catch(e){ console.error(e); toast(e.message||"تعذر حذف الفواتير.","error"); }
+}
+function deleteSelectedInvoices(){
+    const ids=selectedInvoiceIds();
+    const list=projectInvoices().filter(i=>ids.includes(i.id));
+    deleteInvoicesList(list,`هل تريد حذف ${list.length} فاتورة محددة نهائياً؟`);
+}
+function deleteAllProjectInvoices(){
+    const list=projectInvoices();
+    deleteInvoicesList(list,`سيتم حذف جميع فواتير المشروع (${list.length}) نهائياً. هل أنت متأكد؟`);
+}
+function deleteCustomerInvoices(){
+    const cid=$("bulkCustomerSelect")?.value;
+    if(!cid){ toast("اختر العميل أولاً.","error"); return; }
+    const list=projectInvoices().filter(i=>i.customer_id===cid);
+    const c=customers.find(x=>x.id===cid);
+    deleteInvoicesList(list,`سيتم حذف جميع فواتير العميل ${c?.name||""} (${list.length}) نهائياً. هل أنت متأكد؟`);
+}
+
+let expenses=[];
+let editingExpenseId=null;
+async function loadExpenses(){
+    if(!currentUser || !currentProjectId) return;
+    if(!requireGoldFeature()){ $("expensesList") && ($("expensesList").innerHTML=emptyState("💎","مصروفاتي متاحة في الباقة الذهبية فقط")); return; }
+    try{
+        const {data,error}=await sb.from("krasty_expenses").select("*").eq("user_id",currentUser.id).eq("project_id",currentProjectId).order("expense_date",{ascending:false}).order("created_at",{ascending:false});
+        if(error) throw error;
+        expenses=data||[]; renderExpenses();
+    }catch(e){ console.error(e); $("expensesList") && ($("expensesList").innerHTML=emptyState("⚠️","تعذر تحميل المصروفات. تأكد من تشغيل SQL الخاص بالميزة.")); }
+}
+function renderExpenses(){
+    const box=$("expensesList"), stats=$("expenseStats"); if(!box||!stats) return;
+    const from=$("expenseDateFrom")?.value||"", to=$("expenseDateTo")?.value||"", type=$("expenseTypeFilter")?.value||"";
+    let list=expenses.filter(x=>(!type||x.type===type)&&(!from||String(x.expense_date||"")>=from)&&(!to||String(x.expense_date||"")<=to));
+    const received=list.filter(x=>x.type==="income").reduce((s,x)=>s+Number(x.amount||0),0);
+    const spent=list.filter(x=>x.type==="expense").reduce((s,x)=>s+Number(x.amount||0),0);
+    const net=received-spent;
+    stats.innerHTML=`<div class="stat-card"><div class="stat-label">إجمالي ما استلمت</div><div class="stat-value">${money(received)}</div><div class="stat-icon">💰</div></div><div class="stat-card"><div class="stat-label">إجمالي ما صرفت</div><div class="stat-value">${money(spent)}</div><div class="stat-icon">💸</div></div><div class="stat-card"><div class="stat-label">الصافي</div><div class="stat-value">${money(net)}</div><div class="stat-icon">📊</div></div>`;
+    if(!list.length){ box.innerHTML=emptyState("💸","لا توجد حركات في الفترة المحددة"); return; }
+    box.innerHTML=`<div class="table-wrap"><table><thead><tr><th>النوع</th><th>المبلغ</th><th>طريقة الدفع</th><th>في إيش</th><th>التفاصيل</th><th>التاريخ</th><th>إجراء</th></tr></thead><tbody>${list.map(x=>`<tr class="expense-row-${x.type}"><td>${x.type==="income"?'<span class="badge badge-success">استلمت</span>':'<span class="badge badge-danger">صرفت</span>'}</td><td><strong>${money(x.amount)} د.ل</strong></td><td>${x.payment_method==="card"?"💳 بطاقة":"💵 كاش"}</td><td>${escapeHtml(x.category||"—")}</td><td>${escapeHtml(x.notes||"—")}</td><td>${escapeHtml(x.expense_date||"—")}</td><td><button class="btn btn-secondary btn-small" onclick="openExpenseModal('${x.id}')">تعديل</button><button class="btn btn-danger btn-small" onclick="deleteExpense('${x.id}')">حذف</button></td></tr>`).join("")}</tbody></table></div>`;
+}
+function openExpenseModal(id=null){
+    if(!requireGoldFeature()) return;
+    editingExpenseId=id||null;
+    const x=id?expenses.find(e=>e.id===id):null;
+    $("expenseType").value=x?.type||"expense"; $("expenseAmount").value=x?.amount??""; $("expensePayment").value=x?.payment_method||"cash"; $("expenseCategory").value=x?.category||""; $("expenseNotes").value=x?.notes||""; $("expenseDate").value=x?.expense_date||today();
+    $("expenseModalTitle").textContent=id?"تعديل الحركة":"إضافة حركة مالية"; $("expenseModal")?.classList.remove("hidden");
+}
+async function saveExpense(){
+    if(!requireGoldFeature()) return;
+    const amount=Number($("expenseAmount")?.value||0); if(amount<=0){toast("اكتب مبلغاً صحيحاً.","error");return;}
+    const payload={user_id:currentUser.id,project_id:currentProjectId,type:$("expenseType").value,amount,payment_method:$("expensePayment").value,category:$("expenseCategory").value.trim(),notes:$("expenseNotes").value.trim(),expense_date:$("expenseDate").value||today(),updated_at:new Date().toISOString()};
+    try{
+        if(editingExpenseId){ const {data,error}=await sb.from("krasty_expenses").update(payload).eq("id",editingExpenseId).eq("user_id",currentUser.id).select().single(); if(error)throw error; expenses=expenses.map(x=>x.id===data.id?data:x); }
+        else { const {data,error}=await sb.from("krasty_expenses").insert(payload).select().single(); if(error)throw error; expenses=[data,...expenses]; }
+        closeModal("expenseModal"); renderExpenses(); toast("تم حفظ الحركة المالية.","success");
+    }catch(e){console.error(e);toast(e.message||"تعذر حفظ الحركة.","error");}
+}
+async function deleteExpense(id){
+    if(!requireGoldFeature())return; const x=expenses.find(e=>e.id===id); if(!x||!confirm("هل تريد حذف هذه الحركة؟"))return;
+    try{const {error}=await sb.from("krasty_expenses").delete().eq("id",id).eq("user_id",currentUser.id);if(error)throw error;expenses=expenses.filter(e=>e.id!==id);renderExpenses();toast("تم حذف الحركة.","success");}catch(e){toast(e.message||"تعذر الحذف.","error");}
+}
+function clearExpenseFilters(){ $("expenseDateFrom").value="";$("expenseDateTo").value="";$("expenseTypeFilter").value="";renderExpenses(); }
+function printMonthlyBusinessReport(){
+    if(!requireGoldFeature()) return;
+    const month=prompt("اكتب الشهر بصيغة YYYY-MM لإصدار التقرير الشهري:",new Date().toISOString().slice(0,7)); if(!month||!/^[0-9]{4}-[0-9]{2}$/.test(month))return;
+    const inv=projectInvoices().filter(i=>String(i.invoice_date||"").startsWith(month));
+    const mov=expenses.filter(x=>String(x.expense_date||"").startsWith(month));
+    const received=mov.filter(x=>x.type==="income").reduce((s,x)=>s+Number(x.amount||0),0);
+    const spent=mov.filter(x=>x.type==="expense").reduce((s,x)=>s+Number(x.amount||0),0);
+    const invoiceTotal=inv.reduce((s,x)=>s+Number(x.total||0),0), invoicePaid=inv.reduce((s,x)=>s+Number(x.paid||0),0), invoiceRemaining=inv.reduce((s,x)=>s+Number(x.remaining||0),0);
+    const project=projects.find(p=>p.id===currentProjectId);
+    const rows=inv.map(i=>`<tr><td>${escapeHtml(i.invoice_number||"-")}</td><td>${escapeHtml(customerName(i.customer_id))}</td><td>${escapeHtml(i.invoice_date||"-")}</td><td>${money(i.total)} د.ل</td><td>${money(i.paid)} د.ل</td><td>${money(i.remaining)} د.ل</td></tr>`).join("");
+    const expRows=mov.map(x=>`<tr><td>${x.type==="income"?"استلمت":"صرفت"}</td><td>${money(x.amount)} د.ل</td><td>${x.payment_method==="card"?"بطاقة":"كاش"}</td><td>${escapeHtml(x.category||"-")}</td><td>${escapeHtml(x.notes||"-")}</td><td>${escapeHtml(x.expense_date||"-")}</td></tr>`).join("");
+    const w=window.open("","_blank"); if(!w){toast("المتصفح منع نافذة التقرير.","error");return;}
+    w.document.write(`<html dir="rtl"><head><meta charset="utf-8"><title>تقرير شهري - ${month}</title><style>body{font-family:Arial,sans-serif;padding:30px;color:#111}h1,h2{text-align:center}.cards{display:flex;gap:10px;flex-wrap:wrap}.card{border:1px solid #ddd;border-radius:10px;padding:12px;flex:1;min-width:150px}.num{font-size:20px;font-weight:800}table{width:100%;border-collapse:collapse;margin:15px 0}th,td{border:1px solid #ddd;padding:8px;text-align:right}th{background:#f3f4f6}.muted{color:#666}</style></head><body><h1>تقرير شهري للأعمال</h1><h2>${escapeHtml(project?.name||"المشروع")} — ${month}</h2><div class="cards"><div class="card">عدد الفواتير<div class="num">${inv.length}</div></div><div class="card">إجمالي الفواتير<div class="num">${money(invoiceTotal)} د.ل</div></div><div class="card">المدفوع<div class="num">${money(invoicePaid)} د.ل</div></div><div class="card">المتبقي<div class="num">${money(invoiceRemaining)} د.ل</div></div><div class="card">استلمت<div class="num">${money(received)} د.ل</div></div><div class="card">صرفت<div class="num">${money(spent)} د.ل</div></div><div class="card">الصافي<div class="num">${money(received-spent)} د.ل</div></div></div><h2>تفاصيل الفواتير</h2><table><thead><tr><th>رقم</th><th>العميل</th><th>التاريخ</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th></tr></thead><tbody>${rows||'<tr><td colspan="6">لا توجد فواتير</td></tr>'}</tbody></table><h2>تفاصيل الحركات المالية</h2><table><thead><tr><th>النوع</th><th>المبلغ</th><th>الدفع</th><th>في إيش</th><th>التفاصيل</th><th>التاريخ</th></tr></thead><tbody>${expRows||'<tr><td colspan="6">لا توجد حركات</td></tr>'}</tbody></table><p class="muted">تم إنشاء التقرير من بيانات كراستي.</p></body></html>`); w.document.close(); setTimeout(()=>{w.focus();w.print();},500);
+}
+
+// Expense modal markup injected once, so it stays compatible with the existing single-file app.
+function ensureExpenseModal(){
+    if($("expenseModal")) return;
+    const d=document.createElement("div"); d.id="expenseModal"; d.className="modal hidden"; d.innerHTML=`<div class="modal-content"><div class="modal-header"><div id="expenseModalTitle" class="modal-title">إضافة حركة مالية</div><button class="modal-close" onclick="closeModal('expenseModal')">×</button></div><div class="modal-body"><div class="field"><label>النوع</label><select id="expenseType" class="input"><option value="expense">صرفت</option><option value="income">استلمت</option></select></div><div class="field"><label>المبلغ</label><input id="expenseAmount" class="input" type="number" min="0" step="0.01" placeholder="0.00"></div><div class="field"><label>طريقة الدفع</label><select id="expensePayment" class="input"><option value="cash">💵 كاش</option><option value="card">💳 بطاقة</option></select></div><div class="field"><label>في إيش صرفتهم / مصدر المبلغ</label><input id="expenseCategory" class="input" placeholder="مثلاً مواد، بنزين، عمالة، استلام من عميل..."></div><div class="field"><label>التفاصيل</label><textarea id="expenseNotes" class="input" rows="3" placeholder="اكتب تفاصيل إضافية"></textarea></div><div class="field"><label>التاريخ</label><input id="expenseDate" class="input" type="date"></div></div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('expenseModal')">إلغاء</button><button class="btn btn-primary" onclick="saveExpense()">حفظ</button></div></div>`; document.body.appendChild(d);
+}
+ensureExpenseModal();
+
+const krastyOriginalSwitchTab2=switchTab;
+switchTab=function(tab){
+    if(tab==="expenses") {
+        ["dashboardTab","customersTab","invoicesTab","projectsTab","plansTab","archiveTab","adminTab"].forEach(id=>$(id)?.classList.add("hidden"));
+        ["tabDashboard","tabCustomers","tabInvoices","tabProjects","tabPlans","tabArchive","tabAdmin"].forEach(id=>$(id)?.classList.remove("active"));
+        if(!requireGoldFeature()) return;
+        $("expensesTab")?.classList.remove("hidden"); $("tabExpenses")?.classList.add("active");
+        loadExpenses(); return;
+    }
+    $("expensesTab")?.classList.add("hidden"); $("tabExpenses")?.classList.remove("active");
+    krastyOriginalSwitchTab2(tab);
+};
+
+const krastyOriginalRenderAll2=renderAll;
+renderAll=function(){ krastyOriginalRenderAll2(); fillBulkCustomerSelect(); renderExpenses(); };
+
+// Add checkboxes to the existing invoice table without replacing its rendering logic.
+const krastyOriginalRenderInvoices2=renderInvoices;
+renderInvoices=function(){
+    krastyOriginalRenderInvoices2();
+    if(!isGoldPlan()) return;
+    const table=$("invoicesList")?.querySelector("table"); if(!table) return;
+    const head=table.querySelector("thead tr");
+    if(head && !head.querySelector(".invoice-select-cell")){ const th=document.createElement("th"); th.className="invoice-select-cell"; th.textContent="✓"; head.insertBefore(th,head.firstChild); }
+    table.querySelectorAll("tbody tr").forEach(tr=>{
+        const cells=tr.querySelectorAll("td"); if(!cells.length||tr.querySelector(".invoice-bulk-check")) return;
+        const action=tr.querySelector("button[onclick*='deleteInvoice']"); if(!action) return;
+        const m=String(action.getAttribute("onclick")||"").match(/deleteInvoice\\('([^']+)'\\)/); if(!m) return;
+        const td=document.createElement("td"); td.className="invoice-select-cell"; td.innerHTML=`<input class="invoice-bulk-check" type="checkbox" value="${m[1]}">`; tr.insertBefore(td,tr.firstChild);
+    });
+};
 </script>
 </body>
 </html>

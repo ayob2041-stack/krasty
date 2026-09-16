@@ -2993,7 +2993,7 @@ html.krasty-light td{color:#1e293b;}
                 <div id="paymentReceiptPreview" class="muted" style="margin-top:8px;font-size:12px;">يمكنك اختيار أو تصوير إيصال الحوالة/تحويل الرصيد.</div>
             </div>
             <div style="margin-top:10px;padding:12px;border:1px solid rgba(34,197,94,.22);background:rgba(34,197,94,.05);border-radius:13px;line-height:1.8;font-size:13px;">
-                بعد اختيار الإيصال، اضغط <strong>إرسال طلب التفعيل</strong>. سيتم فتح واتساب على رقم الدعم <strong dir="ltr">0925932595</strong> مع بيانات الطلب. إذا كان جهازك يدعم مشاركة الملفات، يمكنك مشاركة صورة الإيصال مباشرة عبر واتساب.
+                بعد اختيار الإيصال، اضغط <strong>إرسال طلب التفعيل</strong>. سيتم فتح واتساب على رقم الدعم <strong dir="ltr">218915932595</strong> مع بيانات الطلب. عند اختيار صورة الإيصال، سيحاول التطبيق مشاركتها مع واتساب كمرفق تلقائياً على الأجهزة التي تدعم مشاركة الملفات.
             </div>
             <div class="muted" style="line-height:1.9;">بعد الدفع، يتم تفعيل الباقة بعد مراجعة عملية الدفع من الإدارة. لا تدخل بيانات بطاقتك أو كلمة مرور حسابك هنا.</div>
             <div style="margin-top:15px;padding:14px;border:1px solid rgba(124,58,237,.25);background:rgba(124,58,237,.06);border-radius:14px;">
@@ -8101,7 +8101,7 @@ function openPaymentModal(plan){
 }
 
 async function sendPaymentReceiptToWhatsApp(payload, file){
-    const phone="218925932595";
+    const phone="218915932595";
     const methodName=payload.method==="credit"?"تحويل رصيد":"حوالة مصرفية — مصرف الإسلامي";
     const message=[
         "السلام عليكم، أريد تفعيل اشتراك كراستي.",
@@ -8112,20 +8112,26 @@ async function sendPaymentReceiptToWhatsApp(payload, file){
         `البريد: ${payload.user||"غير متوفر"}`
     ].join("\n");
 
-    if(file && navigator.share && navigator.canShare){
+    // على الهاتف: مشاركة الملف مع واتساب كمرفق مع بيانات الطلب.
+    // المتصفح لا يسمح بإجبار wa.me على إرفاق ملف؛ لذلك نستخدم Web Share عندما يدعمه الجهاز.
+    if(file && navigator.share){
         try{
             const shareData={title:"إيصال دفع كراستي",text:message,files:[file]};
-            if(navigator.canShare(shareData)){
+            if(!navigator.canShare || navigator.canShare(shareData)){
                 await navigator.share(shareData);
-                return true;
+                return {shared:true};
             }
         }catch(e){
-            if(e?.name==="AbortError") return false;
+            if(e?.name==="AbortError") return {shared:false,cancelled:true};
         }
     }
 
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message+"\n\n📎 أرفق صورة الإيصال في المحادثة قبل الإرسال.")}`,"_blank","noopener,noreferrer");
-    return true;
+    // احتياطاً للأجهزة التي لا تدعم مشاركة الملفات.
+    window.open(
+        `https://wa.me/${phone}?text=${encodeURIComponent(message+"\n\n📎 تم اختيار صورة الإيصال، لكن جهازك لا يدعم إرفاقها تلقائياً. أرفقها في نفس المحادثة.")}`,
+        "_blank","noopener,noreferrer"
+    );
+    return {shared:false};
 }
 
 function bindPaymentReceiptPicker(){
@@ -8134,47 +8140,77 @@ function bindPaymentReceiptPicker(){
     input.dataset.bound="1";
     input.addEventListener("change",()=>{
         const file=input.files?.[0];
-        if(!file){ if(preview) preview.textContent="يمكنك اختيار أو تصوير إيصال الحوالة/تحويل الرصيد."; return; }
-        if(!file.type.startsWith("image/")){ input.value=""; if(preview) preview.textContent="اختر صورة فقط."; return; }
-        if(file.size>8*1024*1024){ input.value=""; if(preview) preview.textContent="حجم صورة الإيصال يجب ألا يتجاوز 8 ميجابايت."; return; }
-        if(preview) preview.textContent=`تم اختيار الإيصال: ${file.name} — ${Math.round(file.size/1024)} KB`;
+        if(!file){
+            if(preview) preview.textContent="يمكنك اختيار أو تصوير إيصال الحوالة/تحويل الرصيد.";
+            return;
+        }
+        if(!file.type.startsWith("image/")){
+            input.value="";
+            if(preview) preview.textContent="اختر صورة فقط.";
+            return;
+        }
+        if(file.size>8*1024*1024){
+            input.value="";
+            if(preview) preview.textContent="حجم صورة الإيصال يجب ألا يتجاوز 8 ميجابايت.";
+            return;
+        }
+        if(preview) preview.textContent=`تم اختيار الإيصال: ${file.name} — ${Math.round(file.size/1024)} KB — سيتم إرفاقه عند مشاركة الطلب.`;
     });
 }
 
 async function copyPaymentValue(value){
-    try{ await navigator.clipboard.writeText(String(value)); toast("تم نسخ البيانات.","success"); }
-    catch(e){ toast("تعذر النسخ تلقائياً. اضغط مطولاً على الرقم لنسخه.","info"); }
+    try{
+        await navigator.clipboard.writeText(String(value));
+        toast("تم نسخ البيانات.","success");
+    }catch(e){
+        toast("تعذر النسخ تلقائياً. اضغط مطولاً على الرقم لنسخه.","info");
+    }
 }
+
 async function submitPaymentRequest(){
     const plan=$("paymentModal").dataset.plan||"premium";
     if(!$("paymentTermsAgree")?.checked){
         showMessage("paymentMessage","يجب قراءة شروط الاشتراك والموافقة عليها قبل إرسال الطلب.","error");
         return;
     }
+
     const p=KRASTY_PLANS[plan];
     const method=$("paymentMethod").value;
     const ref=$("paymentReference").value.trim();
     const file=$("paymentReceiptImage")?.files?.[0]||null;
-    const payload={plan,plan_name:p.name,amount:p.price,method,reference:ref,date:new Date().toISOString(),user:currentUser?.email||currentUser?.id||""};
+    const payload={
+        plan,
+        plan_name:p.name,
+        amount:p.price,
+        method,
+        reference:ref,
+        date:new Date().toISOString(),
+        user:currentUser?.email||currentUser?.id||""
+    };
+
     localStorage.setItem("krasty_pending_payment",JSON.stringify(payload));
-    if(file){
-        try{
-            await sendPaymentReceiptToWhatsApp(payload,file);
-            closeModal("paymentModal");
-            toast("تم تجهيز طلب التفعيل وإرسال/فتح واتساب مع بيانات الدفع. إذا لم تظهر الصورة داخل واتساب، أرفقها يدوياً في نفس المحادثة.","success");
-            return;
-        }catch(e){
-            console.error("payment receipt whatsapp",e);
-            showMessage("paymentMessage","تعذر فتح مشاركة الإيصال. جرّب إرسال الطلب مرة أخرى أو أرفق الصورة يدوياً في واتساب.","error");
+
+    try{
+        const result=await sendPaymentReceiptToWhatsApp(payload,file);
+
+        if(result?.cancelled){
+            toast("تم إلغاء مشاركة الطلب.","info");
             return;
         }
+
+        closeModal("paymentModal");
+
+        if(file && result?.shared){
+            toast("تمت مشاركة طلب التفعيل مع صورة الإيصال. اختر واتساب إذا ظهر لك ضمن خيارات المشاركة.","success");
+        }else if(file){
+            toast("تم فتح واتساب. جهازك لا يدعم إرفاق الصورة تلقائياً، أرفق الإيصال في نفس المحادثة.","info");
+        }else{
+            toast("تم فتح واتساب لإرسال طلب التفعيل للإدارة.","success");
+        }
+    }catch(e){
+        console.error("payment receipt whatsapp",e);
+        showMessage("paymentMessage","تعذر فتح مشاركة الإيصال. جرّب مرة أخرى.","error");
     }
-    const phone="218925932595";
-    const methodName=method==="credit"?"تحويل رصيد":"حوالة مصرفية — مصرف الإسلامي";
-    const message=`السلام عليكم، أريد تفعيل اشتراك كراستي.\nالباقة: ${p.name}\nالقيمة: ${p.price} د.ل\nطريقة الدفع: ${methodName}\nرقم العملية/الملاحظة: ${ref||"غير مذكور"}\nالبريد: ${payload.user||"غير متوفر"}`;
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message+"\n\n📎 إذا كان لديك إيصال، أرفق صورته في المحادثة.")}`,"_blank","noopener,noreferrer");
-    closeModal("paymentModal");
-    toast("تم فتح واتساب لإرسال طلب التفعيل للإدارة.","success");
 }
 
 function customerInvoicesForCurrentProject(customerId){
@@ -9157,10 +9193,7 @@ renderInvoices=function(){
         if(typeof requireGoldFeature === "function" && !requireGoldFeature()) return;
         if(!currentUser){ toast("يرجى تسجيل الدخول أولاً.","error"); return; }
 
-        const project=(projects||[]).find(p=>p.id===projectId);
-        if(!project){ toast("المشروع غير موجود.","error"); return; }
-
-        // Open immediately from the click so popup blockers do not prevent printing later.
+        // افتح النافذة فوراً حتى لا يمنعها المتصفح لاحقاً.
         const w=window.open("","_blank");
         if(!w){
             toast("المتصفح منع نافذة السجل الشهري. اسمح بالنوافذ المنبثقة ثم حاول مرة أخرى.","error");
@@ -9171,24 +9204,28 @@ renderInvoices=function(){
             "اكتب الشهر بصيغة YYYY-MM لإصدار السجل الشهري:",
             new Date().toISOString().slice(0,7)
         );
-        if(!month || !/^\d{4}-\d{2}$/.test(month)){
+        if(!month || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)){
             try{w.close();}catch(e){}
             return;
         }
 
         try{
+            const selectedProjectId=projectId||currentProjectId||null;
+            const project=selectedProjectId
+                ? (projects||[]).find(p=>p.id===selectedProjectId)
+                : null;
+
+            // إذا كان هناك مشروع محدد، نعرض فواتيره. وإذا لم يوجد مشروع، نعرض فواتير المستخدم كلها.
             const inv=(invoices||[]).filter(i =>
-                i.project_id===projectId &&
+                (!selectedProjectId || i.project_id===selectedProjectId) &&
                 String(i.invoice_date||"").startsWith(month)
             );
 
-            // Load movements for the selected project, not only the currently opened project.
             let mov=[];
             if(sb && currentUser?.id){
-                const {data,error}=await sb.from("krasty_expenses")
+                let q=sb.from("krasty_expenses")
                     .select("*")
                     .eq("user_id",currentUser.id)
-                    .eq("project_id",projectId)
                     .gte("expense_date",month+"-01")
                     .lt("expense_date",new Date(
                         Number(month.slice(0,4)),
@@ -9197,18 +9234,21 @@ renderInvoices=function(){
                     ).toISOString().slice(0,10))
                     .order("expense_date",{ascending:true})
                     .order("created_at",{ascending:true});
+
+                if(selectedProjectId) q=q.eq("project_id",selectedProjectId);
+
+                const {data,error}=await q;
                 if(error) throw error;
                 mov=data||[];
             }
 
-            const received=mov.filter(x=>x.type==="income")
-                .reduce((sum,x)=>sum+Number(x.amount||0),0);
-            const spent=mov.filter(x=>x.type==="expense")
-                .reduce((sum,x)=>sum+Number(x.amount||0),0);
+            const received=mov.filter(x=>x.type==="income").reduce((sum,x)=>sum+Number(x.amount||0),0);
+            const spent=mov.filter(x=>x.type==="expense").reduce((sum,x)=>sum+Number(x.amount||0),0);
             const invoiceTotal=inv.reduce((sum,x)=>sum+Number(x.total||0),0);
             const invoicePaid=inv.reduce((sum,x)=>sum+Number(x.paid||0),0);
             const invoiceRemaining=inv.reduce((sum,x)=>sum+Number(x.remaining||0),0);
 
+            const reportName=project?.name||"جميع المشاريع";
             const rows=inv.length ? inv.map(i =>
                 '<tr><td>'+escapeForPrint(i.invoice_number||"-")+'</td>'+
                 '<td>'+escapeForPrint(typeof customerName==="function" ? customerName(i.customer_id) : "-")+'</td>'+
@@ -9228,8 +9268,8 @@ renderInvoices=function(){
             ).join("") : '<tr><td colspan="6">لا توجد حركات مالية في هذا الشهر</td></tr>';
 
             const content=
-                '<div class="header"><h1>كراستي</h1><div>السجل الشهري للمشروع</div></div>'+
-                '<h2>'+escapeForPrint(project.name||"المشروع")+' — '+escapeForPrint(month)+'</h2>'+
+                '<div class="header"><h1>كراستي</h1><div>التقرير الشهري</div></div>'+
+                '<h2>'+escapeForPrint(reportName)+' — '+escapeForPrint(month)+'</h2>'+
                 '<div class="cards">'+
                 '<div class="card">عدد الفواتير<div class="num">'+inv.length+'</div></div>'+
                 '<div class="card">إجمالي الفواتير<div class="num">'+money(invoiceTotal)+' د.ل</div></div>'+
@@ -9243,39 +9283,40 @@ renderInvoices=function(){
                 '<table><thead><tr><th>رقم</th><th>العميل</th><th>التاريخ</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th></tr></thead><tbody>'+rows+'</tbody></table>'+
                 '<h2>تفاصيل الحركات المالية</h2>'+
                 '<table><thead><tr><th>النوع</th><th>المبلغ</th><th>الدفع</th><th>في إيش</th><th>التفاصيل</th><th>التاريخ</th></tr></thead><tbody>'+expRows+'</tbody></table>'+
-                '<p class="muted">تم إنشاء السجل من بيانات كراستي.</p>';
+                '<p class="muted">تم إنشاء التقرير من بيانات كراستي.</p>';
 
             w.document.open();
             w.document.write('<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8">'+
-                '<title>السجل الشهري - '+escapeForPrint(project.name||"المشروع")+' - '+escapeForPrint(month)+'</title>'+
+                '<title>التقرير الشهري - '+escapeForPrint(reportName)+' - '+escapeForPrint(month)+'</title>'+
                 '<style>body{font-family:Tahoma,Arial,sans-serif;color:#111;background:#fff;padding:30px;line-height:1.7}.print-page{max-width:950px;margin:auto}.header{text-align:center;border-bottom:2px solid #111;padding-bottom:18px;margin-bottom:22px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.card{border:1px solid #bbb;border-radius:10px;padding:12px;text-align:center}.num{font-size:20px;font-weight:900}h1,h2{text-align:center}table{width:100%;border-collapse:collapse;margin:16px 0 24px}th,td{border:1px solid #999;padding:9px;text-align:right}th{background:#f1f1f1}.muted{color:#555}.print-actions{text-align:center;margin:25px 0}.print-btn{border:0;border-radius:9px;padding:12px 20px;font-weight:800;cursor:pointer}@media print{.print-actions{display:none}}@media(max-width:700px){.cards{grid-template-columns:1fr}}</style>'+
                 '</head><body><div class="print-page">'+content+
                 '<div class="print-actions"><button class="print-btn" onclick="window.focus();window.print()">🖨️ طباعة / حفظ PDF</button></div>'+
                 '</div></body></html>');
             w.document.close();
 
-            // Wait until the new document is ready, then trigger the browser print dialog.
+            // الطباعة تلقائياً بعد اكتمال تحميل نافذة التقرير.
             const doPrint=()=>{
                 try{
                     w.focus();
-                    setTimeout(()=>{try{w.print();}catch(e){}},250);
+                    setTimeout(()=>{try{w.print();}catch(e){}},300);
                 }catch(e){}
             };
-            if(w.document.readyState==="complete") setTimeout(doPrint,350);
+            if(w.document.readyState==="complete") setTimeout(doPrint,400);
             else w.addEventListener("load",doPrint,{once:true});
 
         }catch(error){
-            console.error("monthly project report",error);
+            console.error("monthly report",error);
             try{w.close();}catch(e){}
-            toast("تعذر تجهيز السجل الشهري. حاول مرة أخرى.","error");
+            toast("تعذر تجهيز التقرير الشهري. تأكد من اتصال الإنترنت وحاول مرة أخرى.","error");
         }
     };
 
     window.printMonthlyBusinessReport = function(){
-        return window.openKrastyMonthlyProjectReport(currentProjectId);
+        return window.openKrastyMonthlyProjectReport(currentProjectId||null);
     };
 
-    window.openProjectModal = function(){
+
+window.openProjectModal = function(){
         if(!currentUser){
             if(typeof toast==="function") toast("يرجى تسجيل الدخول أولاً.","error");
             return;

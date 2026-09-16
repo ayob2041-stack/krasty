@@ -2945,7 +2945,10 @@ html.krasty-light td{color:#1e293b;}
     <!-- FOOTER -->
 
     <footer class="footer">
-        جميع الحقوق محفوظة © Ayob Wasem Ayob
+        <div style="display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;">
+            <span>جميع الحقوق محفوظة © Ayob Wasem Ayob</span>
+            <button type="button" class="btn btn-secondary btn-small" onclick="openTechnicalSupport()">💬 الدعم الفني عبر واتساب</button>
+        </div>
     </footer>
 
 </section>
@@ -4655,6 +4658,13 @@ function updateIdentityLock(){
             ? "🔒 بيانات الهوية مثبتة. لتغييرها مرة واحدة فقط، اطلب كود فتح من الدعم الفني عبر واتساب."
             : (identitySupportUnlocked ? "✅ تم فتح تعديل الهوية مرة واحدة. بعد الحفظ لن يتكرر التعديل إلا بموافقة دعم جديدة." : "يجب إدخال جواز السفر أو رخصة القيادة بالرقم.");
     }
+}
+
+function openTechnicalSupport(){
+    const phone="218915932595";
+    const email=currentUser?.email||"";
+    const message=`السلام عليكم، أحتاج مساعدة من الدعم الفني في تطبيق كراستي.\nالبريد: ${email}`;
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`,"_blank","noopener,noreferrer");
 }
 
 function requestIdentityChange(){

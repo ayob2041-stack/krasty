@@ -2988,6 +2988,9 @@ tr:hover td{
                                 <li>كل مميزات الباقة الاحترافية</li>
                                 <li>فواتير وصور وطباعة بدون حدود استخدام</li>
                                 <li>نسخ احتياطي واسترجاع مشفر</li>
+                                <li>حذف الفواتير بشكل جماعي أو حسب العميل</li>
+                                <li>💸 مصروفاتي وإدارة المصروفات بالتفصيل</li>
+                                <li>📊 تقارير شهرية لإجمالي الفواتير وتفاصيل الأعمال والمصروفات</li>
                                 <li>أرشيف صور الفواتير ومتابعة الدفعات</li>
                                 <li>رد سريع من الدعم الفني</li>
                                 <li>بدون إعلانات Google</li>
@@ -8229,9 +8232,43 @@ function renderAdminUsers(){
     box.innerHTML=list.map((u,i)=>{
         const plan=KRastyPlanKey(u.plan||"free");
         const expires=u.expires_at?new Date(u.expires_at).toLocaleDateString("ar-LY"):"—";
-        return `<div class="admin-user-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div style="font-weight:900;">${escapeHtml(u.full_name||"بدون اسم")} ${u.father_name?`<span class="muted">بن ${escapeHtml(u.father_name)}</span>`:""}</div><div style="margin-top:5px;direction:ltr;text-align:right;word-break:break-all;">${escapeHtml(u.email||"")}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهاتف: ${escapeHtml((u.country_code||"")+" "+(u.phone||"—"))}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهوية: ${escapeHtml(u.identity_type||"—")} — ${escapeHtml(u.identity_number||"—")}</div><div class="muted" style="margin-top:5px;font-size:12px;">تاريخ التسجيل: ${u.created_at ? new Date(u.created_at).toLocaleString('ar-LY') : 'غير متاح'}</div><div class="muted" style="margin-top:4px;">الباقة: <strong>${escapeHtml(KRASTY_PLANS[plan]?.name||plan)}</strong> — الانتهاء: ${escapeHtml(expires)}</div></div><div class="current-plan">#${i+1}</div></div><div class="admin-user-actions"><select id="adminPlan_${i}" class="input"><option value="free" ${plan==='free'?'selected':''}>مجانية</option><option value="premium" ${plan==='premium'?'selected':''}>20 د.ل — متقدمة</option><option value="business" ${plan==='business'?'selected':''}>50 د.ل — احترافية</option><option value="gold" ${plan==='gold'?'selected':''}>200 د.ل — ذهبية</option></select><button class="btn btn-primary btn-small" onclick="adminActivateUser(${i})">تفعيل 30 يومًا</button><button class="btn btn-secondary btn-small" onclick="adminActivateUser(${i},true)">تجديد 30 يومًا</button><button class="btn btn-danger btn-small" onclick="adminCancelSubscription(${i})">إلغاء الاشتراك</button></div></div>`;
+        return `<div class="admin-user-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div style="font-weight:900;">${escapeHtml(u.full_name||"بدون اسم")} ${u.father_name?`<span class="muted">بن ${escapeHtml(u.father_name)}</span>`:""}</div><div style="margin-top:5px;direction:ltr;text-align:right;word-break:break-all;">${escapeHtml(u.email||"")}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهاتف: ${escapeHtml((u.country_code||"")+" "+(u.phone||"—"))}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهوية: ${escapeHtml(u.identity_type||"—")} — ${escapeHtml(u.identity_number||"—")}</div><div class="muted" style="margin-top:5px;font-size:12px;">تاريخ التسجيل: ${u.created_at ? new Date(u.created_at).toLocaleString('ar-LY') : 'غير متاح'}</div><div class="muted" style="margin-top:4px;">الباقة: <strong>${escapeHtml(KRASTY_PLANS[plan]?.name||plan)}</strong> — الانتهاء: ${escapeHtml(expires)}</div></div><div class="current-plan">#${i+1}</div></div><div class="admin-user-actions"><select id="adminPlan_${i}" class="input"><option value="free" ${plan==='free'?'selected':''}>مجانية</option><option value="premium" ${plan==='premium'?'selected':''}>20 د.ل — متقدمة</option><option value="business" ${plan==='business'?'selected':''}>50 د.ل — احترافية</option><option value="gold" ${plan==='gold'?'selected':''}>200 د.ل — ذهبية</option></select><button class="btn btn-primary btn-small" onclick='adminActivateUserByEmail(${JSON.stringify(u.email||"")},${i},false)'>تفعيل 30 يومًا</button><button class="btn btn-secondary btn-small" onclick='adminActivateUserByEmail(${JSON.stringify(u.email||"")},${i},true)'>تجديد 30 يومًا</button><button class="btn btn-danger btn-small" onclick='adminCancelSubscriptionByEmail(${JSON.stringify(u.email||"")})'>إلغاء الاشتراك</button></div></div>`;
     }).join("");
     box._filteredUsers=list;
+}
+
+async function adminActivateUserByEmail(email,index,renew=false){
+    if(!isAdminUser()) return;
+    email=String(email||"").trim().toLowerCase();
+    if(!email){ toast("المستخدم لا يملك بريدًا صالحًا.","error"); return; }
+    const plan=$("adminPlan_"+index)?.value||"free";
+    try{
+        const result=await sb.rpc("krasty_admin_set_subscription_by_email",{
+            p_email:email,p_plan:plan,p_days:30,p_renew:renew
+        });
+        if(result.error) throw result.error;
+        toast(plan==="free"?"تم تحويل الحساب إلى الباقة المجانية.":(renew?"تم تجديد الباقة 30 يومًا.":"تم تفعيل الباقة 30 يومًا."),"success");
+        await loadAdminUsers();
+    }catch(error){
+        console.error("adminActivateUserByEmail",error);
+        toast(error?.message||"تعذر تعديل الباقة. تأكد من تشغيل SQL الخاص بالإدارة.","error");
+    }
+}
+
+async function adminCancelSubscriptionByEmail(email){
+    if(!isAdminUser()) return;
+    email=String(email||"").trim().toLowerCase();
+    if(!email) return;
+    if(!confirm(`هل تريد إلغاء اشتراك ${email}؟\n\nسيتم تحويله إلى الباقة المجانية.`)) return;
+    try{
+        const result=await sb.rpc("krasty_admin_set_subscription_by_email",{p_email:email,p_plan:"free",p_days:0,p_renew:false});
+        if(result.error) throw result.error;
+        toast("تم إلغاء الاشتراك وتحويل الحساب إلى المجانية.","success");
+        await loadAdminUsers();
+    }catch(error){
+        console.error("adminCancelSubscriptionByEmail",error);
+        toast(error?.message||"تعذر إلغاء الاشتراك.","error");
+    }
 }
 
 async function adminActivateUser(index,renew=false){
@@ -8565,15 +8602,9 @@ function subscriptionFeatures(plan){
         "كل مميزات الباقة الاحترافية",
         "فواتير وصور وطباعة بدون حدود استخدام",
         "نسخ احتياطي واسترجاع مشفر",
-        "أرشيف صور الفواتير ومتابعة الدفعات",
-        "رد سريع من الدعم الفني",
-        "بدون إعلانات Google"
-    ];
-    if(plan==="gold") return [
-        "كل مميزات الباقة الاحترافية",
         "حذف الفواتير بشكل جماعي أو حسب العميل",
-        "مصروفاتي وإدارة المصروفات",
-        "تقارير شهرية لإجمالي الفواتير وتفاصيل الأعمال",
+        "مصروفاتي وإدارة المصروفات بالتفصيل",
+        "تقارير شهرية لإجمالي الفواتير وتفاصيل الأعمال والمصروفات",
         "أرشيف صور الفواتير ومتابعة الدفعات",
         "رد سريع من الدعم الفني",
         "بدون إعلانات Google"
@@ -8645,6 +8676,7 @@ showApp = async function(){
     scheduleKrastyOffer();
 };
 window.addEventListener("focus",refreshSubscriptionLive);
+document.addEventListener("visibilitychange",()=>{ if(!document.hidden) refreshSubscriptionLive(); });
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible") refreshSubscriptionLive(); });
 
 
@@ -9246,9 +9278,9 @@ ensureExpenseModal();
 const krastyOriginalSwitchTab2=switchTab;
 switchTab=function(tab){
     if(tab==="expenses") {
+        if(!requireGoldFeature()) return;
         ["dashboardTab","customersTab","invoicesTab","projectsTab","plansTab","archiveTab","adminTab"].forEach(id=>$(id)?.classList.add("hidden"));
         ["tabDashboard","tabCustomers","tabInvoices","tabProjects","tabPlans","tabArchive","tabAdmin"].forEach(id=>$(id)?.classList.remove("active"));
-        if(!requireGoldFeature()) return;
         $("expensesTab")?.classList.remove("hidden"); $("tabExpenses")?.classList.add("active");
         loadExpenses(); return;
     }

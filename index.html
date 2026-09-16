@@ -1959,125 +1959,6 @@ tr:hover td{
 @media(max-width:900px){.plan-grid{grid-template-columns:1fr}.account-summary{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.account-summary{grid-template-columns:1fr}.offer-banner{align-items:flex-start}}
 
-
-/* =========================================================
-   KRasty iPhone PORTRAIT FIX
-   Fixes modal width/position on narrow Safari/WebView screens.
-========================================================= */
-html, body{
-    width:100%;
-    max-width:100%;
-    min-width:0;
-    overflow-x:hidden;
-}
-
-.modal{
-    position:fixed !important;
-    top:0 !important;
-    right:0 !important;
-    bottom:0 !important;
-    left:0 !important;
-    width:100vw !important;
-    max-width:100vw !important;
-    height:100vh !important;
-    height:100dvh !important;
-    box-sizing:border-box !important;
-    padding:12px !important;
-    margin:0 !important;
-    display:flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    overflow-y:auto !important;
-    overflow-x:hidden !important;
-}
-
-.modal-box{
-    width:min(620px, calc(100vw - 24px)) !important;
-    max-width:calc(100vw - 24px) !important;
-    min-width:0 !important;
-    max-height:calc(100dvh - 24px) !important;
-    margin:0 auto !important;
-    box-sizing:border-box !important;
-    overflow-x:hidden !important;
-}
-
-.modal-header,
-.modal-body,
-.modal-footer{
-    min-width:0 !important;
-    box-sizing:border-box !important;
-}
-
-.modal-body{
-    overflow-x:hidden !important;
-}
-
-.modal-box .input,
-.modal-box select,
-.modal-box textarea,
-.modal-box button{
-    max-width:100% !important;
-    box-sizing:border-box !important;
-}
-
-@media (max-width:600px){
-    .modal{
-        padding:8px !important;
-    }
-
-    .modal-box,
-    #accountModal .modal-box,
-    #passwordModal .modal-box,
-    #paymentModal .modal-box,
-    #customerPaymentModal .modal-box,
-    #customerAccountModal .modal-box,
-    #projectModal .modal-box,
-    #customerModal .modal-box,
-    #invoiceModal .modal-box,
-    #invoiceViewerModal .modal-box{
-        width:calc(100vw - 16px) !important;
-        max-width:calc(100vw - 16px) !important;
-        max-height:calc(100dvh - 16px) !important;
-        margin:0 auto !important;
-    }
-
-    #accountModal .modal-body{
-        padding:14px !important;
-    }
-
-    #accountModal .phone-row{
-        display:grid !important;
-        grid-template-columns:minmax(90px, .8fr) minmax(0, 1.2fr) !important;
-        width:100% !important;
-        min-width:0 !important;
-    }
-
-    #accountModal .phone-row > *{
-        min-width:0 !important;
-        width:100% !important;
-    }
-
-    #accountModal .modal-footer{
-        display:grid !important;
-        grid-template-columns:1fr 1fr !important;
-        gap:8px !important;
-    }
-
-    #accountModal .modal-footer .btn{
-        width:100% !important;
-        min-width:0 !important;
-    }
-}
-
-/* Prevent wide tables/cards from forcing the mobile page wider */
-table{
-    max-width:100%;
-}
-
-img, video, canvas{
-    max-width:100%;
-}
-
 </style>
 
 </head>
@@ -8539,7 +8420,35 @@ printInvoice = async function(id){
     .actions{display:flex;gap:10px;justify-content:center;margin:25px 0}
     button{padding:12px 20px;border:0;border-radius:8px;background:#111;color:#fff;font-weight:bold}
     @media print{.actions{display:none}body{padding:0}}
-    </style></head><body><div class="paper">
+    
+/* iPhone portrait fix — profile only */
+@media (max-width: 600px){
+  html,body{width:100%;max-width:100%;overflow-x:hidden;}
+  #accountModal{padding:8px !important;}
+  #accountModal .modal-box{
+    width:calc(100vw - 16px) !important;
+    max-width:calc(100vw - 16px) !important;
+    min-width:0 !important;
+    max-height:calc(100dvh - 16px) !important;
+    margin:0 auto !important;
+    box-sizing:border-box !important;
+  }
+  #accountModal .modal-body{padding:14px !important;overflow-x:hidden;}
+  #accountModal .phone-row{
+    display:grid !important;
+    grid-template-columns:minmax(90px,.8fr) minmax(0,1.2fr) !important;
+    width:100% !important;
+    min-width:0 !important;
+  }
+  #accountModal .phone-row>*{min-width:0 !important;width:100% !important;}
+  #accountModal .modal-footer{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:8px !important;
+  }
+  #accountModal .modal-footer .btn{width:100% !important;min-width:0 !important;}
+}
+</style></head><body><div class="paper">
     <h1>كراستي</h1><div class="sub">فاتورة مبيعات</div>
     <div class="meta"><div><b>رقم الفاتورة:</b> ${escapeHtml(invoice.invoice_number||"-")}<br><br><b>التاريخ:</b> ${escapeHtml(invoice.invoice_date||"-")}</div>
     <div><b>المشروع:</b> ${escapeHtml(project?.name||"-")}<br><br><b>العميل:</b> ${escapeHtml(customer?.name||"-")}</div></div>

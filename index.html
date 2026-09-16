@@ -8986,7 +8986,7 @@ printInvoice = async function(id){
     <tr><td>إجمالي الفاتورة</td><td>${money(invoice.total)} د.ل</td></tr>
     <tr><td>المدفوع</td><td>${money(invoice.paid)} د.ل</td></tr>
     <tr class="total"><td>المتبقي</td><td>${money(invoice.remaining)} د.ل</td></tr></table>
-    ${invoice.notes?`<div class="notes"><b>ملاحظات:</b><br>${escapeHtml(invoice.notes)}</div>`:""}
+    ${invoice.notes ? "<div class="notes"><b>ملاحظات:</b><br>" + escapeHtml(invoice.notes) + "</div>" : ""}
     <div class="actions"><button onclick="window.print()">🖨️ طباعة / حفظ PDF</button><button onclick="window.close()">إغلاق</button></div>
     </div>
 

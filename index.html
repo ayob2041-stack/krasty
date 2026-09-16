@@ -1272,61 +1272,6 @@ tr:hover td{
     opacity:.7;
 }
 
-
-/* =========================================================
-   PROFILE REDESIGN
-========================================================= */
-.profile-modal-box{width:min(760px,calc(100vw - 24px));box-sizing:border-box}
-.profile-header-sub{font-size:12px;margin-top:4px}
-.profile-body{padding:18px}
-.profile-hero{display:flex;align-items:center;gap:16px;padding:18px;border:1px solid var(--border);border-radius:18px;background:linear-gradient(135deg,rgba(59,130,246,.10),rgba(6,182,212,.06));margin-bottom:14px}
-.profile-avatar{width:72px;height:72px;flex:0 0 72px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px;background:linear-gradient(135deg,var(--primary),var(--cyan));box-shadow:0 12px 30px rgba(0,0,0,.22)}
-.profile-display-name{font-size:22px;font-weight:900;line-height:1.2}
-.profile-display-sub,.profile-display-email{margin-top:5px;word-break:break-word}
-.profile-section{border:1px solid var(--border);border-radius:18px;padding:17px;margin-top:14px;background:#0a1020}
-.profile-section-title{font-size:16px;font-weight:900;margin-bottom:14px}
-.profile-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.profile-phone-grid{display:grid;grid-template-columns:minmax(150px,.85fr) 1.5fr;gap:8px}
-.profile-readonly{opacity:.72;cursor:not-allowed}
-.profile-save-btn{width:100%;margin-top:4px;min-height:46px}
-.profile-security-row,.profile-backup-row{display:flex;align-items:center;justify-content:space-between;gap:14px}
-.profile-security-row .muted,.profile-backup-row .muted{font-size:12px;margin-top:4px}
-.profile-backup-actions{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
-.profile-subscription-card{border:1px solid var(--border);border-radius:14px;padding:14px;background:rgba(255,255,255,.02)}
-.subscription-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.subscription-top strong{font-size:18px}
-.subscription-status{font-size:12px;font-weight:900;border-radius:999px;padding:7px 10px}
-.subscription-status.active{background:rgba(34,197,94,.12);color:#86efac}
-.subscription-status.inactive{background:rgba(148,163,184,.12);color:#cbd5e1}
-.subscription-details{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:13px}
-.subscription-features{margin-top:10px;line-height:1.8;font-size:12px}
-.password-modal-box{width:min(520px,100%)}
-.profile-section{margin-top:14px;padding:16px;border:1px solid var(--border);border-radius:18px;background:rgba(255,255,255,.025);box-sizing:border-box}
-.profile-section:first-child{margin-top:0}
-.profile-grid,.profile-phone-grid{min-width:0}
-.profile-grid .field,.profile-phone-grid>*{min-width:0}
-.profile-grid .input,.profile-phone-grid .input{width:100%;max-width:100%;box-sizing:border-box}
-.profile-footer{position:sticky;bottom:0;background:#0d1424;z-index:2}
-@media(max-width:640px){.profile-section{padding:13px}.profile-phone-grid{grid-template-columns:1fr!important}.profile-footer{gap:8px}.profile-footer .btn{min-height:46px}}
-
-.password-notice{padding:12px;border-radius:12px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);margin-bottom:14px;font-size:13px}
-@media(max-width:640px){
-  .modal{padding:8px}
-  .profile-modal-box,.password-modal-box{width:calc(100vw - 16px);max-width:none;max-height:94vh;border-radius:18px;box-sizing:border-box}
-  .profile-body{padding:12px}
-  .profile-hero{padding:14px;gap:12px}
-  .profile-avatar{width:58px;height:58px;flex-basis:58px;font-size:25px}
-  .profile-display-name{font-size:18px}
-  .profile-grid{grid-template-columns:1fr}
-  .profile-phone-grid{grid-template-columns:1fr}
-  .profile-security-row,.profile-backup-row{align-items:stretch;flex-direction:column}
-  .profile-security-row .btn,.profile-backup-actions,.profile-backup-actions .btn{width:100%}
-  .profile-backup-actions{display:grid;grid-template-columns:1fr 1fr}
-  .profile-footer{display:grid;grid-template-columns:1fr 1fr}
-  .profile-footer .btn{width:100%}
-  .subscription-top{align-items:flex-start}
-}
-
 /* =========================================================
    MODAL
 ========================================================= */
@@ -1355,9 +1300,7 @@ tr:hover td{
 
 .modal-box{
 
-    width:min(620px,calc(100vw - 24px));
-
-    box-sizing:border-box;
+    width:min(620px,100%);
 
     max-height:90vh;
 
@@ -1936,8 +1879,38 @@ tr:hover td{
     flex-wrap:wrap;
     margin-top:10px;
 }
+.refresh-button{
+    min-width:112px;
+}
+.refresh-icon{
+    display:inline-block;
+    font-size:20px;
+    line-height:1;
+    font-weight:900;
+}
+.refreshing .refresh-icon{
+    animation:spin .75s linear infinite;
+}
+.refreshing .refresh-text{
+    opacity:.85;
+}
+@media(max-width:560px){
+    .refresh-button{
+        min-width:48px;
+        width:48px;
+        height:44px;
+        padding:0;
+        border-radius:12px;
+    }
+    .refresh-button .refresh-text{
+        display:none;
+    }
+    .refresh-button .refresh-icon{
+        font-size:23px;
+    }
+}
 .refreshing{
-    animation:spin .8s linear infinite;
+    cursor:wait;
 }
 @media(max-width:900px){
     .invoice-tools-header{
@@ -2529,12 +2502,14 @@ tr:hover td{
             <div class="header-actions">
 
                 <button
-                    class="btn btn-secondary"
+                    class="btn btn-secondary refresh-button"
                     id="refreshButton"
                     onclick="refreshApp()"
-                    title="تحديث البيانات"
+                    title="تحديث التطبيق والبيانات"
+                    type="button"
                 >
-                    🔄 تحديث
+                    <span class="refresh-icon" aria-hidden="true">↻</span>
+                    <span class="refresh-text">تحديث</span>
                 </button>
 
                 <button
@@ -3564,100 +3539,100 @@ tr:hover td{
 
 
 <!-- =====================================================
-     ACCOUNT / PROFILE MODAL
+     ACCOUNT MODAL
 ===================================================== -->
-<div id="accountModal" class="modal hidden">
-  <div class="modal-box profile-modal-box">
-    <div class="modal-header profile-header">
-      <div>
-        <div class="modal-title">👤 الملف الشخصي</div>
-        <div class="muted profile-header-sub">إدارة بيانات حسابك واشتراكك</div>
-      </div>
-      <button class="close-btn" onclick="closeModal('accountModal')">×</button>
-    </div>
 
-    <div class="modal-body profile-body">
-      <section class="profile-hero">
-        <div class="profile-avatar">👤</div>
-        <div class="profile-hero-info">
-          <div id="accountName" class="profile-display-name">الملف الشخصي</div>
-          <div id="accountFather" class="muted profile-display-sub"></div>
-          <div id="accountEmail" class="muted profile-display-email"></div>
-        </div>
-      </section>
+<div
+    id="accountModal"
+    class="modal hidden"
+>
 
-      <section class="profile-section">
-        <div class="profile-section-title">📝 البيانات الشخصية</div>
-        <div class="profile-grid">
-          <div class="field"><label>الاسم</label><input id="profileName" class="input" type="text" autocomplete="name" placeholder="اكتب اسمك"></div>
-          <div class="field"><label>اسم الأب</label><input id="profileFatherName" class="input" type="text" autocomplete="additional-name" placeholder="اكتب اسم الأب"></div>
-          <div class="field profile-phone-field"><label>رقم الهاتف</label>
-            <div class="profile-phone-grid">
-              <select id="profileCountryCode" class="input" aria-label="الدولة"></select>
-              <input id="profilePhone" class="input" type="tel" inputmode="numeric" pattern="[0-9]*" autocomplete="tel-national" dir="ltr" placeholder="رقم الهاتف بدون رمز الدولة">
+    <div class="modal-box">
+
+        <div class="modal-header">
+
+            <div class="modal-title">
+                الحساب
             </div>
-          </div>
-          <div class="field"><label>البريد الإلكتروني</label><input id="profileEmail" class="input profile-readonly" type="email" disabled></div>
-        </div>
-        <div id="profileMessage"></div>
-        <button class="btn btn-primary profile-save-btn" onclick="saveProfile()">💾 حفظ البيانات</button>
-      </section>
 
-      <section class="profile-section profile-security-section">
-        <div class="profile-section-title">🔐 الأمان</div>
-        <div class="profile-security-row">
-          <div><strong>كلمة المرور</strong><div class="muted">تغيير كلمة المرور يتم في نافذة منفصلة وآمنة.</div></div>
-          <button class="btn btn-secondary" onclick="openProfilePasswordModal()">🔑 تغيير كلمة المرور</button>
-        </div>
-      </section>
+            <button
+                class="close-btn"
+                onclick="closeModal('accountModal')"
+            >
+                ×
+            </button>
 
-      <section class="profile-section">
-        <div class="profile-section-title">💎 الاشتراك</div>
-        <div id="profileSubscriptionCard" class="profile-subscription-card">
-          <div class="muted">جاري تحميل حالة الاشتراك...</div>
         </div>
-      </section>
 
-      <section class="profile-section">
-        <div class="profile-section-title">💾 النسخ الاحتياطي</div>
-        <div class="profile-backup-row">
-          <div><strong>نسخة احتياطية لبياناتك</strong><div class="muted">احفظ نسخة على جهازك لاسترجاعها عند الحاجة.</div></div>
-          <div class="profile-backup-actions">
-            <button class="btn btn-secondary" onclick="handleBackupFeature('backup')">💾 حفظ نسخة</button>
-            <button class="btn btn-secondary" onclick="handleBackupFeature('restore')">📥 استرجاع</button>
-          </div>
+        <div class="modal-body">
+
+            <div
+                style="
+                    text-align:center;
+                    padding:20px;
+                "
+            >
+
+                <div
+                    style="
+                        width:75px;
+                        height:75px;
+                        border-radius:50%;
+                        margin:auto auto 15px;
+                        display:flex;
+                        align-items:center;
+                        justify-content:center;
+                        font-size:30px;
+                        background:
+                            linear-gradient(
+                                135deg,
+                                var(--primary),
+                                var(--cyan)
+                            );
+                    "
+                >
+                    👤
+                </div>
+
+                <div id="accountName" style="font-weight:900;font-size:20px;">الملف الشخصي</div>
+                <div id="accountFather" class="muted" style="margin-top:6px;"></div>
+                <div id="accountEmail" class="muted" style="margin-top:6px;word-break:break-all;"></div>
+            </div>
+
+            <div class="field"><label>الاسم</label><input id="profileName" class="input" type="text"></div>
+            <div class="field"><label>اسم الأب</label><input id="profileFatherName" class="input" type="text"></div>
+            <div class="field">
+                <label>رقم الهاتف</label>
+                <div style="display:grid;grid-template-columns:minmax(145px,0.9fr) 1.6fr;gap:8px;">
+                    <select id="profileCountryCode" class="input" aria-label="الدولة"></select>
+                    <input id="profilePhone" class="input" type="tel" inputmode="numeric" pattern="[0-9]*" autocomplete="tel-national" dir="ltr" placeholder="رقم الهاتف بدون رمز الدولة">
+                </div>
+            </div>
+            <div class="field"><label>البريد الإلكتروني</label><input id="profileEmail" class="input" type="email" disabled></div>
+            <div id="profileMessage"></div>
+
+            <div class="card" style="margin-top:15px;padding:14px;">
+                <div class="card-title" style="font-size:16px;margin-bottom:10px;">🔐 تغيير كلمة المرور</div>
+                <div id="profilePasswordMessage"></div>
+                <div class="field"><label>كلمة المرور الجديدة</label><input id="profileNewPassword" class="input" type="password" placeholder="6 أحرف على الأقل"></div>
+                <div class="field"><label>تأكيد كلمة المرور</label><input id="profileNewPassword2" class="input" type="password" placeholder="أعد كتابة كلمة المرور"></div>
+                <button class="btn btn-secondary" onclick="changeProfilePassword()">تغيير كلمة المرور</button>
+            </div>
+
+            </div>
+
         </div>
-      </section>
+
+        <div class="modal-footer">
+            <button class="btn btn-secondary" onclick="closeModal('accountModal')">إغلاق</button>
+            <button class="btn btn-primary" onclick="saveProfile()">حفظ التعديلات</button>
+            <button class="btn btn-danger" onclick="logout()">تسجيل الخروج</button>
+        </div>
+
     </div>
 
-    <div class="modal-footer profile-footer">
-      <button class="btn btn-secondary" onclick="closeModal('accountModal')">إغلاق</button>
-      <button class="btn btn-danger" onclick="logout()">تسجيل الخروج</button>
-    </div>
-  </div>
 </div>
 
-<!-- =====================================================
-     PROFILE PASSWORD MODAL
-===================================================== -->
-<div id="profilePasswordModal" class="modal hidden">
-  <div class="modal-box password-modal-box">
-    <div class="modal-header">
-      <div><div class="modal-title">🔐 تغيير كلمة المرور</div><div class="muted">غيّر كلمة المرور بدون تعديل بيانات الملف الشخصي.</div></div>
-      <button class="close-btn" onclick="closeModal('profilePasswordModal')">×</button>
-    </div>
-    <div class="modal-body">
-      <div class="password-notice">🛡️ استخدم كلمة مرور قوية ولا تشاركها مع أي شخص.</div>
-      <div id="profilePasswordMessage"></div>
-      <div class="field"><label>كلمة المرور الجديدة</label><input id="profileNewPassword" class="input" type="password" autocomplete="new-password" placeholder="6 أحرف على الأقل"></div>
-      <div class="field"><label>تأكيد كلمة المرور</label><input id="profileNewPassword2" class="input" type="password" autocomplete="new-password" placeholder="أعد كتابة كلمة المرور"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('profilePasswordModal')">إلغاء</button>
-      <button class="btn btn-primary" onclick="changeProfilePassword()">🔒 حفظ كلمة المرور</button>
-    </div>
-  </div>
-</div>
 
 <!-- =====================================================
      PRINT AREA
@@ -4602,7 +4577,6 @@ async function loadMyProfile(){
 async function openProfile(){
     if(!currentUser) return;
     clearMessage("profileMessage");
-    clearMessage("profilePasswordMessage");
     try{
         const p=await loadMyProfile();
         fillCountrySelect("profileCountryCode",p.country_code||"+218");
@@ -4614,39 +4588,9 @@ async function openProfile(){
         $("accountName").textContent=p.full_name||"الملف الشخصي";
         $("accountFather").textContent=p.father_name?`اسم الأب: ${p.father_name}`:"";
         $("accountEmail").textContent=currentUser.email||"";
-        renderProfileSubscriptionCard();
+        $("profileNewPassword").value=""; $("profileNewPassword2").value="";
         $("accountModal").classList.remove("hidden");
     }catch(e){ console.error(e); toast("تعذر تحميل الملف الشخصي.","error"); }
-}
-
-function openProfilePasswordModal(){
-    clearMessage("profilePasswordMessage");
-    $("profileNewPassword").value="";
-    $("profileNewPassword2").value="";
-    $("profilePasswordModal")?.classList.remove("hidden");
-}
-
-function renderProfileSubscriptionCard(){
-    const box=$("profileSubscriptionCard");
-    if(!box) return;
-    const plan=KRastyPlanKey(getCurrentPlan());
-    const paid=plan!=="free" && (!currentSubscriptionExpiresAt || new Date(currentSubscriptionExpiresAt).getTime()>=Date.now());
-    const name=plan==="business"?"الباقة الاحترافية 💎":plan==="premium"?"الباقة المتقدمة ⭐":"الباقة المجانية";
-    const expiry=currentSubscriptionExpiresAt?new Date(currentSubscriptionExpiresAt).toLocaleDateString("ar-LY"):"—";
-    box.innerHTML=`<div class="subscription-top"><div><strong>${escapeHtml(name)}</strong><div class="muted">${paid?"مفعّلة حالياً":"غير مفعّلة"}</div></div><span class="subscription-status ${paid?"active":"inactive"}">${paid?"● نشط":"● غير نشط"}</span></div><div class="subscription-details"><span>📅 تاريخ الانتهاء</span><strong>${escapeHtml(expiry)}</strong></div><div class="muted subscription-features">${plan==="business"?"💾 نسخ احتياطي واسترجاع • 📸 أرشيف الصور • 🚫 بدون إعلانات Google • 🆘 رد سريع من الدعم الفني":plan==="premium"?"📊 إدارة موسعة • 💰 متابعة الدفعات • 📢 الإعلانات مفعّلة":"الميزات الأساسية • 📢 الإعلانات مفعّلة"}</div>${paid?"":`<button class="btn btn-primary" style="width:100%;margin-top:12px" onclick="closeModal('accountModal');openPlansOffer()">💎 عرض الباقات والاشتراك</button>`}</div>`;
-}
-
-function handleBackupFeature(action){
-    const plan=KRastyPlanKey(getCurrentPlan());
-    if(plan!=="business"){
-        toast("هذه الميزة متاحة في الباقة الاحترافية 50 د.ل فقط.","info");
-        closeModal("accountModal");
-        openPlansOffer();
-        return;
-    }
-    if(action==="backup" && typeof createKrastyBackup==="function") return createKrastyBackup();
-    if(action==="restore" && typeof restoreKrastyBackup==="function") return restoreKrastyBackup();
-    toast("ميزة النسخ الاحتياطي سيتم تفعيلها هنا بعد ربط نظام النسخ.","info");
 }
 async function saveProfile(){
     if(!currentUser) return;
@@ -4688,7 +4632,6 @@ async function saveProfile(){
         $("accountFather").textContent=`اسم الأب: ${fatherName}`;
         showMessage("profileMessage","تم حفظ بيانات الملف الشخصي بنجاح.","success");
         toast("تم تحديث الملف الشخصي.","success");
-        renderProfileSubscriptionCard();
     }catch(e){
         console.error(e);
         showMessage("profileMessage",e.message||"تعذر حفظ بيانات الملف الشخصي.","error");
@@ -4715,7 +4658,6 @@ async function changeProfilePassword(){
         $("profileNewPassword").value="";
         $("profileNewPassword2").value="";
         showMessage("profilePasswordMessage","تم تغيير كلمة المرور بنجاح.","success");
-        setTimeout(()=>closeModal("profilePasswordModal"),900);
     }catch(e){
         console.error(e);
         showMessage("profilePasswordMessage",e.message||"تعذر تغيير كلمة المرور.","error");
@@ -7865,27 +7807,40 @@ function openInvoiceModal(){
 
 async function refreshApp(){
     if(refreshInProgress || !currentUser) return;
+
     refreshInProgress=true;
     const btn=$("refreshButton");
+
     if(btn){
         btn.disabled=true;
         btn.classList.add("refreshing");
-        btn.innerHTML="🔄 جاري التحديث";
+        btn.querySelector(".refresh-text")?.replaceChildren(
+            document.createTextNode("جاري التحديث")
+        );
     }
+
     try{
-        await loadAll();
-        renderInvoiceArchive();
-        toast("تم تحديث البيانات بنجاح.","success");
+        /*
+         * تحديث حقيقي للتطبيق:
+         * 1) نعيد تحميل الصفحة من جديد.
+         * 2) نضيف قيمة cache-buster للرابط حتى لا نعرض نسخة HTML قديمة من الكاش.
+         * 3) جلسة Supabase والمشروع الحالي محفوظان، لذلك لا يحتاج المستخدم لتسجيل
+         *    الدخول من جديد ما دامت الجلسة ما زالت صالحة.
+         */
+        const url=new URL(window.location.href);
+        url.searchParams.set("_krasty_refresh", String(Date.now()));
+        window.location.replace(url.toString());
     }catch(e){
         console.error(e);
-        toast(e.message||"تعذر تحديث البيانات.","error");
-    }finally{
         refreshInProgress=false;
         if(btn){
             btn.disabled=false;
             btn.classList.remove("refreshing");
-            btn.innerHTML="🔄 تحديث";
+            btn.querySelector(".refresh-text")?.replaceChildren(
+                document.createTextNode("تحديث")
+            );
         }
+        toast("تعذر إعادة تحميل التطبيق. حاول مرة أخرى.","error");
     }
 }
 
@@ -7958,10 +7913,9 @@ function renderAdminUsers(){
     const list=adminUsers.filter(u=>!q || [u.email,u.full_name,u.father_name,u.phone,u.country_code].some(v=>String(v||"").toLowerCase().includes(q)));
     if(!list.length){ box.innerHTML='<div class="empty-state">لا توجد حسابات مطابقة.</div>'; return; }
     box.innerHTML=list.map((u,i)=>{
-        const userId = u.id || u.user_id || u.uid || u.auth_user_id || null;
         const plan=KRastyPlanKey(u.plan||"free");
         const expires=u.expires_at?new Date(u.expires_at).toLocaleDateString("ar-LY"):"—";
-        return `<div class="admin-user-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div style="font-weight:900;">${escapeHtml(u.full_name||"بدون اسم")} ${u.father_name?`<span class="muted">بن ${escapeHtml(u.father_name)}</span>`:""}</div><div style="margin-top:5px;direction:ltr;text-align:right;word-break:break-all;">${escapeHtml(u.email||"")}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهاتف: ${escapeHtml((u.country_code||"")+" "+(u.phone||"—"))}</div><div class="muted" style="margin-top:5px;font-size:12px;">تاريخ التسجيل: ${u.created_at ? new Date(u.created_at).toLocaleString('ar-LY') : 'غير متاح'}</div><div class="muted" style="margin-top:4px;">الباقة: <strong>${escapeHtml(KRASTY_PLANS[plan]?.name||plan)}</strong> — الانتهاء: ${escapeHtml(expires)}</div></div><div class="current-plan">#${i+1}</div></div><div class="admin-user-actions"><select id="adminPlan_${i}" class="input"><option value="free" ${plan==='free'?'selected':''}>مجانية</option><option value="premium" ${plan==='premium'?'selected':''}>20 د.ل — متقدمة</option><option value="business" ${plan==='business'?'selected':''}>50 د.ل — احترافية</option></select><button class="btn btn-primary btn-small" onclick="adminActivateUser(${i})">تفعيل 30 يومًا</button><button class="btn btn-secondary btn-small" onclick="adminActivateUser(${i},true)">تجديد 30 يومًا</button><button class="btn btn-small" style="background:#7f1d1d;color:#fff;border:1px solid #ef4444;" onclick="adminCancelSubscriptionById('${userId||""}')">🚫 إلغاء الاشتراك</button></div></div>`;
+        return `<div class="admin-user-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div style="font-weight:900;">${escapeHtml(u.full_name||"بدون اسم")} ${u.father_name?`<span class="muted">بن ${escapeHtml(u.father_name)}</span>`:""}</div><div style="margin-top:5px;direction:ltr;text-align:right;word-break:break-all;">${escapeHtml(u.email||"")}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهاتف: ${escapeHtml((u.country_code||"")+" "+(u.phone||"—"))}</div><div class="muted" style="margin-top:5px;font-size:12px;">تاريخ التسجيل: ${u.created_at ? new Date(u.created_at).toLocaleString('ar-LY') : 'غير متاح'}</div><div class="muted" style="margin-top:4px;">الباقة: <strong>${escapeHtml(KRASTY_PLANS[plan]?.name||plan)}</strong> — الانتهاء: ${escapeHtml(expires)}</div></div><div class="current-plan">#${i+1}</div></div><div class="admin-user-actions"><select id="adminPlan_${i}" class="input"><option value="free" ${plan==='free'?'selected':''}>مجانية</option><option value="premium" ${plan==='premium'?'selected':''}>20 د.ل — متقدمة</option><option value="business" ${plan==='business'?'selected':''}>50 د.ل — احترافية</option></select><button class="btn btn-primary btn-small" onclick="adminActivateUser(${i})">تفعيل 30 يومًا</button><button class="btn btn-secondary btn-small" onclick="adminActivateUser(${i},true)">تجديد 30 يومًا</button></div></div>`;
     }).join("");
     box._filteredUsers=list;
 }
@@ -7971,47 +7925,17 @@ async function adminActivateUser(index,renew=false){
     const box=$("adminUsersList");
     const list=box?box._filteredUsers||[]:[];
     const u=list[index];
-    const userId = u?.id || u?.user_id || u?.uid || u?.auth_user_id;
-    if(!userId){ toast("تعذر تحديد المستخدم. تأكد أن دالة admin_list_users ترجع id أو user_id.","error"); return; }
+    if(!u?.id){ toast("تعذر تحديد المستخدم.","error"); return; }
     const plan=$("adminPlan_"+index)?.value||"free";
     const days=30;
     try{
-        const {error}=await sb.rpc("krasty_admin_set_subscription",{p_user_id:userId,p_plan:plan,p_days:days,p_renew:renew});
+        const {error}=await sb.rpc("krasty_admin_set_subscription",{p_user_id:u.id,p_plan:plan,p_days:days,p_renew:renew});
         if(error) throw error;
         toast(plan==="free"?"تم تحويل الحساب إلى الباقة المجانية.":"تم تفعيل الباقة للمستخدم لمدة 30 يومًا.","success");
         await loadAdminUsers();
     }catch(error){
         console.error(error);
-        toast(String(error?.message||"") || "تعذر تعديل الباقة. تأكد من تشغيل ملف إعداد الإدارة في Supabase.","error");
-    }
-}
-
-async function adminCancelSubscriptionById(userId){
-    if(!isAdminUser()) return;
-    const u=adminUsers.find(x=>String(x.id||x.user_id||x.uid||x.auth_user_id)===String(userId));
-    const resolvedUserId = u?.id || u?.user_id || u?.uid || u?.auth_user_id;
-    if(!resolvedUserId){ toast("تعذر تحديد المستخدم. تأكد أن دالة admin_list_users ترجع id أو user_id.","error"); return; }
-    const currentPlan=KRastyPlanKey(u.plan||"free");
-    if(currentPlan === "free"){
-        toast("هذا الحساب على الباقة المجانية بالفعل.","info");
-        return;
-    }
-    const ok=confirm(`هل تريد إلغاء اشتراك ${u.full_name||u.email||"هذا المستخدم"} فوراً؟\n\nسيتم تحويله إلى الباقة المجانية وإيقاف مميزات الاشتراك.`);
-    if(!ok) return;
-    try{
-        const {error}=await sb.rpc("krasty_admin_set_subscription",{
-            p_user_id:resolvedUserId,
-            p_plan:"free",
-            p_days:0,
-            p_renew:false
-        });
-        if(error) throw error;
-        toast("تم إلغاء الاشتراك وتحويل الحساب إلى الباقة المجانية.","success");
-        await loadAdminUsers();
-    }catch(error){
-        console.error("adminCancelSubscriptionById",error);
-        const msg=String(error?.message||"");
-        toast(msg || "تعذر إلغاء الاشتراك. تأكد من دالة إدارة الاشتراكات في Supabase.","error");
+        toast("تعذر تعديل الباقة. تأكد من تشغيل ملف إعداد الإدارة في Supabase.","error");
     }
 }
 
@@ -8099,19 +8023,10 @@ function updatePlanBadge(){
     if(wb) wb.textContent=plan==="free" ? `واتساب: ${getWhatsAppUsage()}/10` : "واتساب: غير محدود";
 }
 function openPlansOffer(){
-    if(!currentUser){
-        closeModal("offerModal");
-        toast("سجّل دخولك أولاً لعرض الباقات والاشتراك.","info");
-        return;
-    }
     updatePlanBadge();
     $("offerModal")?.classList.remove("hidden");
 }
 function selectPlan(plan){
-    if(!currentUser){
-        toast("سجّل دخولك أولاً لعرض الباقات والاشتراك.","info");
-        return;
-    }
     if(plan==="free"){
         toast("أنت تستخدم الباقة المجانية حالياً. يمكن الاشتراك في إحدى الباقات المدفوعة من هنا.","info");
         return;
@@ -8119,10 +8034,6 @@ function selectPlan(plan){
     openPaymentModal(plan);
 }
 function openPaymentModal(plan){
-    if(!currentUser){
-        toast("سجّل دخولك أولاً للاشتراك.","info");
-        return;
-    }
     const p=KRASTY_PLANS[plan]||KRASTY_PLANS.premium;
     const info=$("paymentPlanInfo");
     if(info) info.innerHTML=`<div><div class="offer-banner-title">${escapeHtml(p.name)}</div><div class="offer-banner-text">قيمة الاشتراك: <strong>${money(p.price)} د.ل شهرياً</strong></div></div>`;
@@ -8249,10 +8160,6 @@ renderCustomers = function(){
 /* Plans tab wrapper and non-intrusive offer timing. */
 const krastyBaseSwitchTab = switchTab;
 switchTab = function(tab){
-    if(tab==="plans" && !currentUser){
-        toast("سجّل دخولك أولاً لعرض الباقات.","info");
-        return;
-    }
     if(tab==="plans"){
         ["dashboardTab","customersTab","invoicesTab","projectsTab","plansTab","archiveTab"].forEach(id=>$(id)?.classList.add("hidden"));
         ["tabDashboard","tabCustomers","tabInvoices","tabProjects","tabPlans","tabArchive"].forEach(id=>$(id)?.classList.remove("active"));

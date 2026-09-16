@@ -7870,7 +7870,7 @@ function renderAdminUsers(){
     box.innerHTML=list.map((u,i)=>{
         const plan=KRastyPlanKey(u.plan||"free");
         const expires=u.expires_at?new Date(u.expires_at).toLocaleDateString("ar-LY"):"—";
-        return `<div class="admin-user-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div style="font-weight:900;">${escapeHtml(u.full_name||"بدون اسم")} ${u.father_name?`<span class="muted">بن ${escapeHtml(u.father_name)}</span>`:""}</div><div style="margin-top:5px;direction:ltr;text-align:right;word-break:break-all;">${escapeHtml(u.email||"")}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهاتف: ${escapeHtml((u.country_code||"")+" "+(u.phone||"—"))}</div><div class="muted" style="margin-top:5px;font-size:12px;">تاريخ التسجيل: ${u.created_at ? new Date(u.created_at).toLocaleString('ar-LY') : 'غير متاح'}</div><div class="muted" style="margin-top:4px;">الباقة: <strong>${escapeHtml(KRASTY_PLANS[plan]?.name||plan)}</strong> — الانتهاء: ${escapeHtml(expires)}</div></div><div class="current-plan">#${i+1}</div></div><div class="admin-user-actions"><select id="adminPlan_${i}" class="input"><option value="free" ${plan==='free'?'selected':''}>مجانية</option><option value="premium" ${plan==='premium'?'selected':''}>20 د.ل — متقدمة</option><option value="business" ${plan==='business'?'selected':''}>50 د.ل — احترافية</option></select><button class="btn btn-primary btn-small" onclick="adminActivateUser(${i})">تفعيل 30 يومًا</button><button class="btn btn-secondary btn-small" onclick="adminActivateUser(${i},true)">تجديد 30 يومًا</button><button class="btn btn-small" style="background:#7f1d1d;color:#fff;border:1px solid #ef4444;" onclick="adminCancelSubscription(${i})">🚫 إلغاء الاشتراك</button></div></div>`;
+        return `<div class="admin-user-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div style="font-weight:900;">${escapeHtml(u.full_name||"بدون اسم")} ${u.father_name?`<span class="muted">بن ${escapeHtml(u.father_name)}</span>`:""}</div><div style="margin-top:5px;direction:ltr;text-align:right;word-break:break-all;">${escapeHtml(u.email||"")}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهاتف: ${escapeHtml((u.country_code||"")+" "+(u.phone||"—"))}</div><div class="muted" style="margin-top:5px;font-size:12px;">تاريخ التسجيل: ${u.created_at ? new Date(u.created_at).toLocaleString('ar-LY') : 'غير متاح'}</div><div class="muted" style="margin-top:4px;">الباقة: <strong>${escapeHtml(KRASTY_PLANS[plan]?.name||plan)}</strong> — الانتهاء: ${escapeHtml(expires)}</div></div><div class="current-plan">#${i+1}</div></div><div class="admin-user-actions"><select id="adminPlan_${i}" class="input"><option value="free" ${plan==='free'?'selected':''}>مجانية</option><option value="premium" ${plan==='premium'?'selected':''}>20 د.ل — متقدمة</option><option value="business" ${plan==='business'?'selected':''}>50 د.ل — احترافية</option></select><button class="btn btn-primary btn-small" onclick="adminActivateUser(${i})">تفعيل 30 يومًا</button><button class="btn btn-secondary btn-small" onclick="adminActivateUser(${i},true)">تجديد 30 يومًا</button><button class="btn btn-small" style="background:#7f1d1d;color:#fff;border:1px solid #ef4444;" onclick="adminCancelSubscriptionById('${u.id}')">🚫 إلغاء الاشتراك</button></div></div>`;
     }).join("");
     box._filteredUsers=list;
 }
@@ -7894,11 +7894,9 @@ async function adminActivateUser(index,renew=false){
     }
 }
 
-async function adminCancelSubscription(index){
+async function adminCancelSubscriptionById(userId){
     if(!isAdminUser()) return;
-    const box=$("adminUsersList");
-    const list=box?box._filteredUsers||[]:[];
-    const u=list[index];
+    const u=adminUsers.find(x=>String(x.id)===String(userId));
     if(!u?.id){ toast("تعذر تحديد المستخدم.","error"); return; }
     const currentPlan=KRastyPlanKey(u.plan||"free");
     if(currentPlan === "free"){
@@ -7918,7 +7916,7 @@ async function adminCancelSubscription(index){
         toast("تم إلغاء الاشتراك وتحويل الحساب إلى الباقة المجانية.","success");
         await loadAdminUsers();
     }catch(error){
-        console.error("adminCancelSubscription",error);
+        console.error("adminCancelSubscriptionById",error);
         toast("تعذر إلغاء الاشتراك. تأكد من دالة إدارة الاشتراكات في Supabase.","error");
     }
 }

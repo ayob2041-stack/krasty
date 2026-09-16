@@ -1961,6 +1961,26 @@ tr:hover td{
 
 </style>
 
+
+<style id="krasty-theme-restore">
+html.krasty-light{--bg:#f4f7fb;--card:#fff;--card2:#f8fafc;--border:rgba(15,23,42,.12);--text:#0f172a;--muted:#64748b;}
+html.krasty-light body{background:linear-gradient(180deg,#f8fafc,#eef2f7);color:#0f172a;}
+html.krasty-light .topbar{background:rgba(255,255,255,.92);}
+html.krasty-light .logo-text,html.krasty-light .page-title,html.krasty-light .card-title,html.krasty-light .stat-value,html.krasty-light .plan-title,html.krasty-light .plan-price{color:#0f172a;}
+html.krasty-light .card,html.krasty-light .stat-card,html.krasty-light .plan-card,html.krasty-light .modal-box{background:#fff;border-color:rgba(15,23,42,.10);box-shadow:0 15px 40px rgba(15,23,42,.08);}
+html.krasty-light .project-bar{background:linear-gradient(135deg,#fff,#f5f3ff);}
+html.krasty-light .tabs{background:#fff;}
+html.krasty-light .tab{color:#64748b;}
+html.krasty-light .tab.active{color:#312e81;background:linear-gradient(135deg,rgba(124,58,237,.13),rgba(6,182,212,.08));}
+html.krasty-light .input{background:#f8fafc;color:#0f172a;border-color:rgba(15,23,42,.14);}
+html.krasty-light .input::placeholder{color:#94a3b8;}
+html.krasty-light .close-btn,html.krasty-light .btn-secondary{background:#eef2f7;color:#0f172a;border-color:rgba(15,23,42,.10);}
+html.krasty-light .money-box,html.krasty-light .payment-method,html.krasty-light .account-box{background:#f8fafc;}
+html.krasty-light th{color:#64748b;}
+html.krasty-light td{color:#1e293b;}
+.theme-toggle-btn{min-height:42px;}
+@media(max-width:600px){.theme-toggle-btn{font-size:0;min-width:42px;padding:9px;}.theme-toggle-btn::first-letter{font-size:18px;}.user-area{gap:5px;}.user-area .current-plan{display:none;}}
+</style>
 </head>
 
 <body>
@@ -2471,6 +2491,8 @@ tr:hover td{
 
 
             <div class="user-area">
+                <button id="themeToggleBtn" class="btn btn-secondary btn-small theme-toggle-btn" type="button" onclick="toggleKrastyTheme()" title="تغيير مظهر التطبيق">🌙 الوضع</button>
+                <span id="topSubscriptionBadge" class="current-plan">الباقة المجانية</span>
                 <button class="btn btn-secondary btn-small" onclick="openProfile()">👤 الملف الشخصي</button>
                 <span id="userEmail" class="user-email"></span>
                 <button class="btn btn-secondary btn-small" onclick="logout()">خروج</button>
@@ -8325,8 +8347,13 @@ async function loadAdminUsers(){
     const box=$("adminUsersList"), msg=$("adminMessage");
     if(box) box.innerHTML='<div class="muted">جاري تحميل المستخدمين...</div>';
     try{
-        const {data,error}=await sb.rpc("admin_list_users_v2");
-        if(error) throw error;
+        let result=await sb.rpc("admin_list_users_v2");
+        if(result.error){
+            console.warn("admin_list_users_v2 unavailable, trying admin_list_users",result.error);
+            result=await sb.rpc("admin_list_users");
+        }
+        if(result.error) throw result.error;
+        const data=result.data;
         adminUsers=(Array.isArray(data)?data:[]).map(u=>({
             ...u,
             id:u?.id || u?.user_id || u?.uid || null
@@ -8419,8 +8446,11 @@ function renderProfileSubscription(){
 function updatePlanBadge(){
     const plan=KRastyPlanKey(getCurrentPlan());
     renderProfileSubscription();
+    const label=plan==="free"?"الباقة المجانية":(KRASTY_PLANS[plan]?.name||"الباقة المدفوعة");
     const b=$("currentPlanBadge");
-    if(b) b.textContent=plan==="free"?"الباقة المجانية":(KRASTY_PLANS[plan]?.name||"الباقة المدفوعة");
+    if(b) b.textContent=label;
+    const top=$("topSubscriptionBadge");
+    if(top) top.textContent=label;
     const wb=$("whatsappUsageBadge");
     if(wb) wb.textContent=plan==="free" ? `واتساب: ${getWhatsAppUsage()}/10` : "واتساب: غير محدود";
 }
@@ -8650,7 +8680,7 @@ function showSubscriptionWelcome(){
 }
 
 let subscriptionWatchTimer=null;
-async function refreshSubscriptionLive(){
+async async function refreshSubscriptionLive(){
     if(!currentUser) return;
     const oldPlan=KRastyPlanKey(currentSubscriptionPlan);
     const oldExpires=currentSubscriptionExpiresAt||null;
@@ -8749,7 +8779,28 @@ printInvoice = async function(id){
     <tr class="total"><td>المتبقي</td><td>${money(invoice.remaining)} د.ل</td></tr></table>
     ${invoice.notes?`<div class="notes"><b>ملاحظات:</b><br>${escapeHtml(invoice.notes)}</div>`:""}
     <div class="actions"><button onclick="window.print()">🖨️ طباعة / حفظ PDF</button><button onclick="window.close()">إغلاق</button></div>
-    </div></body></html>`;
+    </div>
+<script id="krasty-theme-restore-js">
+(function(){
+  const saved=localStorage.getItem("krasty_theme")||"dark";
+  document.documentElement.classList.toggle("krasty-light",saved==="light");
+  window.updateKrastyThemeButton=function(){
+    const b=document.getElementById("themeToggleBtn"); if(!b) return;
+    const light=document.documentElement.classList.contains("krasty-light");
+    b.textContent=light?"🌙 الوضع الداكن":"☀️ الوضع الفاتح";
+    b.title=light?"الانتقال للوضع الداكن":"الانتقال للوضع الفاتح";
+  };
+  window.toggleKrastyTheme=function(){
+    const light=!document.documentElement.classList.contains("krasty-light");
+    document.documentElement.classList.toggle("krasty-light",light);
+    localStorage.setItem("krasty_theme",light?"light":"dark");
+    updateKrastyThemeButton();
+    if(typeof toast==="function") toast(light?"تم تفعيل الوضع الفاتح.":"تم تفعيل الوضع الداكن.","success");
+  };
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",updateKrastyThemeButton); else updateKrastyThemeButton();
+})();
+</script>
+</body></html>`;
 
     const w=window.open("","_blank");
     if(!w){
@@ -9144,8 +9195,17 @@ function isGoldPlan(){ return KRastyPlanKey(getCurrentPlan()) === "gold"; }
 function requireGoldFeature(){
     if(isGoldPlan()) return true;
     openPlansOffer();
-    setTimeout(()=>toast("هذه الميزة متاحة ضمن الباقة الذهبية 200 د.ل شهرياً.","info"),120);
+    setTimeout(()=>toast("هذه الميزة متاحة ضمن الباقة الذهبية 200 د.ل شهرياً. اشترك أو فعّل الباقة الذهبية لاستخدامها.","info"),120);
     return false;
+}
+
+// مصروفاتي تظهر في القائمة لجميع المستخدمين، لكن الاستخدام الفعلي مقفول للذهبية.
+function updateExpensesAccessUI(){
+    const tab=$("tabExpenses");
+    if(tab){
+        tab.classList.remove("hidden");
+        tab.title=isGoldPlan()?"مصروفاتي — متاحة":"مصروفاتي — متاحة ضمن الباقة الذهبية 200 د.ل";
+    }
 }
 
 function openInvoiceBulkTools(){
@@ -9274,9 +9334,11 @@ function ensureExpenseModal(){
     const d=document.createElement("div"); d.id="expenseModal"; d.className="modal hidden"; d.innerHTML=`<div class="modal-content"><div class="modal-header"><div id="expenseModalTitle" class="modal-title">إضافة حركة مالية</div><button class="modal-close" onclick="closeModal('expenseModal')">×</button></div><div class="modal-body"><div class="field"><label>النوع</label><select id="expenseType" class="input"><option value="expense">صرفت</option><option value="income">استلمت</option></select></div><div class="field"><label>المبلغ</label><input id="expenseAmount" class="input" type="number" min="0" step="0.01" placeholder="0.00"></div><div class="field"><label>طريقة الدفع</label><select id="expensePayment" class="input"><option value="cash">💵 كاش</option><option value="card">💳 بطاقة</option></select></div><div class="field"><label>في إيش صرفتهم / مصدر المبلغ</label><input id="expenseCategory" class="input" placeholder="مثلاً مواد، بنزين، عمالة، استلام من عميل..."></div><div class="field"><label>التفاصيل</label><textarea id="expenseNotes" class="input" rows="3" placeholder="اكتب تفاصيل إضافية"></textarea></div><div class="field"><label>التاريخ</label><input id="expenseDate" class="input" type="date"></div></div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('expenseModal')">إلغاء</button><button class="btn btn-primary" onclick="saveExpense()">حفظ</button></div></div>`; document.body.appendChild(d);
 }
 ensureExpenseModal();
+updateExpensesAccessUI();
 
 const krastyOriginalSwitchTab2=switchTab;
 switchTab=function(tab){
+    updateExpensesAccessUI();
     if(tab==="expenses") {
         if(!requireGoldFeature()) return;
         ["dashboardTab","customersTab","invoicesTab","projectsTab","plansTab","archiveTab","adminTab"].forEach(id=>$(id)?.classList.add("hidden"));
@@ -9289,7 +9351,7 @@ switchTab=function(tab){
 };
 
 const krastyOriginalRenderAll2=renderAll;
-renderAll=function(){ krastyOriginalRenderAll2(); fillBulkCustomerSelect(); renderExpenses(); };
+renderAll=function(){ krastyOriginalRenderAll2(); fillBulkCustomerSelect(); renderExpenses(); updateExpensesAccessUI(); };
 
 // Add checkboxes to the existing invoice table without replacing its rendering logic.
 const krastyOriginalRenderInvoices2=renderInvoices;

@@ -3523,6 +3523,7 @@ tr:hover td{
                     </div>
 
                     <input id="invoiceImage" type="file" accept="image/*" hidden>
+                    <input id="invoiceGallery" type="file" accept="image/*" hidden>
 
                     <div id="invoiceImagePreview" class="invoice-image-preview hidden">
                         <img id="invoiceImagePreviewImg" alt="معاينة صورة الفاتورة">
@@ -8170,7 +8171,8 @@ async function adminActivateUser(index,renew=false){
     const box=$("adminUsersList");
     const list=box?box._filteredUsers||[]:[];
     const u=list[index];
-    if(!u?.id){ toast("تعذر تحديد المستخدم.","error"); return; }
+    const userId=u?.id || u?.user_id;
+    if(!userId){ toast("تعذر تحديد المستخدم. أعد تحميل قائمة المستخدمين.","error"); return; }
     const plan=$("adminPlan_"+index)?.value||"free";
     const days=30;
     try{
@@ -8211,7 +8213,10 @@ async function loadAdminUsers(){
     try{
         const {data,error}=await sb.rpc("admin_list_users");
         if(error) throw error;
-        adminUsers=Array.isArray(data)?data:[];
+        adminUsers=(Array.isArray(data)?data:[]).map(u=>({
+            ...u,
+            id:u?.id || u?.user_id || u?.uid || null
+        }));
         if(msg) msg.textContent=`عدد الحسابات المسجلة: ${adminUsers.length}`;
         renderAdminUsers();
     }catch(error){

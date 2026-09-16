@@ -1276,7 +1276,7 @@ tr:hover td{
 /* =========================================================
    PROFILE REDESIGN
 ========================================================= */
-.profile-modal-box{width:min(720px,100%)}
+.profile-modal-box{width:min(760px,calc(100vw - 24px));box-sizing:border-box}
 .profile-header-sub{font-size:12px;margin-top:4px}
 .profile-body{padding:18px}
 .profile-hero{display:flex;align-items:center;gap:16px;padding:18px;border:1px solid var(--border);border-radius:18px;background:linear-gradient(135deg,rgba(59,130,246,.10),rgba(6,182,212,.06));margin-bottom:14px}
@@ -1301,10 +1301,18 @@ tr:hover td{
 .subscription-details{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:13px}
 .subscription-features{margin-top:10px;line-height:1.8;font-size:12px}
 .password-modal-box{width:min(520px,100%)}
+.profile-section{margin-top:14px;padding:16px;border:1px solid var(--border);border-radius:18px;background:rgba(255,255,255,.025);box-sizing:border-box}
+.profile-section:first-child{margin-top:0}
+.profile-grid,.profile-phone-grid{min-width:0}
+.profile-grid .field,.profile-phone-grid>*{min-width:0}
+.profile-grid .input,.profile-phone-grid .input{width:100%;max-width:100%;box-sizing:border-box}
+.profile-footer{position:sticky;bottom:0;background:#0d1424;z-index:2}
+@media(max-width:640px){.profile-section{padding:13px}.profile-phone-grid{grid-template-columns:1fr!important}.profile-footer{gap:8px}.profile-footer .btn{min-height:46px}}
+
 .password-notice{padding:12px;border-radius:12px;background:rgba(59,130,246,.08);border:1px solid rgba(59,130,246,.2);margin-bottom:14px;font-size:13px}
 @media(max-width:640px){
   .modal{padding:8px}
-  .profile-modal-box,.password-modal-box{width:100%;max-height:94vh;border-radius:18px}
+  .profile-modal-box,.password-modal-box{width:calc(100vw - 16px);max-width:none;max-height:94vh;border-radius:18px;box-sizing:border-box}
   .profile-body{padding:12px}
   .profile-hero{padding:14px;gap:12px}
   .profile-avatar{width:58px;height:58px;flex-basis:58px;font-size:25px}
@@ -1347,7 +1355,9 @@ tr:hover td{
 
 .modal-box{
 
-    width:min(620px,100%);
+    width:min(620px,calc(100vw - 24px));
+
+    box-sizing:border-box;
 
     max-height:90vh;
 
@@ -7972,7 +7982,7 @@ async function adminActivateUser(index,renew=false){
         await loadAdminUsers();
     }catch(error){
         console.error(error);
-        toast("تعذر تعديل الباقة. تأكد من تشغيل ملف إعداد الإدارة في Supabase.","error");
+        toast(String(error?.message||"") || "تعذر تعديل الباقة. تأكد من تشغيل ملف إعداد الإدارة في Supabase.","error");
     }
 }
 
@@ -8000,7 +8010,8 @@ async function adminCancelSubscriptionById(userId){
         await loadAdminUsers();
     }catch(error){
         console.error("adminCancelSubscriptionById",error);
-        toast("تعذر إلغاء الاشتراك. تأكد من دالة إدارة الاشتراكات في Supabase.","error");
+        const msg=String(error?.message||"");
+        toast(msg || "تعذر إلغاء الاشتراك. تأكد من دالة إدارة الاشتراكات في Supabase.","error");
     }
 }
 
@@ -8088,10 +8099,19 @@ function updatePlanBadge(){
     if(wb) wb.textContent=plan==="free" ? `واتساب: ${getWhatsAppUsage()}/10` : "واتساب: غير محدود";
 }
 function openPlansOffer(){
+    if(!currentUser){
+        closeModal("offerModal");
+        toast("سجّل دخولك أولاً لعرض الباقات والاشتراك.","info");
+        return;
+    }
     updatePlanBadge();
     $("offerModal")?.classList.remove("hidden");
 }
 function selectPlan(plan){
+    if(!currentUser){
+        toast("سجّل دخولك أولاً لعرض الباقات والاشتراك.","info");
+        return;
+    }
     if(plan==="free"){
         toast("أنت تستخدم الباقة المجانية حالياً. يمكن الاشتراك في إحدى الباقات المدفوعة من هنا.","info");
         return;
@@ -8099,6 +8119,10 @@ function selectPlan(plan){
     openPaymentModal(plan);
 }
 function openPaymentModal(plan){
+    if(!currentUser){
+        toast("سجّل دخولك أولاً للاشتراك.","info");
+        return;
+    }
     const p=KRASTY_PLANS[plan]||KRASTY_PLANS.premium;
     const info=$("paymentPlanInfo");
     if(info) info.innerHTML=`<div><div class="offer-banner-title">${escapeHtml(p.name)}</div><div class="offer-banner-text">قيمة الاشتراك: <strong>${money(p.price)} د.ل شهرياً</strong></div></div>`;
@@ -8225,6 +8249,10 @@ renderCustomers = function(){
 /* Plans tab wrapper and non-intrusive offer timing. */
 const krastyBaseSwitchTab = switchTab;
 switchTab = function(tab){
+    if(tab==="plans" && !currentUser){
+        toast("سجّل دخولك أولاً لعرض الباقات.","info");
+        return;
+    }
     if(tab==="plans"){
         ["dashboardTab","customersTab","invoicesTab","projectsTab","plansTab","archiveTab"].forEach(id=>$(id)?.classList.add("hidden"));
         ["tabDashboard","tabCustomers","tabInvoices","tabProjects","tabPlans","tabArchive"].forEach(id=>$(id)?.classList.remove("active"));

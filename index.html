@@ -1619,6 +1619,17 @@ tr:hover td{
 
 @media(max-width:600px){
 
+    .phone-row{
+        display:grid;
+        grid-template-columns:minmax(112px,.85fr) minmax(0,1.4fr);
+        gap:8px;
+        width:100%;
+    }
+
+    .phone-row .input{
+        min-width:0;
+    }
+
     .auth-wrapper{
 
         padding:14px;
@@ -2120,7 +2131,7 @@ tr:hover td{
 
                     <div class="field">
                         <label>رقم الهاتف</label>
-                        <div style="display:grid;grid-template-columns:minmax(145px,0.9fr) 1.6fr;gap:8px;">
+                        <div class="phone-row">
                             <select id="signupCountryCode" class="input" aria-label="رمز الدولة"></select>
                             <input id="signupPhone" class="input" type="tel" inputmode="tel" placeholder="رقم الهاتف" autocomplete="tel">
                         </div>
@@ -3571,20 +3582,31 @@ tr:hover td{
             <div class="field"><label>اسم الأب</label><input id="profileFatherName" class="input" type="text"></div>
             <div class="field">
                 <label>رقم الهاتف</label>
-                <div style="display:grid;grid-template-columns:minmax(145px,0.9fr) 1.6fr;gap:8px;">
+                <div class="phone-row">
                     <select id="profileCountryCode" class="input" aria-label="الدولة"></select>
                     <input id="profilePhone" class="input" type="tel" inputmode="numeric" pattern="[0-9]*" autocomplete="tel-national" dir="ltr" placeholder="رقم الهاتف بدون رمز الدولة">
                 </div>
             </div>
             <div class="field"><label>البريد الإلكتروني</label><input id="profileEmail" class="input" type="email" disabled></div>
+
+            <div class="card" style="margin-top:15px;padding:15px;">
+                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
+                    <div class="card-title" style="font-size:16px;">💎 اشتراك كراستي</div>
+                    <span id="profileSubscriptionStatus" class="badge badge-success">مفعل</span>
+                </div>
+                <div class="account-summary" style="margin:0;">
+                    <div class="account-box"><small>الباقة</small><strong id="profileSubscriptionPlan">الباقة المجانية</strong></div>
+                    <div class="account-box"><small>الحالة</small><strong id="profileSubscriptionState">غير مفعل</strong></div>
+                    <div class="account-box"><small>ينتهي في</small><strong id="profileSubscriptionExpires">—</strong></div>
+                </div>
+            </div>
+
             <div id="profileMessage"></div>
 
             <div class="card" style="margin-top:15px;padding:14px;">
-                <div class="card-title" style="font-size:16px;margin-bottom:10px;">🔐 تغيير كلمة المرور</div>
-                <div id="profilePasswordMessage"></div>
-                <div class="field"><label>كلمة المرور الجديدة</label><input id="profileNewPassword" class="input" type="password" placeholder="6 أحرف على الأقل"></div>
-                <div class="field"><label>تأكيد كلمة المرور</label><input id="profileNewPassword2" class="input" type="password" placeholder="أعد كتابة كلمة المرور"></div>
-                <button class="btn btn-secondary" onclick="changeProfilePassword()">تغيير كلمة المرور</button>
+                <div class="card-title" style="font-size:16px;margin-bottom:8px;">🔐 كلمة المرور</div>
+                <div class="muted" style="font-size:12px;line-height:1.7;margin-bottom:10px;">تغيير كلمة المرور منفصل تمامًا عن حفظ بيانات الملف الشخصي.</div>
+                <button class="btn btn-secondary" type="button" onclick="openPasswordModal()">تغيير كلمة المرور</button>
             </div>
 
             </div>
@@ -3601,6 +3623,32 @@ tr:hover td{
 
 </div>
 
+<!-- =====================================================
+     PASSWORD MODAL
+===================================================== -->
+<div id="passwordModal" class="modal hidden">
+    <div class="modal-box">
+        <div class="modal-header">
+            <div class="modal-title">🔐 تغيير كلمة المرور</div>
+            <button class="close-btn" type="button" onclick="closeModal('passwordModal')">×</button>
+        </div>
+        <div class="modal-body">
+            <div id="profilePasswordMessage"></div>
+            <div class="field">
+                <label>كلمة المرور الجديدة</label>
+                <input id="profileNewPassword" class="input" type="password" minlength="6" autocomplete="new-password" placeholder="6 أحرف على الأقل">
+            </div>
+            <div class="field">
+                <label>تأكيد كلمة المرور</label>
+                <input id="profileNewPassword2" class="input" type="password" minlength="6" autocomplete="new-password" placeholder="أعد كتابة كلمة المرور">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-secondary" type="button" onclick="closeModal('passwordModal')">إلغاء</button>
+            <button class="btn btn-primary" type="button" onclick="changeProfilePassword()">حفظ كلمة المرور</button>
+        </div>
+    </div>
+</div>
 
 <!-- =====================================================
      PRINT AREA
@@ -3669,6 +3717,7 @@ let pendingOTPEmail = "";
 let pendingResetEmail = "";
 let currentSubscriptionPlan = "free";
 let currentSubscriptionExpiresAt = null;
+let subscriptionWatchTimer = null;
 
 let projects = [];
 
@@ -4556,10 +4605,35 @@ async function openProfile(){
         $("accountName").textContent=p.full_name||"الملف الشخصي";
         $("accountFather").textContent=p.father_name?`اسم الأب: ${p.father_name}`:"";
         $("accountEmail").textContent=currentUser.email||"";
-        $("profileNewPassword").value=""; $("profileNewPassword2").value="";
+        await loadCurrentSubscription();
+        renderProfileSubscription();
         $("accountModal").classList.remove("hidden");
     }catch(e){ console.error(e); toast("تعذر تحميل الملف الشخصي.","error"); }
 }
+function openPasswordModal(){
+    clearMessage("profilePasswordMessage");
+    $("profileNewPassword").value="";
+    $("profileNewPassword2").value="";
+    $("passwordModal")?.classList.remove("hidden");
+}
+
+function renderProfileSubscription(){
+    const plan=KRastyPlanKey(currentSubscriptionPlan);
+    const active=plan!=="free" && currentSubscriptionExpiresAt && new Date(currentSubscriptionExpiresAt).getTime()>=Date.now();
+    const status=$("profileSubscriptionStatus");
+    const state=$("profileSubscriptionState");
+    const planEl=$("profileSubscriptionPlan");
+    const exp=$("profileSubscriptionExpires");
+
+    if(planEl) planEl.textContent=KRASTY_PLANS[plan]?.name||"الباقة المجانية";
+    if(state) state.textContent=active ? "مفعل" : "غير مفعل";
+    if(exp) exp.textContent=active ? new Date(currentSubscriptionExpiresAt).toLocaleDateString("ar-LY") : "—";
+    if(status){
+        status.textContent=active ? "مفعل ✓" : "غير مفعل";
+        status.className=active ? "badge badge-success" : "badge badge-danger";
+    }
+}
+
 async function saveProfile(){
     if(!currentUser) return;
     const fullName=$("profileName").value.trim();
@@ -4626,6 +4700,7 @@ async function changeProfilePassword(){
         $("profileNewPassword").value="";
         $("profileNewPassword2").value="";
         showMessage("profilePasswordMessage","تم تغيير كلمة المرور بنجاح.","success");
+        setTimeout(()=>closeModal("passwordModal"),700);
     }catch(e){
         console.error(e);
         showMessage("profilePasswordMessage",e.message||"تعذر تغيير كلمة المرور.","error");
@@ -7976,6 +8051,7 @@ function updatePlanBadge(){
     if(b) b.textContent=plan==="free"?"الباقة المجانية":"الباقة المدفوعة — "+(plan==="business"?"الاحترافية":"المتقدمة");
     const wb=$("whatsappUsageBadge");
     if(wb) wb.textContent=plan==="free" ? `واتساب: ${getWhatsAppUsage()}/10` : "واتساب: غير محدود";
+    renderProfileSubscription();
 }
 function openPlansOffer(){
     updatePlanBadge();
@@ -8161,9 +8237,29 @@ showApp = async function(){
     await loadCurrentSubscription();
     updatePlanBadge();
     showSubscriptionWelcome();
+    startSubscriptionWatch();
     scheduleKrastyOffer();
 };
-window.addEventListener("focus",()=>updatePlanBadge());
+async function refreshSubscriptionLive(){
+    if(!currentUser) return;
+    const oldPlan=KRastyPlanKey(currentSubscriptionPlan);
+    const oldExpires=currentSubscriptionExpiresAt||null;
+    await loadCurrentSubscription();
+    const newPlan=KRastyPlanKey(currentSubscriptionPlan);
+    const newExpires=currentSubscriptionExpiresAt||null;
+    updatePlanBadge();
+    renderProfileSubscription();
+    if(newPlan!==oldPlan || newExpires!==oldExpires){
+        showSubscriptionWelcome();
+    }
+}
+
+function startSubscriptionWatch(){
+    if(subscriptionWatchTimer) clearInterval(subscriptionWatchTimer);
+    subscriptionWatchTimer=setInterval(refreshSubscriptionLive,10000);
+}
+
+window.addEventListener("focus",refreshSubscriptionLive);
 
 
 /* Android-friendly print: use a dedicated printable document, with window.print fallback */

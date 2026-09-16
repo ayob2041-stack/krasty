@@ -1934,7 +1934,8 @@ tr:hover td{
 .offer-banner-title{font-size:19px;font-weight:950}.offer-banner-text{color:#cbd5e1;font-size:13px;margin-top:5px}
 .current-plan{display:inline-flex;align-items:center;gap:7px;padding:7px 11px;border-radius:999px;background:rgba(34,197,94,.10);border:1px solid rgba(34,197,94,.2);color:#86efac;font-size:12px;font-weight:900}
 .payment-method{border:1px solid var(--border);background:#0a1020;border-radius:16px;padding:15px;margin-top:12px}.payment-method h4{font-size:15px;margin-bottom:7px}.payment-line{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:7px 0;color:#cbd5e1;font-size:13px}.copy-value{font-family:monospace;direction:ltr;display:inline-block;padding:6px 9px;border-radius:9px;background:#111a2d;color:#fff;user-select:all}
-.account-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:15px}.account-box{background:#0a1020;border:1px solid var(--border);border-radius:14px;padding:13px}.account-box small{display:block;color:#94a3b8;margin-bottom:5px}.account-box strong{font-size:19px}
+.account-summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:15px}
+.admin-user-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.admin-user-actions select{min-width:150px}.admin-user-card{border:1px solid var(--border);background:#0a1020;border-radius:16px;padding:14px;margin-bottom:10px}.account-box{background:#0a1020;border:1px solid var(--border);border-radius:14px;padding:13px}.account-box small{display:block;color:#94a3b8;margin-bottom:5px}.account-box strong{font-size:19px}
 @media(max-width:900px){.plan-grid{grid-template-columns:1fr}.account-summary{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.account-summary{grid-template-columns:1fr}.offer-banner{align-items:flex-start}}
 
@@ -2276,7 +2277,7 @@ tr:hover td{
                     </h1>
 
                     <p class="auth-subtitle">
-                        أدخل بريدك الإلكتروني وسنرسل لك رابط استعادة كلمة المرور.
+                        أدخل بريدك الإلكتروني وسنرسل لك رمزًا من 8 أرقام لإعادة تعيين كلمة المرور.
                     </p>
 
                     <div id="forgotMessage"></div>
@@ -2300,7 +2301,7 @@ tr:hover td{
                         class="btn btn-primary"
                         onclick="forgotPassword()"
                     >
-                        إرسال رابط الاستعادة
+                        إرسال رمز التحقق
                     </button>
 
                     <div class="auth-links">
@@ -2314,6 +2315,25 @@ tr:hover td{
 
                     </div>
 
+                </div>
+
+
+                <!-- RESET PASSWORD BY 8-DIGIT OTP -->
+
+                <div id="resetOtpForm" class="hidden otp-box">
+                    <div class="otp-icon">🔐</div>
+                    <h1 class="auth-title">رمز إعادة تعيين كلمة المرور</h1>
+                    <p class="auth-subtitle">أرسلنا رمزًا من 8 أرقام إلى بريدك الإلكتروني.</p>
+                    <div id="resetOtpMessage"></div>
+                    <input id="resetOtpCode" class="otp-input" type="text" inputmode="numeric" maxlength="8" placeholder="00000000" autocomplete="one-time-code">
+                    <button id="verifyResetOtpButton" class="btn btn-primary" onclick="verifyResetOTP()">تأكيد الرمز</button>
+                    <div class="resend-row">
+                        <button id="resendResetBtn" class="resend-btn" onclick="resendResetOTP()">إعادة إرسال الرمز</button>
+                        <div id="resetResendTimer" style="margin-top:8px;color:#64748b;font-size:13px;"></div>
+                    </div>
+                    <div class="auth-links" style="justify-content:center">
+                        <button type="button" class="auth-link" onclick="showForgot()">تغيير البريد</button>
+                    </div>
                 </div>
 
 
@@ -3008,7 +3028,7 @@ tr:hover td{
         <div class="card-header">
             <div>
                 <div class="card-title">🛡️ لوحة الإدارة</div>
-                <div class="muted" style="margin-top:5px;">حسابات المستخدمين المسجلين بالبريد الإلكتروني.</div>
+                <div class="muted" style="margin-top:5px;">إدارة الباقات للمستخدمين المسجلين. التفعيل يغيّر الاشتراك فقط ولا يحذف العملاء أو الفواتير أو المشاريع.</div>
             </div>
             <button class="btn btn-secondary btn-small" onclick="loadAdminUsers()">🔄 تحديث</button>
         </div>
@@ -3019,6 +3039,7 @@ tr:hover td{
                 <input id="adminUserSearch" class="input" placeholder="ابحث بالبريد الإلكتروني..." oninput="renderAdminUsers()">
             </div>
             <div id="adminUsersList"></div>
+            <div id="adminActionMessage" style="margin-top:12px;"></div>
         </div>
     </div>
 </div>
@@ -3647,6 +3668,9 @@ const sb =
 let currentUser = null;
 
 let pendingOTPEmail = "";
+let pendingResetEmail = "";
+let currentSubscriptionPlan = "free";
+let currentSubscriptionExpiresAt = null;
 
 let projects = [];
 
@@ -3793,6 +3817,10 @@ function translateAuthError(error){
 
     }
 
+    if(message === "KRASTY_EMAIL_ALREADY_EXISTS"){
+        return "هذا البريد الإلكتروني مسجل بالفعل، استخدم بريدًا آخر أو سجّل الدخول.";
+    }
+
     if(
         message.toLowerCase()
         .includes("user already registered")
@@ -3854,6 +3882,7 @@ function hideAuthForms(){
         "signupForm",
         "otpForm",
         "forgotForm",
+        "resetOtpForm",
         "updatePasswordForm"
     ]
     .forEach(id=>{
@@ -3996,6 +4025,14 @@ async function signup(e){
 
     try{
 
+        // Optional exact-email check. The database function is supplied in the SQL file.
+        try{
+            const {data: exists, error: existsError} = await sb.rpc("krasty_email_exists", { p_email: email });
+            if(!existsError && exists === true) throw new Error("KRASTY_EMAIL_ALREADY_EXISTS");
+        }catch(precheckError){
+            if(precheckError?.message === "KRASTY_EMAIL_ALREADY_EXISTS") throw precheckError;
+        }
+
         const {
             data,
             error
@@ -4004,6 +4041,10 @@ async function signup(e){
                 email,
                 password
             });
+
+        if(!error && data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0){
+            throw new Error("KRASTY_EMAIL_ALREADY_EXISTS");
+        }
 
         if(error)
             throw error;
@@ -4360,59 +4401,94 @@ async function login(){
 async function forgotPassword(){
 
     const email =
-        $("forgotEmail")
-        .value
-        .trim()
-        .toLowerCase();
+        $("forgotEmail").value.trim().toLowerCase();
 
     clearMessage("forgotMessage");
 
     if(!email){
-
-        showMessage(
-            "forgotMessage",
-            "اكتب بريدك الإلكتروني.",
-            "error"
-        );
-
+        showMessage("forgotMessage","اكتب بريدك الإلكتروني.","error");
         return;
-
     }
 
     try{
+        const {data: exists, error: existsError} = await sb.rpc("krasty_email_exists", { p_email: email });
+        if(!existsError && exists === false){
+            showMessage("forgotMessage","هذا البريد الإلكتروني غير مسجل في كراستي.","error");
+            return;
+        }
 
-        const {
-            error
-        } =
-            await sb.auth.resetPasswordForEmail(
-                email,
-                {
-                    redirectTo:
-                        window.location.href
-                }
-            );
+        const {error} = await sb.auth.signInWithOtp({
+            email,
+            options:{shouldCreateUser:false}
+        });
+        if(error) throw error;
 
-        if(error)
-            throw error;
-
-        showMessage(
-            "forgotMessage",
-            "تم إرسال رابط استعادة كلمة المرور إلى بريدك.",
-            "success"
-        );
-
+        pendingResetEmail = email;
+        $("resetOtpCode").value="";
+        hideAuthForms();
+        $("resetOtpForm").classList.remove("hidden");
+        clearMessage("resetOtpMessage");
+        startResetResendTimer();
+        showMessage("resetOtpMessage","تم إرسال رمز التحقق إلى بريدك الإلكتروني.","success");
     }catch(error){
-
         console.error(error);
-
-        showMessage(
-            "forgotMessage",
-            translateAuthError(error),
-            "error"
-        );
-
+        showMessage("forgotMessage",translateAuthError(error),"error");
     }
 
+}
+
+let resetResendInterval = null;
+
+function startResetResendTimer(){
+    const btn=$("resendResetBtn");
+    const timer=$("resetResendTimer");
+    if(resetResendInterval) clearInterval(resetResendInterval);
+    let seconds=60;
+    if(btn) btn.disabled=true;
+    if(timer) timer.textContent=`يمكنك إعادة الإرسال بعد ${seconds} ثانية`;
+    resetResendInterval=setInterval(()=>{
+        seconds--;
+        if(timer) timer.textContent=seconds>0?`يمكنك إعادة الإرسال بعد ${seconds} ثانية`:"يمكنك طلب رمز جديد الآن.";
+        if(seconds<=0){ clearInterval(resetResendInterval); resetResendInterval=null; if(btn) btn.disabled=false; }
+    },1000);
+}
+
+async function resendResetOTP(){
+    if(!pendingResetEmail) return;
+    const btn=$("resendResetBtn");
+    if(btn) btn.disabled=true;
+    try{
+        const {error}=await sb.auth.signInWithOtp({email:pendingResetEmail,options:{shouldCreateUser:false}});
+        if(error) throw error;
+        showMessage("resetOtpMessage","تم إرسال رمز جديد.","success");
+        startResetResendTimer();
+    }catch(error){
+        console.error(error);
+        showMessage("resetOtpMessage",translateAuthError(error),"error");
+        if(btn) btn.disabled=false;
+    }
+}
+
+async function verifyResetOTP(){
+    const email=pendingResetEmail;
+    const token=$("resetOtpCode").value.replace(/\D/g,"").trim();
+    clearMessage("resetOtpMessage");
+    if(!email){ showMessage("resetOtpMessage","لم يتم تحديد البريد الإلكتروني.","error"); return; }
+    if(!/^\d{8}$/.test(token)){ showMessage("resetOtpMessage","اكتب رمز التحقق المكوّن من 8 أرقام.","error"); return; }
+    const btn=$("verifyResetOtpButton");
+    if(btn){btn.disabled=true;btn.textContent="جاري التحقق...";}
+    try{
+        const {data,error}=await sb.auth.verifyOtp({email,token,type:"email"});
+        if(error) throw error;
+        if(!data?.session) throw new Error("لم يتم إنشاء جلسة التحقق.");
+        showUpdatePassword();
+        showMessage("updatePasswordMessage","تم التحقق من الرمز. أدخل كلمة المرور الجديدة.","success");
+    }catch(error){
+        console.error(error);
+        showMessage("resetOtpMessage",translateAuthError(error),"error");
+    }finally{
+        if(btn){btn.disabled=false;btn.textContent="تأكيد الرمز";}
+    }
 }
 
 
@@ -4539,6 +4615,8 @@ async function logout(){
     await sb.auth.signOut();
 
     currentUser = null;
+    currentSubscriptionPlan = "free";
+    currentSubscriptionExpiresAt = null;
 
     projects = [];
 
@@ -7461,7 +7539,31 @@ function renderAdminUsers(){
     const q=String($("adminUserSearch")?.value||"").trim().toLowerCase();
     const list=adminUsers.filter(u=>!q || String(u.email||"").toLowerCase().includes(q));
     if(!list.length){ box.innerHTML='<div class="empty-state">لا توجد حسابات مطابقة.</div>'; return; }
-    box.innerHTML=list.map((u,i)=>`<div class="card" style="margin-bottom:10px;background:rgba(15,23,42,.55);"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div style="font-weight:900;direction:ltr;text-align:right;">${escapeHtml(u.email||"")}</div><div class="muted" style="margin-top:5px;font-size:12px;">تاريخ التسجيل: ${u.created_at ? new Date(u.created_at).toLocaleString('ar-LY') : 'غير متاح'}</div></div><div class="current-plan">#${i+1}</div></div></div>`).join("");
+    box.innerHTML=list.map((u,i)=>{
+        const plan=KRastyPlanKey(u.plan||"free");
+        const expires=u.expires_at?new Date(u.expires_at).toLocaleDateString("ar-LY"):"—";
+        return `<div class="admin-user-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div style="font-weight:900;direction:ltr;text-align:right;word-break:break-all;">${escapeHtml(u.email||"")}</div><div class="muted" style="margin-top:5px;font-size:12px;">تاريخ التسجيل: ${u.created_at ? new Date(u.created_at).toLocaleString('ar-LY') : 'غير متاح'}</div><div class="muted" style="margin-top:4px;">الباقة: <strong>${escapeHtml(KRASTY_PLANS[plan]?.name||plan)}</strong> — الانتهاء: ${escapeHtml(expires)}</div></div><div class="current-plan">#${i+1}</div></div><div class="admin-user-actions"><select id="adminPlan_${i}" class="input"><option value="free" ${plan==='free'?'selected':''}>مجانية</option><option value="premium" ${plan==='premium'?'selected':''}>20 د.ل — متقدمة</option><option value="business" ${plan==='business'?'selected':''}>50 د.ل — احترافية</option></select><button class="btn btn-primary btn-small" onclick="adminActivateUser(${i})">تفعيل 30 يومًا</button><button class="btn btn-secondary btn-small" onclick="adminActivateUser(${i},true)">تجديد 30 يومًا</button></div></div>`;
+    }).join("");
+    box._filteredUsers=list;
+}
+
+async function adminActivateUser(index,renew=false){
+    if(!isAdminUser()) return;
+    const box=$("adminUsersList");
+    const list=box?box._filteredUsers||[]:[];
+    const u=list[index];
+    if(!u?.id){ toast("تعذر تحديد المستخدم.","error"); return; }
+    const plan=$("adminPlan_"+index)?.value||"free";
+    const days=30;
+    try{
+        const {error}=await sb.rpc("krasty_admin_set_subscription",{p_user_id:u.id,p_plan:plan,p_days:days,p_renew:renew});
+        if(error) throw error;
+        toast(plan==="free"?"تم تحويل الحساب إلى الباقة المجانية.":"تم تفعيل الباقة للمستخدم لمدة 30 يومًا.","success");
+        await loadAdminUsers();
+    }catch(error){
+        console.error(error);
+        toast("تعذر تعديل الباقة. تأكد من تشغيل ملف إعداد الإدارة في Supabase.","error");
+    }
 }
 
 async function loadAdminUsers(){
@@ -7477,10 +7579,11 @@ async function loadAdminUsers(){
     }catch(error){
         console.error("admin_list_users",error);
         adminUsers=[];
-        if(msg) msg.textContent="تعذر تحميل المستخدمين. يجب إنشاء دالة الإدارة الآمنة في Supabase.";
+        if(msg) msg.textContent="تعذر تحميل المستخدمين. شغّل ملف إعداد الإدارة المرفق في Supabase SQL Editor مرة واحدة.";
         if(box) box.innerHTML="";
     }
 }
+
 
 document.addEventListener("DOMContentLoaded",()=>{
     const signupBtn = document.getElementById("showSignupButton");
@@ -7512,8 +7615,24 @@ const KRASTY_PLANS = {
 };
 
 function getCurrentPlan(){
-    const raw = currentUser?.user_metadata?.plan || currentUser?.user_metadata?.subscription_plan || "free";
-    return KRastyPlanKey(raw);
+    return KRastyPlanKey(currentSubscriptionPlan || currentUser?.user_metadata?.plan || "free");
+}
+
+async function loadCurrentSubscription(){
+    currentSubscriptionPlan="free";
+    currentSubscriptionExpiresAt=null;
+    if(!currentUser) return;
+    try{
+        const {data,error}=await sb.from("krasty_subscriptions").select("plan,expires_at").eq("user_id",currentUser.id).maybeSingle();
+        if(error) throw error;
+        if(data){
+            const expired=data.expires_at && new Date(data.expires_at).getTime() < Date.now();
+            currentSubscriptionPlan=expired?"free":KRastyPlanKey(data.plan);
+            currentSubscriptionExpiresAt=data.expires_at||null;
+        }
+    }catch(error){
+        console.warn("subscription load",error);
+    }
 }
 function KRastyPlanKey(raw){
     const v=String(raw||"free").toLowerCase();
@@ -7695,6 +7814,7 @@ function scheduleKrastyOffer(){
 const krastyOriginalShowApp = showApp;
 showApp = async function(){
     await krastyOriginalShowApp();
+    await loadCurrentSubscription();
     updatePlanBadge();
     scheduleKrastyOffer();
 };

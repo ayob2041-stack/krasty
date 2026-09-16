@@ -1981,6 +1981,75 @@ html.krasty-light td{color:#1e293b;}
 .theme-toggle-btn{min-height:42px;}
 @media(max-width:600px){.theme-toggle-btn{font-size:0;min-width:42px;padding:9px;}.theme-toggle-btn::first-letter{font-size:18px;}.user-area{gap:5px;}.user-area .current-plan{display:none;}}
 </style>
+
+<style id="krasty-light-complete-fix">
+/* Light mode: override the remaining dark hard-coded surfaces */
+html.krasty-light .topbar{background:rgba(255,255,255,.95);color:#0f172a;}
+html.krasty-light .stat-card,
+html.krasty-light .card,
+html.krasty-light .archive-card,
+html.krasty-light .admin-user-card,
+html.krasty-light .account-box,
+html.krasty-light .payment-method,
+html.krasty-light .cashflow-card,
+html.krasty-light .plan-card,
+html.krasty-light .project-bar,
+html.krasty-light .tabs,
+html.krasty-light .modal-content,
+html.krasty-light .modal-box{
+  background:#fff !important;
+  color:#0f172a;
+  border-color:rgba(15,23,42,.12) !important;
+  box-shadow:0 12px 35px rgba(15,23,42,.08);
+}
+html.krasty-light .plan-card{background:linear-gradient(145deg,#fff,#f8fafc) !important;}
+html.krasty-light .payment-method{background:#f8fafc !important;}
+html.krasty-light .admin-user-card,
+html.krasty-light .account-box{background:#f8fafc !important;}
+html.krasty-light .copy-value{background:#eef2f7;color:#0f172a;}
+html.krasty-light .card-header{border-bottom-color:rgba(15,23,42,.10);}
+html.krasty-light .stat-label,
+html.krasty-light .plan-subtitle,
+html.krasty-light .offer-banner-text,
+html.krasty-light .payment-line,
+html.krasty-light .plan-price span,
+html.krasty-light .account-box small{color:#64748b !important;}
+html.krasty-light .plan-features li{color:#334155 !important;}
+html.krasty-light .current-plan{color:#166534;background:rgba(34,197,94,.10);}
+html.krasty-light .input,
+html.krasty-light select,
+html.krasty-light textarea,
+html.krasty-light input[type="date"]{
+  background:#f8fafc !important;color:#0f172a !important;border-color:rgba(15,23,42,.14) !important;
+}
+html.krasty-light .input::placeholder,html.krasty-light textarea::placeholder{color:#94a3b8 !important;}
+html.krasty-light table{background:#fff;color:#0f172a;}
+html.krasty-light th{background:#f1f5f9;color:#475569 !important;}
+html.krasty-light td{color:#1e293b !important;border-color:rgba(15,23,42,.08);}
+html.krasty-light tr{border-color:rgba(15,23,42,.08);}
+html.krasty-light .modal-header,
+html.krasty-light .modal-footer{border-color:rgba(15,23,42,.10);}
+html.krasty-light .modal-title,
+html.krasty-light .field label,
+html.krasty-light .section-title,
+html.krasty-light .page-title,
+html.krasty-light .card-title,
+html.krasty-light .logo-text,
+html.krasty-light .stat-value,
+html.krasty-light .plan-title,
+html.krasty-light .account-box strong{color:#0f172a !important;}
+html.krasty-light .muted{color:#64748b !important;}
+html.krasty-light .close-btn,
+html.krasty-light .modal-close,
+html.krasty-light .btn-secondary{background:#eef2f7;color:#0f172a;border-color:rgba(15,23,42,.10);}
+html.krasty-light .offer-banner{background:linear-gradient(135deg,rgba(124,58,237,.08),rgba(245,158,11,.08));}
+html.krasty-light .tab{color:#64748b;}
+html.krasty-light .tab.active{color:#312e81;}
+html.krasty-light .dropdown-menu,
+html.krasty-light .menu,
+html.krasty-light .select-menu{background:#fff !important;color:#0f172a !important;border-color:rgba(15,23,42,.12) !important;}
+</style>
+
 </head>
 
 <body>
@@ -2890,7 +2959,7 @@ html.krasty-light td{color:#1e293b;}
                 <div class="card-header">
                     <div>
                         <div class="card-title">💸 مصروفاتي</div>
-                        <div class="muted" style="margin-top:5px;font-size:12px;">سجّل المبالغ التي المبالغ المستلمةها والمبالغ التي المبالغ المصروفةها، مع طريقة الدفع وتفاصيل المصروف.</div>
+                        <div class="muted" style="margin-top:5px;font-size:12px;">سجّل المبالغ التي استلمتها والمبالغ التي صرفتها، مع طريقة الدفع وتفاصيل المصروف.</div>
                     </div>
                     <button class="btn btn-primary btn-small" onclick="openExpenseModal()">＋ إضافة حركة</button>
                 </div>
@@ -2899,7 +2968,7 @@ html.krasty-light td{color:#1e293b;}
                     <div class="invoice-search-tools" style="margin-bottom:14px;">
                         <input id="expenseDateFrom" class="input" type="date" aria-label="من تاريخ">
                         <input id="expenseDateTo" class="input" type="date" aria-label="إلى تاريخ">
-                        <select id="expenseTypeFilter" class="input"><option value="">الكل</option><option value="income">المبالغ المستلمة</option><option value="expense">المبالغ المصروفة</option></select>
+                        <select id="expenseTypeFilter" class="input"><option value="">الكل</option><option value="income">استلمت</option><option value="expense">صرفت</option></select>
                         <button class="btn btn-cyan btn-small" onclick="loadExpenses()">🔍 بحث</button>
                         <button class="btn btn-secondary btn-small" onclick="clearExpenseFilters()">مسح</button>
                         <button class="btn btn-primary btn-small" onclick="printMonthlyBusinessReport()">🖨️ تقرير شهري</button>
@@ -4896,7 +4965,7 @@ async function saveProfile(){
         }
 
         const savedName=nameChanged?fullName:originalName||fullName;
-        const {error}=await sb.from("krasty_profiles").upsert({
+        const profilePayload={
             user_id:currentUser.id,
             full_name:savedName,
             father_name:fatherName,
@@ -4904,12 +4973,28 @@ async function saveProfile(){
             phone,
             identity_type:identityType,
             identity_number:identityNumber,
-            identity_change_used:true,
             identity_change_used:hasExistingIdentity ? (identityChanged ? true : identityChangeUsed) : true,
             updated_at:new Date().toISOString()
-        },{onConflict:"user_id"});
+        };
 
-        if(error) throw error;
+        // تحديث السجل الموجود أولاً، وإن لم يكن موجوداً ننشئه.
+        // هذا يمنع خطأ Duplicate Key عند وجود ملف شخصي مسبق للمستخدم.
+        const {data:existingProfile,error:findProfileError}=await sb
+            .from("krasty_profiles")
+            .select("user_id")
+            .eq("user_id",currentUser.id)
+            .maybeSingle();
+        if(findProfileError) throw findProfileError;
+
+        if(existingProfile){
+            const {error}=await sb.from("krasty_profiles")
+                .update(profilePayload)
+                .eq("user_id",currentUser.id);
+            if(error) throw error;
+        }else{
+            const {error}=await sb.from("krasty_profiles").insert(profilePayload);
+            if(error) throw error;
+        }
 
         const {error:authError}=await sb.auth.updateUser({
             data:{full_name:savedName,father_name:fatherName,country_code:countryCode,phone,identity_type:identityType,identity_number:identityNumber,identity_change_used:hasExistingIdentity ? (identityChanged ? true : identityChangeUsed) : true}
@@ -8329,7 +8414,7 @@ function renderAdminUsers(){
     box.innerHTML=list.map((u,i)=>{
         const plan=KRastyPlanKey(u.plan||"free");
         const expires=u.expires_at?new Date(u.expires_at).toLocaleDateString("ar-LY"):"—";
-        return `<div class="admin-user-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div style="font-weight:900;">${escapeHtml(u.full_name||"بدون اسم")} ${u.father_name?`<span class="muted">بن ${escapeHtml(u.father_name)}</span>`:""}</div><div style="margin-top:5px;direction:ltr;text-align:right;word-break:break-all;">${escapeHtml(u.email||"")}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهاتف: ${escapeHtml((u.country_code||"")+" "+(u.phone||"—"))}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهوية: ${escapeHtml(u.identity_type==="passport"?"جواز السفر":u.identity_type==="license"?"رخصة القيادة":u.identity_type||"—")} — ${escapeHtml(u.identity_number||"—")}</div><div class="muted" style="margin-top:5px;font-size:12px;">تاريخ التسجيل: ${u.created_at ? new Date(u.created_at).toLocaleString('ar-LY') : 'غير متاح'}</div><div class="muted" style="margin-top:4px;">الباقة: <strong>${escapeHtml(KRASTY_PLANS[plan]?.name||plan)}</strong> — الانتهاء: ${escapeHtml(expires)}</div><div class="muted" style="margin-top:4px;">الحالة: <strong>${escapeHtml(String(u.account_status||"active")==="banned"?"⛔ محظور":String(u.account_status||"active")==="kicked"?"🚪 مطرود":"✅ نشط")}</strong>${u.identity_required&&!String(u.identity_number||"").trim()?' — 🪪 مطلوب إدخال الهوية':''}</div></div><div class="current-plan">#${i+1}</div></div><div class="admin-user-actions"><select id="adminPlan_${i}" class="input"><option value="free" ${plan==='free'?'selected':''}>مجانية</option><option value="premium" ${plan==='premium'?'selected':''}>20 د.ل — متقدمة</option><option value="business" ${plan==='business'?'selected':''}>50 د.ل — احترافية</option><option value="gold" ${plan==='gold'?'selected':''}>200 د.ل — ذهبية</option></select><button class="btn btn-primary btn-small" onclick='adminActivateUserByEmail(${JSON.stringify(u.email||"")},${i},false)'>تفعيل لمدة 30 يومًا</button><button class="btn btn-secondary btn-small" onclick='adminActivateUserByEmail(${JSON.stringify(u.email||"")},${i},true)'>تجديد لمدة 30 يومًا</button><button class="btn btn-danger btn-small" onclick='adminCancelSubscriptionByEmail(${JSON.stringify(u.email||"")})'>إلغاء الاشتراك</button>${!String(u.identity_number||"").trim()?`<button class="btn btn-warning btn-small" onclick='adminRequestIdentity(${JSON.stringify(u.email||"")})'>🪪 طلب هوية</button>`:""}<button class="btn btn-warning btn-small" onclick='adminKickUser(${JSON.stringify(u.email||"")})'>🚪 طرد</button><button class="btn btn-danger btn-small" onclick='adminBanUser(${JSON.stringify(u.email||"")})'>⛔ باند</button></div></div>`;
+        return `<div class="admin-user-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div style="font-weight:900;">${escapeHtml(u.full_name||"بدون اسم")} ${u.father_name?`<span class="muted">بن ${escapeHtml(u.father_name)}</span>`:""}</div><div style="margin-top:5px;direction:ltr;text-align:right;word-break:break-all;">${escapeHtml(u.email||"")}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهاتف: ${escapeHtml((u.country_code||"")+" "+(u.phone||"—"))}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهوية: ${escapeHtml(u.identity_type==="passport"?"جواز السفر":u.identity_type==="license"?"رخصة القيادة":u.identity_type||"—")} — ${escapeHtml(u.identity_number||"—")}</div><div class="muted" style="margin-top:5px;font-size:12px;">تاريخ التسجيل: ${u.created_at ? new Date(u.created_at).toLocaleString('ar-LY') : 'غير متاح'}</div><div class="muted" style="margin-top:4px;">الباقة: <strong>${escapeHtml(KRASTY_PLANS[plan]?.name||plan)}</strong> — الانتهاء: ${escapeHtml(expires)}</div><div class="muted" style="margin-top:4px;">الحالة: <strong>${escapeHtml(String(u.account_status||"active")==="banned"?"⛔ محظور":String(u.account_status||"active")==="kicked"?"🚪 مطرود":"✅ نشط")}</strong>${u.identity_required&&!String(u.identity_number||"").trim()?' — 🪪 مطلوب إدخال الهوية':''}</div></div><div class="current-plan">#${i+1}</div></div><div class="admin-user-actions"><select id="adminPlan_${i}" class="input"><option value="free" ${plan==='free'?'selected':''}>مجانية</option><option value="premium" ${plan==='premium'?'selected':''}>20 د.ل — متقدمة</option><option value="business" ${plan==='business'?'selected':''}>50 د.ل — احترافية</option><option value="gold" ${plan==='gold'?'selected':''}>200 د.ل — ذهبية</option></select><button class="btn btn-primary btn-small" onclick='adminActivateUserByEmail(${JSON.stringify(u.email||"")},${i},false)'>تفعيل 30 يومًا</button><button class="btn btn-secondary btn-small" onclick='adminActivateUserByEmail(${JSON.stringify(u.email||"")},${i},true)'>تجديد 30 يومًا</button><button class="btn btn-danger btn-small" onclick='adminCancelSubscriptionByEmail(${JSON.stringify(u.email||"")})'>إلغاء الاشتراك</button>${!String(u.identity_number||"").trim()?`<button class="btn btn-warning btn-small" onclick='adminRequestIdentity(${JSON.stringify(u.email||"")})'>🪪 طلب هوية</button>`:""}<button class="btn btn-warning btn-small" onclick='adminKickUser(${JSON.stringify(u.email||"")})'>🚪 طرد</button><button class="btn btn-danger btn-small" onclick='adminBanUser(${JSON.stringify(u.email||"")})'>⛔ باند</button></div></div>`;
     }).join("");
     box._filteredUsers=list;
 }
@@ -8533,7 +8618,7 @@ async function loadCurrentSubscription(){
     currentSubscriptionExpiresAt=null;
     if(!currentUser?.id) return;
     try{
-        const {data,error}=await sb.from("krasty_subscriptions").select("plan,expires_at,updated_at").eq("user_id",currentUser.id).order("updated_at",{ascending:false}).limit(1).maybeSingle();
+        const {data,error}=await sb.from("krasty_subscriptions").select("plan,expires_at,updated_at").eq("user_id",currentUser.id).maybeSingle();
         if(error) throw error;
         if(data){
             const expiry=data.expires_at ? new Date(data.expires_at).getTime() : null;
@@ -8813,7 +8898,6 @@ async function refreshSubscriptionLive(){
     const newExpires=currentSubscriptionExpiresAt||null;
     updatePlanBadge();
     renderProfileSubscription();
-    try{ updateExpensesAccessUI(); }catch(e){}
     if(newPlan!==oldPlan || newExpires!==oldExpires) showSubscriptionWelcome();
 }
 function startSubscriptionWatch(){
@@ -8905,6 +8989,49 @@ printInvoice = async function(id){
     ${invoice.notes?`<div class="notes"><b>ملاحظات:</b><br>${escapeHtml(invoice.notes)}</div>`:""}
     <div class="actions"><button onclick="window.print()">🖨️ طباعة / حفظ PDF</button><button onclick="window.close()">إغلاق</button></div>
     </div>
+
+<script id="krasty-account-status-watch-fix">
+(function(){
+  let statusWatchTimer=null;
+  let statusCheckBusy=false;
+  async function enforceAccountStatus(){
+    if(!window.currentUser || statusCheckBusy) return;
+    statusCheckBusy=true;
+    try{
+      const p=await window.loadMyProfile();
+      const status=String(p?.account_status||"active").toLowerCase();
+      window.currentAccountStatus=status;
+      if(status==="kicked" || status==="banned"){
+        if(statusWatchTimer) clearInterval(statusWatchTimer);
+        try{ await sb.auth.signOut(); }catch(e){}
+        window.currentUser=null;
+        if(typeof currentSubscriptionPlan!=="undefined") currentSubscriptionPlan="free";
+        if(typeof currentSubscriptionExpiresAt!=="undefined") currentSubscriptionExpiresAt=null;
+        document.getElementById("appSection")?.classList.add("hidden");
+        document.getElementById("authSection")?.classList.remove("hidden");
+        if(typeof showLogin==="function") showLogin();
+        if(typeof toast==="function") toast(status==="banned"?"تم حظر هذا الحساب من استخدام كراستي.":"تم طرد هذا الحساب من كراستي.","error");
+      }
+    }catch(e){ console.warn("account status check",e); }
+    finally{ statusCheckBusy=false; }
+  }
+  function startStatusWatch(){
+    if(statusWatchTimer) clearInterval(statusWatchTimer);
+    statusWatchTimer=setInterval(enforceAccountStatus,10000);
+  }
+  window.addEventListener("focus",enforceAccountStatus);
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden) enforceAccountStatus();});
+  const oldShowApp=window.showApp;
+  if(typeof oldShowApp==="function"){
+    window.showApp=async function(){
+      const r=await oldShowApp.apply(this,arguments);
+      startStatusWatch();
+      return r;
+    };
+  }
+})();
+</script>
+
 </body></html>`;
 
     const w=window.open("","_blank");
@@ -9383,7 +9510,7 @@ async function loadExpenses(){
         const {data,error}=await sb.from("krasty_expenses").select("*").eq("user_id",currentUser.id).eq("project_id",currentProjectId).order("expense_date",{ascending:false}).order("created_at",{ascending:false});
         if(error) throw error;
         expenses=data||[]; renderExpenses();
-    }catch(e){ console.error(e); $("expensesList") && ($("expensesList").innerHTML=emptyState("⚠️","تعذّر تحميل المصروفات. يُرجى التأكد من إعداد قاعدة البيانات الخاصة بالميزة.")); }
+    }catch(e){ console.error(e); $("expensesList") && ($("expensesList").innerHTML=emptyState("⚠️","تعذر تحميل المصروفات. تأكد من تشغيل SQL الخاص بالميزة.")); }
 }
 function renderExpenses(){
     const box=$("expensesList"), stats=$("expenseStats"); if(!box||!stats) return;
@@ -9392,9 +9519,9 @@ function renderExpenses(){
     const received=list.filter(x=>x.type==="income").reduce((s,x)=>s+Number(x.amount||0),0);
     const spent=list.filter(x=>x.type==="expense").reduce((s,x)=>s+Number(x.amount||0),0);
     const net=received-spent;
-    stats.innerHTML=`<div class="stat-card"><div class="stat-label">إجمالي ما المبالغ المستلمة</div><div class="stat-value">${money(received)}</div><div class="stat-icon">💰</div></div><div class="stat-card"><div class="stat-label">إجمالي ما المبالغ المصروفة</div><div class="stat-value">${money(spent)}</div><div class="stat-icon">💸</div></div><div class="stat-card"><div class="stat-label">الصافي</div><div class="stat-value">${money(net)}</div><div class="stat-icon">📊</div></div>`;
-    if(!list.length){ box.innerHTML=emptyState("💸","لا توجد حركات مالية في الفترة المحددة"); return; }
-    box.innerHTML=`<div class="table-wrap"><table><thead><tr><th>النوع</th><th>المبلغ</th><th>طريقة الدفع</th><th>في ماذا</th><th>التفاصيل</th><th>التاريخ</th><th>إجراء</th></tr></thead><tbody>${list.map(x=>`<tr class="expense-row-${x.type}"><td>${x.type==="income"?'<span class="badge badge-success">المبالغ المستلمة</span>':'<span class="badge badge-danger">المبالغ المصروفة</span>'}</td><td><strong>${money(x.amount)} د.ل</strong></td><td>${x.payment_method==="card"?"💳 بطاقة":"💵 نقدًا"}</td><td>${escapeHtml(x.category||"—")}</td><td>${escapeHtml(x.notes||"—")}</td><td>${escapeHtml(x.expense_date||"—")}</td><td><button class="btn btn-secondary btn-small" onclick="openExpenseModal('${x.id}')">تعديل</button><button class="btn btn-danger btn-small" onclick="deleteExpense('${x.id}')">حذف</button></td></tr>`).join("")}</tbody></table></div>`;
+    stats.innerHTML=`<div class="stat-card"><div class="stat-label">إجمالي ما استلمت</div><div class="stat-value">${money(received)}</div><div class="stat-icon">💰</div></div><div class="stat-card"><div class="stat-label">إجمالي ما صرفت</div><div class="stat-value">${money(spent)}</div><div class="stat-icon">💸</div></div><div class="stat-card"><div class="stat-label">الصافي</div><div class="stat-value">${money(net)}</div><div class="stat-icon">📊</div></div>`;
+    if(!list.length){ box.innerHTML=emptyState("💸","لا توجد حركات في الفترة المحددة"); return; }
+    box.innerHTML=`<div class="table-wrap"><table><thead><tr><th>النوع</th><th>المبلغ</th><th>طريقة الدفع</th><th>في إيش</th><th>التفاصيل</th><th>التاريخ</th><th>إجراء</th></tr></thead><tbody>${list.map(x=>`<tr class="expense-row-${x.type}"><td>${x.type==="income"?'<span class="badge badge-success">استلمت</span>':'<span class="badge badge-danger">صرفت</span>'}</td><td><strong>${money(x.amount)} د.ل</strong></td><td>${x.payment_method==="card"?"💳 بطاقة":"💵 كاش"}</td><td>${escapeHtml(x.category||"—")}</td><td>${escapeHtml(x.notes||"—")}</td><td>${escapeHtml(x.expense_date||"—")}</td><td><button class="btn btn-secondary btn-small" onclick="openExpenseModal('${x.id}')">تعديل</button><button class="btn btn-danger btn-small" onclick="deleteExpense('${x.id}')">حذف</button></td></tr>`).join("")}</tbody></table></div>`;
 }
 function openExpenseModal(id=null){
     if(!requireGoldFeature()) return;
@@ -9405,17 +9532,17 @@ function openExpenseModal(id=null){
 }
 async function saveExpense(){
     if(!requireGoldFeature()) return;
-    const amount=Number($("expenseAmount")?.value||0); if(amount<=0){toast("أدخل مبلغًا صحيحًا.","error");return;}
+    const amount=Number($("expenseAmount")?.value||0); if(amount<=0){toast("اكتب مبلغاً صحيحاً.","error");return;}
     const payload={user_id:currentUser.id,project_id:currentProjectId,type:$("expenseType").value,amount,payment_method:$("expensePayment").value,category:$("expenseCategory").value.trim(),notes:$("expenseNotes").value.trim(),expense_date:$("expenseDate").value||today(),updated_at:new Date().toISOString()};
     try{
         if(editingExpenseId){ const {data,error}=await sb.from("krasty_expenses").update(payload).eq("id",editingExpenseId).eq("user_id",currentUser.id).select().single(); if(error)throw error; expenses=expenses.map(x=>x.id===data.id?data:x); }
         else { const {data,error}=await sb.from("krasty_expenses").insert(payload).select().single(); if(error)throw error; expenses=[data,...expenses]; }
         closeModal("expenseModal"); renderExpenses(); toast("تم حفظ الحركة المالية.","success");
-    }catch(e){console.error(e);toast(e.message||"تعذّر حفظ الحركة.","error");}
+    }catch(e){console.error(e);toast(e.message||"تعذر حفظ الحركة.","error");}
 }
 async function deleteExpense(id){
     if(!requireGoldFeature())return; const x=expenses.find(e=>e.id===id); if(!x||!confirm("هل تريد حذف هذه الحركة؟"))return;
-    try{const {error}=await sb.from("krasty_expenses").delete().eq("id",id).eq("user_id",currentUser.id);if(error)throw error;expenses=expenses.filter(e=>e.id!==id);renderExpenses();toast("تم حذف الحركة.","success");}catch(e){toast(e.message||"تعذّر حذف الحركة.","error");}
+    try{const {error}=await sb.from("krasty_expenses").delete().eq("id",id).eq("user_id",currentUser.id);if(error)throw error;expenses=expenses.filter(e=>e.id!==id);renderExpenses();toast("تم حذف الحركة.","success");}catch(e){toast(e.message||"تعذر الحذف.","error");}
 }
 function clearExpenseFilters(){ $("expenseDateFrom").value="";$("expenseDateTo").value="";$("expenseTypeFilter").value="";renderExpenses(); }
 function printMonthlyBusinessReport(){
@@ -9428,15 +9555,15 @@ function printMonthlyBusinessReport(){
     const invoiceTotal=inv.reduce((s,x)=>s+Number(x.total||0),0), invoicePaid=inv.reduce((s,x)=>s+Number(x.paid||0),0), invoiceRemaining=inv.reduce((s,x)=>s+Number(x.remaining||0),0);
     const project=projects.find(p=>p.id===currentProjectId);
     const rows=inv.map(i=>`<tr><td>${escapeHtml(i.invoice_number||"-")}</td><td>${escapeHtml(customerName(i.customer_id))}</td><td>${escapeHtml(i.invoice_date||"-")}</td><td>${money(i.total)} د.ل</td><td>${money(i.paid)} د.ل</td><td>${money(i.remaining)} د.ل</td></tr>`).join("");
-    const expRows=mov.map(x=>`<tr><td>${x.type==="income"?"المبالغ المستلمة":"المبالغ المصروفة"}</td><td>${money(x.amount)} د.ل</td><td>${x.payment_method==="card"?"بطاقة":"نقدًا"}</td><td>${escapeHtml(x.category||"-")}</td><td>${escapeHtml(x.notes||"-")}</td><td>${escapeHtml(x.expense_date||"-")}</td></tr>`).join("");
+    const expRows=mov.map(x=>`<tr><td>${x.type==="income"?"استلمت":"صرفت"}</td><td>${money(x.amount)} د.ل</td><td>${x.payment_method==="card"?"بطاقة":"كاش"}</td><td>${escapeHtml(x.category||"-")}</td><td>${escapeHtml(x.notes||"-")}</td><td>${escapeHtml(x.expense_date||"-")}</td></tr>`).join("");
     const w=window.open("","_blank"); if(!w){toast("المتصفح منع نافذة التقرير.","error");return;}
-    w.document.write(`<html dir="rtl"><head><meta charset="utf-8"><title>تقرير شهري - ${month}</title><style>body{font-family:Arial,sans-serif;padding:30px;color:#111}h1,h2{text-align:center}.cards{display:flex;gap:10px;flex-wrap:wrap}.card{border:1px solid #ddd;border-radius:10px;padding:12px;flex:1;min-width:150px}.num{font-size:20px;font-weight:800}table{width:100%;border-collapse:collapse;margin:15px 0}th,td{border:1px solid #ddd;padding:8px;text-align:right}th{background:#f3f4f6}.muted{color:#666}</style></head><body><h1>تقرير شهري للأعمال</h1><h2>${escapeHtml(project?.name||"المشروع")} — ${month}</h2><div class="cards"><div class="card">عدد الفواتير<div class="num">${inv.length}</div></div><div class="card">إجمالي الفواتير<div class="num">${money(invoiceTotal)} د.ل</div></div><div class="card">المدفوع<div class="num">${money(invoicePaid)} د.ل</div></div><div class="card">المتبقي<div class="num">${money(invoiceRemaining)} د.ل</div></div><div class="card">المبالغ المستلمة<div class="num">${money(received)} د.ل</div></div><div class="card">المبالغ المصروفة<div class="num">${money(spent)} د.ل</div></div><div class="card">الصافي<div class="num">${money(received-spent)} د.ل</div></div></div><h2>تفاصيل الفواتير</h2><table><thead><tr><th>رقم</th><th>العميل</th><th>التاريخ</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th></tr></thead><tbody>${rows||'<tr><td colspan="6">لا توجد فواتير</td></tr>'}</tbody></table><h2>تفاصيل الحركات المالية</h2><table><thead><tr><th>النوع</th><th>المبلغ</th><th>الدفع</th><th>في ماذا</th><th>التفاصيل</th><th>التاريخ</th></tr></thead><tbody>${expRows||'<tr><td colspan="6">لا توجد حركات</td></tr>'}</tbody></table><p class="muted">تم إنشاء التقرير من بيانات كراستي.</p></body></html>`); w.document.close(); setTimeout(()=>{w.focus();w.print();},500);
+    w.document.write(`<html dir="rtl"><head><meta charset="utf-8"><title>تقرير شهري - ${month}</title><style>body{font-family:Arial,sans-serif;padding:30px;color:#111}h1,h2{text-align:center}.cards{display:flex;gap:10px;flex-wrap:wrap}.card{border:1px solid #ddd;border-radius:10px;padding:12px;flex:1;min-width:150px}.num{font-size:20px;font-weight:800}table{width:100%;border-collapse:collapse;margin:15px 0}th,td{border:1px solid #ddd;padding:8px;text-align:right}th{background:#f3f4f6}.muted{color:#666}</style></head><body><h1>تقرير شهري للأعمال</h1><h2>${escapeHtml(project?.name||"المشروع")} — ${month}</h2><div class="cards"><div class="card">عدد الفواتير<div class="num">${inv.length}</div></div><div class="card">إجمالي الفواتير<div class="num">${money(invoiceTotal)} د.ل</div></div><div class="card">المدفوع<div class="num">${money(invoicePaid)} د.ل</div></div><div class="card">المتبقي<div class="num">${money(invoiceRemaining)} د.ل</div></div><div class="card">استلمت<div class="num">${money(received)} د.ل</div></div><div class="card">صرفت<div class="num">${money(spent)} د.ل</div></div><div class="card">الصافي<div class="num">${money(received-spent)} د.ل</div></div></div><h2>تفاصيل الفواتير</h2><table><thead><tr><th>رقم</th><th>العميل</th><th>التاريخ</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th></tr></thead><tbody>${rows||'<tr><td colspan="6">لا توجد فواتير</td></tr>'}</tbody></table><h2>تفاصيل الحركات المالية</h2><table><thead><tr><th>النوع</th><th>المبلغ</th><th>الدفع</th><th>في إيش</th><th>التفاصيل</th><th>التاريخ</th></tr></thead><tbody>${expRows||'<tr><td colspan="6">لا توجد حركات</td></tr>'}</tbody></table><p class="muted">تم إنشاء التقرير من بيانات كراستي.</p></body></html>`); w.document.close(); setTimeout(()=>{w.focus();w.print();},500);
 }
 
 // Expense modal markup injected once, so it stays compatible with the existing single-file app.
 function ensureExpenseModal(){
     if($("expenseModal")) return;
-    const d=document.createElement("div"); d.id="expenseModal"; d.className="modal hidden"; d.innerHTML=`<div class="modal-box"><div class="modal-header"><div id="expenseModalTitle" class="modal-title">إضافة حركة مالية</div><button class="modal-close" onclick="closeModal('expenseModal')">×</button></div><div class="modal-body"><div class="field"><label>النوع</label><select id="expenseType" class="input"><option value="expense">المبالغ المصروفة</option><option value="income">المبالغ المستلمة</option></select></div><div class="field"><label>المبلغ</label><input id="expenseAmount" class="input" type="number" min="0" step="0.01" placeholder="0.00"></div><div class="field"><label>طريقة الدفع</label><select id="expensePayment" class="input"><option value="cash">💵 نقدًا</option><option value="card">💳 بطاقة</option></select></div><div class="field"><label>في ماذا المبالغ المصروفةهم / مصدر المبلغ</label><input id="expenseCategory" class="input" placeholder="مثل المواد أو الوقود أو العمالة أو المبالغ المستلمة من عميل..."></div><div class="field"><label>التفاصيل</label><textarea id="expenseNotes" class="input" rows="3" placeholder="اكتب تفاصيل إضافية"></textarea></div><div class="field"><label>التاريخ</label><input id="expenseDate" class="input" type="date"></div></div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('expenseModal')">إلغاء</button><button class="btn btn-primary" onclick="saveExpense()">حفظ</button></div></div>`; document.body.appendChild(d);
+    const d=document.createElement("div"); d.id="expenseModal"; d.className="modal hidden"; d.innerHTML=`<div class="modal-content"><div class="modal-header"><div id="expenseModalTitle" class="modal-title">إضافة حركة مالية</div><button class="modal-close" onclick="closeModal('expenseModal')">×</button></div><div class="modal-body"><div class="field"><label>النوع</label><select id="expenseType" class="input"><option value="expense">صرفت</option><option value="income">استلمت</option></select></div><div class="field"><label>المبلغ</label><input id="expenseAmount" class="input" type="number" min="0" step="0.01" placeholder="0.00"></div><div class="field"><label>طريقة الدفع</label><select id="expensePayment" class="input"><option value="cash">💵 كاش</option><option value="card">💳 بطاقة</option></select></div><div class="field"><label>في إيش صرفتهم / مصدر المبلغ</label><input id="expenseCategory" class="input" placeholder="مثلاً مواد، بنزين، عمالة، استلام من عميل..."></div><div class="field"><label>التفاصيل</label><textarea id="expenseNotes" class="input" rows="3" placeholder="اكتب تفاصيل إضافية"></textarea></div><div class="field"><label>التاريخ</label><input id="expenseDate" class="input" type="date"></div></div><div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('expenseModal')">إلغاء</button><button class="btn btn-primary" onclick="saveExpense()">حفظ</button></div></div>`; document.body.appendChild(d);
 }
 ensureExpenseModal();
 updateExpensesAccessUI();

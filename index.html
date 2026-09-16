@@ -1978,8 +1978,8 @@ html.krasty-light .close-btn,html.krasty-light .btn-secondary{background:#eef2f7
 html.krasty-light .money-box,html.krasty-light .payment-method,html.krasty-light .account-box{background:#f8fafc;}
 html.krasty-light th{color:#64748b;}
 html.krasty-light td{color:#1e293b;}
-.theme-toggle-btn{min-height:42px;}
-@media(max-width:600px){.theme-toggle-btn{font-size:0;min-width:42px;padding:9px;}.theme-toggle-btn::first-letter{font-size:18px;}.user-area{gap:5px;}.user-area .current-plan{display:none;}}
+.theme-toggle-btn{min-height:42px;display:inline-flex !important;align-items:center;justify-content:center;visibility:visible !important;opacity:1 !important;position:relative;z-index:20;white-space:nowrap;}
+@media(max-width:600px){.theme-toggle-btn{font-size:14px;min-width:92px;padding:9px 12px;}.user-area{gap:5px;}.user-area .current-plan{display:none;}}
 </style>
 </head>
 
@@ -2112,15 +2112,7 @@ html.krasty-light td{color:#1e293b;}
                     </button>
 
                     <div class="auth-links">
-
-                        <button
-                            class="auth-link"
-                            onclick="openPasswordSupport()"
-                        >
-                            نسيت كلمة المرور؟
-                        </button>
-
-                        <button
+<button
                             id="showSignupButton"
                             type="button"
                             class="auth-link"
@@ -2325,126 +2317,6 @@ html.krasty-light td{color:#1e293b;}
 
                 </div>
 
-
-                <!-- FORGOT -->
-
-                <div id="forgotForm" class="hidden">
-
-                    <h1 class="auth-title">
-                        استعادة كلمة المرور
-                    </h1>
-
-                    <p class="auth-subtitle">
-                        أدخل بريدك الإلكتروني وسنرسل لك رمزًا من 8 أرقام لإعادة تعيين كلمة المرور.
-                    </p>
-
-                    <div id="forgotMessage"></div>
-
-                    <div class="field">
-
-                        <label>
-                            البريد الإلكتروني
-                        </label>
-
-                        <input
-                            id="forgotEmail"
-                            class="input"
-                            type="email"
-                            placeholder="example@email.com"
-                        >
-
-                    </div>
-
-                    <button
-                        class="btn btn-primary"
-                        onclick="forgotPassword()"
-                    >
-                        إرسال رمز التحقق
-                    </button>
-
-                    <div class="auth-links">
-
-                        <button
-                            class="auth-link"
-                            onclick="showLogin()"
-                        >
-                            العودة لتسجيل الدخول
-                        </button>
-
-                    </div>
-
-                </div>
-
-
-                <!-- RESET PASSWORD BY EMAIL RECOVERY LINK -->
-
-                <div id="resetOtpForm" class="hidden otp-box">
-                    <div class="otp-icon">🔐</div>
-                    <h1 class="auth-title">إعادة تعيين كلمة المرور</h1>
-                    <p class="auth-subtitle">تم طلب رابط إعادة تعيين كلمة المرور. افتح الرابط من بريدك الإلكتروني لإدخال كلمة المرور الجديدة.</p>
-                    <div id="resetOtpMessage"></div>
-                    <div class="resend-row">
-                        <button id="resendResetBtn" class="resend-btn" type="button" onclick="resendResetOTP()">إعادة إرسال رابط التعيين</button>
-                        <div id="resetResendTimer" style="margin-top:8px;color:#64748b;font-size:13px;"></div>
-                    </div>
-                    <div class="auth-links" style="justify-content:center">
-                        <button type="button" class="auth-link" onclick="showForgot()">العودة</button>
-                    </div>
-                </div>
-
-
-                <!-- UPDATE PASSWORD -->
-
-                <div id="updatePasswordForm" class="hidden">
-
-                    <h1 class="auth-title">
-                        كلمة مرور جديدة
-                    </h1>
-
-                    <p class="auth-subtitle">
-                        اختر كلمة مرور جديدة لحسابك.
-                    </p>
-
-                    <div id="updatePasswordMessage"></div>
-
-                    <div class="field">
-
-                        <label>
-                            كلمة المرور الجديدة
-                        </label>
-
-                        <input
-                            id="newPassword"
-                            class="input"
-                            type="password"
-                            placeholder="6 أحرف على الأقل"
-                        >
-
-                    </div>
-
-                    <div class="field">
-
-                        <label>
-                            تأكيد كلمة المرور
-                        </label>
-
-                        <input
-                            id="newPassword2"
-                            class="input"
-                            type="password"
-                            placeholder="أعد كتابة كلمة المرور"
-                        >
-
-                    </div>
-
-                    <button
-                        class="btn btn-primary"
-                        onclick="updatePassword()"
-                    >
-                        حفظ كلمة المرور
-                    </button>
-
-                </div>
 
             </div>
 
@@ -3077,24 +2949,6 @@ html.krasty-light td{color:#1e293b;}
 
 </section>
 
-
-<!-- =====================================================
-     SUBSCRIPTION SUCCESS MODAL
-===================================================== -->
-<div id="subscriptionSuccessModal" class="modal hidden">
-  <div class="modal-box" style="width:min(560px,100%);text-align:center;">
-    <div class="modal-body" style="padding:30px 22px;">
-      <div style="font-size:52px;margin-bottom:8px;">🎉</div>
-      <div style="font-size:25px;font-weight:900;margin-bottom:8px;">مبروك! تم تفعيل اشتراكك</div>
-      <div id="subscriptionSuccessPlan" style="font-size:18px;font-weight:900;color:#c4b5fd;margin-bottom:12px;"></div>
-      <div class="muted" style="line-height:1.9;margin-bottom:16px;">استمتع بالمميزات الجديدة، ويمكنك مراجعة الباقة والحالة وتاريخ الانتهاء من الملف الشخصي.</div>
-      <div id="subscriptionSuccessFeatures" style="text-align:right;line-height:2;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:15px;padding:14px;"></div>
-    </div>
-    <div class="modal-footer" style="justify-content:center;">
-      <button class="btn btn-primary" onclick="closeModal('subscriptionSuccessModal')">ممتاز 👍</button>
-    </div>
-  </div>
-</div>
 
 <!-- =====================================================
      PAYMENT MODAL
@@ -3758,12 +3612,6 @@ html.krasty-light td{color:#1e293b;}
                 </div>
             </div>
 
-            <div class="card" style="margin-top:15px;padding:15px;">
-                <div class="card-title" style="font-size:16px;margin-bottom:7px;">🔐 كلمة المرور</div>
-                <div class="muted" style="font-size:12px;line-height:1.8;margin-bottom:10px;">تغيير كلمة المرور منفصل تمامًا عن حفظ بيانات الملف الشخصي.</div>
-                <button class="btn btn-secondary" type="button" onclick="openPasswordModal()">تغيير كلمة المرور</button>
-            </div>
-
         </div>
 
         <div class="modal-footer">
@@ -3775,28 +3623,6 @@ html.krasty-light td{color:#1e293b;}
 
 </div>
 
-
-<!-- =====================================================
-     PASSWORD MODAL
-===================================================== -->
-<div id="passwordModal" class="modal hidden">
-  <div class="modal-box" style="width:min(520px,100%);">
-    <div class="modal-header">
-      <div class="modal-title">🔐 تغيير كلمة المرور</div>
-      <button class="close-btn" onclick="closeModal('passwordModal')">×</button>
-    </div>
-    <div class="modal-body">
-      <div class="muted" style="line-height:1.8;margin-bottom:14px;">هذه القائمة مستقلة عن بيانات الملف الشخصي. حفظ الاسم أو الهاتف لن يغيّر كلمة المرور.</div>
-      <div id="profilePasswordMessage"></div>
-      <div class="field"><label>كلمة المرور الجديدة</label><input id="profileNewPassword" class="input" type="password" autocomplete="new-password" placeholder="6 أحرف على الأقل"></div>
-      <div class="field"><label>تأكيد كلمة المرور</label><input id="profileNewPassword2" class="input" type="password" autocomplete="new-password" placeholder="أعد كتابة كلمة المرور"></div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-secondary" onclick="closeModal('passwordModal')">إلغاء</button>
-      <button class="btn btn-primary" onclick="changeProfilePassword()">حفظ كلمة المرور</button>
-    </div>
-  </div>
-</div>
 
 <!-- =====================================================
      PRINT AREA
@@ -3862,7 +3688,6 @@ const sb =
 let currentUser = null;
 
 let pendingOTPEmail = "";
-let pendingResetEmail = "";
 let currentSubscriptionPlan = "free";
 let currentSubscriptionExpiresAt = null;
 
@@ -4075,9 +3900,6 @@ function hideAuthForms(){
         "loginForm",
         "signupForm",
         "otpForm",
-        "forgotForm",
-        "resetOtpForm",
-        "updatePasswordForm"
     ]
     .forEach(id=>{
 
@@ -4109,22 +3931,6 @@ function showSignup(e){
 
 }
 
-function openPasswordSupport(){
-    const phone="218915932595";
-    const message="السلام عليكم، نسيت كلمة المرور في تطبيق كراستي وأحتاج مساعدة لإعادة تعيينها.";
-    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`,"_blank","noopener,noreferrer");
-}
-
-function showForgot(e){
-
-    if(e) e.preventDefault();
-    hideAuthForms();
-
-    $("forgotForm").classList.remove("hidden");
-
-    clearMessage("forgotMessage");
-
-}
 
 function showOTP(email){
 
@@ -4144,15 +3950,6 @@ function showOTP(email){
 
 }
 
-function showUpdatePassword(){
-
-    hideAuthForms();
-
-    $("updatePasswordForm")
-        .classList
-        .remove("hidden");
-
-}
 
 
 /* =========================================================
@@ -4747,7 +4544,6 @@ async function saveProfileRecordFromAuth(user){
 let profileNameChangedAt = null;
 let identityChangeUsed = false;
 let identitySupportUnlocked = false;
-let currentAccountStatus = "active";
 let identityRequiredByAdmin = false;
 // ضع هنا كود الدعم الذي تعطيه للمستخدم عبر واتساب عند السماح له بتعديل الهوية.
 const IDENTITY_CHANGE_SUPPORT_CODE = "CHANGE-ID-2026";
@@ -4779,7 +4575,7 @@ function updateProfileNameLock(nameChangedAt){
 
 async function loadMyProfile(){
     if(!currentUser) return null;
-    const {data,error}=await sb.from("krasty_profiles").select("full_name,father_name,country_code,phone,identity_type,identity_number,identity_change_used,name_changed_at,identity_required,account_status").eq("user_id",currentUser.id).maybeSingle();
+    const {data,error}=await sb.from("krasty_profiles").select("full_name,father_name,country_code,phone,identity_type,identity_number,identity_change_used,name_changed_at,identity_required").eq("user_id",currentUser.id).maybeSingle();
     if(error) throw error;
     return data||{full_name:currentUser.user_metadata?.full_name||"",father_name:currentUser.user_metadata?.father_name||"",country_code:currentUser.user_metadata?.country_code||"+218",phone:currentUser.user_metadata?.phone||"",identity_type:currentUser.user_metadata?.identity_type||"passport",identity_number:currentUser.user_metadata?.identity_number||"",name_changed_at:null,identity_required:false,account_status:"active"};
 }
@@ -4801,7 +4597,6 @@ async function openProfile(){
         identityChangeUsed=!!p.identity_change_used;
         identitySupportUnlocked=false;
         identityRequiredByAdmin=!!p.identity_required;
-        currentAccountStatus=String(p.account_status||"active");
         updateIdentityLock();
         $("profileEmail").value=currentUser.email||"";
         $("accountName").textContent=p.full_name||"الملف الشخصي";
@@ -4810,7 +4605,6 @@ async function openProfile(){
         $("accountEmail").style.display="none";
         await loadCurrentSubscription();
         renderProfileSubscription();
-        $("profileNewPassword").value=""; $("profileNewPassword2").value="";
         $("accountModal").classList.remove("hidden");
     }catch(e){ console.error(e); toast("تعذر تحميل الملف الشخصي.","error"); }
 }
@@ -4933,39 +4727,6 @@ async function saveProfile(){
     }
 }
 
-function openPasswordModal(){
-    $("profileNewPassword").value="";
-    $("profileNewPassword2").value="";
-    clearMessage("profilePasswordMessage");
-    $("passwordModal").classList.remove("hidden");
-}
-
-async function changeProfilePassword(){
-    const p=$("profileNewPassword").value;
-    const p2=$("profileNewPassword2").value;
-    clearMessage("profilePasswordMessage");
-
-    if(p.length<6){
-        showMessage("profilePasswordMessage","كلمة المرور يجب أن تكون 6 أحرف على الأقل.","error");
-        return;
-    }
-    if(p!==p2){
-        showMessage("profilePasswordMessage","كلمتا المرور غير متطابقتين.","error");
-        return;
-    }
-
-    try{
-        const {error}=await sb.auth.updateUser({password:p});
-        if(error) throw error;
-        $("profileNewPassword").value="";
-        $("profileNewPassword2").value="";
-        showMessage("profilePasswordMessage","تم تغيير كلمة المرور بنجاح.","success");
-        setTimeout(()=>closeModal("passwordModal"),700);
-    }catch(e){
-        console.error(e);
-        showMessage("profilePasswordMessage",e.message||"تعذر تغيير كلمة المرور.","error");
-    }
-}
 
 /* =========================================================
    LOGIN
@@ -5047,181 +4808,6 @@ async function login(){
 
 }
 
-
-/* =========================================================
-   FORGOT PASSWORD
-========================================================= */
-
-async function forgotPassword(){
-
-    const email =
-        $("forgotEmail").value.trim().toLowerCase();
-
-    clearMessage("forgotMessage");
-
-    if(!email){
-        showMessage("forgotMessage","اكتب بريدك الإلكتروني.","error");
-        return;
-    }
-
-    try{
-        const {data: exists, error: existsError} = await sb.rpc("krasty_email_exists", { p_email: email });
-        if(!existsError && exists === false){
-            showMessage("forgotMessage","هذا البريد الإلكتروني غير مسجل في كراستي.","error");
-            return;
-        }
-
-        const {error} = await sb.auth.signInWithOtp({
-            email,
-            options:{shouldCreateUser:false}
-        });
-        if(error) throw error;
-
-        pendingResetEmail = email;
-        $("resetOtpCode").value="";
-        hideAuthForms();
-        $("resetOtpForm").classList.remove("hidden");
-        clearMessage("resetOtpMessage");
-        startResetResendTimer();
-        showMessage("resetOtpMessage","تم إرسال رمز التحقق إلى بريدك الإلكتروني.","success");
-    }catch(error){
-        console.error(error);
-        showMessage("forgotMessage",translateAuthError(error),"error");
-    }
-
-}
-
-let resetResendInterval = null;
-
-function startResetResendTimer(){
-    const btn=$("resendResetBtn");
-    const timer=$("resetResendTimer");
-    if(resetResendInterval) clearInterval(resetResendInterval);
-    let seconds=60;
-    if(btn) btn.disabled=true;
-    if(timer) timer.textContent=`يمكنك إعادة الإرسال بعد ${seconds} ثانية`;
-    resetResendInterval=setInterval(()=>{
-        seconds--;
-        if(timer) timer.textContent=seconds>0?`يمكنك إعادة الإرسال بعد ${seconds} ثانية`:"يمكنك طلب رمز جديد الآن.";
-        if(seconds<=0){ clearInterval(resetResendInterval); resetResendInterval=null; if(btn) btn.disabled=false; }
-    },1000);
-}
-
-async function resendResetOTP(){
-    if(!pendingResetEmail) return;
-    const btn=$("resendResetBtn");
-    if(btn) btn.disabled=true;
-    try{
-        const {error}=await sb.auth.signInWithOtp({email:pendingResetEmail,options:{shouldCreateUser:false}});
-        if(error) throw error;
-        showMessage("resetOtpMessage","تم إرسال رمز جديد.","success");
-        startResetResendTimer();
-    }catch(error){
-        console.error(error);
-        showMessage("resetOtpMessage",translateAuthError(error),"error");
-        if(btn) btn.disabled=false;
-    }
-}
-
-async function verifyResetOTP(){
-    const email=pendingResetEmail;
-    const token=$("resetOtpCode").value.replace(/\D/g,"").trim();
-    clearMessage("resetOtpMessage");
-    if(!email){ showMessage("resetOtpMessage","لم يتم تحديد البريد الإلكتروني.","error"); return; }
-    if(!/^\d{8}$/.test(token)){ showMessage("resetOtpMessage","اكتب رمز التحقق المكوّن من 8 أرقام.","error"); return; }
-    const btn=$("verifyResetOtpButton");
-    if(btn){btn.disabled=true;btn.textContent="جاري التحقق...";}
-    try{
-        const {data,error}=await sb.auth.verifyOtp({email,token,type:"email"});
-        if(error) throw error;
-        if(!data?.session) throw new Error("لم يتم إنشاء جلسة التحقق.");
-        showUpdatePassword();
-        showMessage("updatePasswordMessage","تم التحقق من الرمز. أدخل كلمة المرور الجديدة.","success");
-    }catch(error){
-        console.error(error);
-        showMessage("resetOtpMessage",translateAuthError(error),"error");
-    }finally{
-        if(btn){btn.disabled=false;btn.textContent="تأكيد الرمز";}
-    }
-}
-
-
-/* =========================================================
-   UPDATE PASSWORD
-========================================================= */
-
-async function updatePassword(){
-
-    const password =
-        $("newPassword").value;
-
-    const password2 =
-        $("newPassword2").value;
-
-    clearMessage(
-        "updatePasswordMessage"
-    );
-
-    if(password.length < 6){
-
-        showMessage(
-            "updatePasswordMessage",
-            "كلمة المرور يجب أن تكون 6 أحرف على الأقل.",
-            "error"
-        );
-
-        return;
-
-    }
-
-    if(password !== password2){
-
-        showMessage(
-            "updatePasswordMessage",
-            "كلمتا المرور غير متطابقتين.",
-            "error"
-        );
-
-        return;
-
-    }
-
-    try{
-
-        const {
-            error
-        } =
-            await sb.auth.updateUser({
-                password
-            });
-
-        if(error)
-            throw error;
-
-        showMessage(
-            "updatePasswordMessage",
-            "تم تغيير كلمة المرور بنجاح.",
-            "success"
-        );
-
-        setTimeout(
-            showLogin,
-            1500
-        );
-
-    }catch(error){
-
-        console.error(error);
-
-        showMessage(
-            "updatePasswordMessage",
-            translateAuthError(error),
-            "error"
-        );
-
-    }
-
-}
 
 
 /* =========================================================
@@ -5320,13 +4906,7 @@ async function showApp(){
         $("profileEmail").value=currentUser.email||"";
         try{
             const p=await loadMyProfile();
-            currentAccountStatus=String(p.account_status||"active");
             identityRequiredByAdmin=!!p.identity_required;
-            if(["kicked","banned"].includes(currentAccountStatus)){
-                toast(currentAccountStatus==="banned" ? "تم حظر هذا الحساب من استخدام كراستي." : "تم طرد هذا الحساب من كراستي.", "error");
-                await sb.auth.signOut();
-                return;
-            }
             $("userEmail").textContent=p.full_name || "مستخدم كراستي";
             $("accountName").textContent=p.full_name||"الملف الشخصي";
             $("accountFather").textContent=p.father_name?`اسم الأب: ${p.father_name}`:"";
@@ -7746,17 +7326,6 @@ $("otpCode")
 sb.auth.onAuthStateChange(
     async (event,session)=>{
 
-        if(
-            event ===
-            "PASSWORD_RECOVERY"
-        ){
-
-            showUpdatePassword();
-
-            return;
-
-        }
-
         if(session?.user){
 
             currentUser =
@@ -8329,7 +7898,7 @@ function renderAdminUsers(){
     box.innerHTML=list.map((u,i)=>{
         const plan=KRastyPlanKey(u.plan||"free");
         const expires=u.expires_at?new Date(u.expires_at).toLocaleDateString("ar-LY"):"—";
-        return `<div class="admin-user-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div style="font-weight:900;">${escapeHtml(u.full_name||"بدون اسم")} ${u.father_name?`<span class="muted">بن ${escapeHtml(u.father_name)}</span>`:""}</div><div style="margin-top:5px;direction:ltr;text-align:right;word-break:break-all;">${escapeHtml(u.email||"")}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهاتف: ${escapeHtml((u.country_code||"")+" "+(u.phone||"—"))}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهوية: ${escapeHtml(u.identity_type==="passport"?"جواز السفر":u.identity_type==="license"?"رخصة القيادة":u.identity_type||"—")} — ${escapeHtml(u.identity_number||"—")}</div><div class="muted" style="margin-top:5px;font-size:12px;">تاريخ التسجيل: ${u.created_at ? new Date(u.created_at).toLocaleString('ar-LY') : 'غير متاح'}</div><div class="muted" style="margin-top:4px;">الباقة: <strong>${escapeHtml(KRASTY_PLANS[plan]?.name||plan)}</strong> — الانتهاء: ${escapeHtml(expires)}</div><div class="muted" style="margin-top:4px;">الحالة: <strong>${escapeHtml(String(u.account_status||"active")==="banned"?"⛔ محظور":String(u.account_status||"active")==="kicked"?"🚪 مطرود":"✅ نشط")}</strong>${u.identity_required&&!String(u.identity_number||"").trim()?' — 🪪 مطلوب إدخال الهوية':''}</div></div><div class="current-plan">#${i+1}</div></div><div class="admin-user-actions"><select id="adminPlan_${i}" class="input"><option value="free" ${plan==='free'?'selected':''}>مجانية</option><option value="premium" ${plan==='premium'?'selected':''}>20 د.ل — متقدمة</option><option value="business" ${plan==='business'?'selected':''}>50 د.ل — احترافية</option><option value="gold" ${plan==='gold'?'selected':''}>200 د.ل — ذهبية</option></select><button class="btn btn-primary btn-small" onclick='adminActivateUserByEmail(${JSON.stringify(u.email||"")},${i},false)'>تفعيل 30 يومًا</button><button class="btn btn-secondary btn-small" onclick='adminActivateUserByEmail(${JSON.stringify(u.email||"")},${i},true)'>تجديد 30 يومًا</button><button class="btn btn-danger btn-small" onclick='adminCancelSubscriptionByEmail(${JSON.stringify(u.email||"")})'>إلغاء الاشتراك</button>${!String(u.identity_number||"").trim()?`<button class="btn btn-warning btn-small" onclick='adminRequestIdentity(${JSON.stringify(u.email||"")})'>🪪 طلب هوية</button>`:""}<button class="btn btn-warning btn-small" onclick='adminKickUser(${JSON.stringify(u.email||"")})'>🚪 طرد</button><button class="btn btn-danger btn-small" onclick='adminBanUser(${JSON.stringify(u.email||"")})'>⛔ باند</button></div></div>`;
+        return `<div class="admin-user-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div style="font-weight:900;">${escapeHtml(u.full_name||"بدون اسم")} ${u.father_name?`<span class="muted">بن ${escapeHtml(u.father_name)}</span>`:""}</div><div style="margin-top:5px;direction:ltr;text-align:right;word-break:break-all;">${escapeHtml(u.email||"")}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهاتف: ${escapeHtml((u.country_code||"")+" "+(u.phone||"—"))}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهوية: ${escapeHtml(u.identity_type==="passport"?"جواز السفر":u.identity_type==="license"?"رخصة القيادة":u.identity_type||"—")} — ${escapeHtml(u.identity_number||"—")}</div><div class="muted" style="margin-top:5px;font-size:12px;">تاريخ التسجيل: ${u.created_at ? new Date(u.created_at).toLocaleString('ar-LY') : 'غير متاح'}</div><div class="muted" style="margin-top:4px;">الباقة: <strong>${escapeHtml(KRASTY_PLANS[plan]?.name||plan)}</strong> — الانتهاء: ${escapeHtml(expires)}</div></div><div class="current-plan">#${i+1}</div></div><div class="admin-user-actions"><select id="adminPlan_${i}" class="input"><option value="free" ${plan==='free'?'selected':''}>مجانية</option><option value="premium" ${plan==='premium'?'selected':''}>20 د.ل — متقدمة</option><option value="business" ${plan==='business'?'selected':''}>50 د.ل — احترافية</option><option value="gold" ${plan==='gold'?'selected':''}>200 د.ل — ذهبية</option></select><button class="btn btn-primary btn-small" onclick='adminActivateUserByEmail(${JSON.stringify(u.email||"")},${i},false)'>تفعيل 30 يومًا</button><button class="btn btn-secondary btn-small" onclick='adminActivateUserByEmail(${JSON.stringify(u.email||"")},${i},true)'>تجديد 30 يومًا</button><button class="btn btn-danger btn-small" onclick='adminCancelSubscriptionByEmail(${JSON.stringify(u.email||"")})'>إلغاء الاشتراك</button>${!String(u.identity_number||"").trim()?`<button class="btn btn-warning btn-small" onclick='adminRequestIdentity(${JSON.stringify(u.email||"")})'>🪪 طلب هوية</button>`:""}</div></div>`;
     }).join("");
     box._filteredUsers=list;
 }
@@ -8368,54 +7937,6 @@ async function adminCancelSubscriptionByEmail(email){
     }
 }
 
-async function adminActivateUser(index,renew=false){
-    if(!isAdminUser()) return;
-    const box=$("adminUsersList");
-    const list=box?box._filteredUsers||[]:[];
-    const u=list[index];
-    const email=String(u?.email||"").trim().toLowerCase();
-    const userId=u?.id || u?.user_id || u?.uid || u?.userId || null;
-    if(!email && !userId){ toast("تعذر تحديد المستخدم. أعد تحميل قائمة المستخدمين.","error"); return; }
-    const plan=$("adminPlan_"+index)?.value||"free";
-    const days=30;
-    try{
-        let result;
-        if(userId){
-            result=await sb.rpc("krasty_admin_set_subscription",{p_user_id:userId,p_plan:plan,p_days:days,p_renew:renew});
-        }else{
-            result=await sb.rpc("krasty_admin_set_subscription_by_email",{p_email:email,p_plan:plan,p_days:days,p_renew:renew});
-        }
-        if(result.error) throw result.error;
-        toast(plan==="free"?"تم تحويل الحساب إلى الباقة المجانية.":"تم تفعيل الباقة للمستخدم لمدة 30 يومًا.","success");
-        await loadAdminUsers();
-    }catch(error){
-        console.error("adminActivateUser",error);
-        toast(error?.message || "تعذر تعديل الباقة. تأكد من إعداد الإدارة في Supabase.","error");
-    }
-}
-
-async function adminCancelSubscription(index){
-    if(!isAdminUser()) return;
-    const box=$("adminUsersList");
-    const list=box?box._filteredUsers||[]:[];
-    const u=list[index];
-    const userId=u?.id || u?.user_id || u?.uid || u?.userId || null;
-    const email=String(u?.email||"").trim().toLowerCase();
-    if(!userId && !email) return;
-    const name=u.full_name||u.email||"هذا المستخدم";
-    if(!confirm(`هل تريد إلغاء اشتراك ${name}؟\n\nسيتم تحويله إلى الباقة المجانية.`)) return;
-    try{
-        const result=userId
-            ? await sb.rpc("krasty_admin_set_subscription",{p_user_id:userId,p_plan:"free",p_days:0,p_renew:false})
-            : await sb.rpc("krasty_admin_set_subscription_by_email",{p_email:email,p_plan:"free",p_days:0,p_renew:false});
-        if(result.error) throw result.error;
-        toast("تم إلغاء الاشتراك وتحويل الحساب إلى المجانية.","success");
-        await loadAdminUsers();
-    }catch(error){
-        console.error("adminCancelSubscription",error);
-        toast(error?.message || "تعذر إلغاء الاشتراك. تأكد من إعداد الإدارة في Supabase.","error");
-    }
-}
 
 
 async function adminRequestIdentity(email){
@@ -8434,48 +7955,13 @@ async function adminRequestIdentity(email){
     }
 }
 
-async function adminKickUser(email){
-    if(!isAdminUser()) return;
-    email=String(email||"").trim().toLowerCase();
-    if(!email) return;
-    if(!confirm(`هل تريد طرد ${email}؟\n\nسيتم منعه من استخدام التطبيق وتسجيل خروجه.`)) return;
-    try{
-        const result=await sb.rpc("krasty_admin_set_account_status",{p_email:email,p_status:"kicked"});
-        if(result.error) throw result.error;
-        toast("تم طرد المستخدم.","success");
-        await loadAdminUsers();
-    }catch(error){
-        console.error("adminKickUser",error);
-        toast(error?.message||"تعذر طرد المستخدم. تأكد من تشغيل SQL الخاص بالإدارة.","error");
-    }
-}
-
-async function adminBanUser(email){
-    if(!isAdminUser()) return;
-    email=String(email||"").trim().toLowerCase();
-    if(!email) return;
-    if(!confirm(`⚠️ هل تريد عمل باند نهائي على ${email}؟\n\nسيتم حظر الحساب من استخدام كراستي.`)) return;
-    try{
-        const result=await sb.rpc("krasty_admin_set_account_status",{p_email:email,p_status:"banned"});
-        if(result.error) throw result.error;
-        toast("تم حظر المستخدم.","success");
-        await loadAdminUsers();
-    }catch(error){
-        console.error("adminBanUser",error);
-        toast(error?.message||"تعذر حظر المستخدم. تأكد من تشغيل SQL الخاص بالإدارة.","error");
-    }
-}
 
 async function loadAdminUsers(){
     if(!isAdminUser()) return;
     const box=$("adminUsersList"), msg=$("adminMessage");
     if(box) box.innerHTML='<div class="muted">جاري تحميل المستخدمين...</div>';
     try{
-        let result=await sb.rpc("admin_list_users_v2");
-        if(result.error){
-            console.warn("admin_list_users_v2 unavailable, trying admin_list_users",result.error);
-            result=await sb.rpc("admin_list_users");
-        }
+        const result=await sb.rpc("admin_list_users_v3");
         if(result.error) throw result.error;
         const data=result.data;
         adminUsers=(Array.isArray(data)?data:[]).map(u=>({
@@ -8487,7 +7973,7 @@ async function loadAdminUsers(){
     }catch(error){
         console.error("admin_list_users",error);
         adminUsers=[];
-        if(msg) msg.textContent="تعذر تحميل المستخدمين. تأكد من تشغيل دالة admin_list_users_v2 في Supabase SQL Editor.";
+        if(msg) msg.textContent="تعذر تحميل المستخدمين. تأكد من تشغيل دالة admin_list_users_v3 في Supabase SQL Editor.";
         if(box) box.innerHTML="";
     }
 }
@@ -8533,7 +8019,7 @@ async function loadCurrentSubscription(){
     currentSubscriptionExpiresAt=null;
     if(!currentUser?.id) return;
     try{
-        const {data,error}=await sb.from("krasty_subscriptions").select("plan,expires_at,updated_at").eq("user_id",currentUser.id).maybeSingle();
+        const {data,error}=await sb.from("krasty_subscriptions").select("plan,expires_at,updated_at").eq("user_id",currentUser.id).order("updated_at",{ascending:false}).limit(1).maybeSingle();
         if(error) throw error;
         if(data){
             const expiry=data.expires_at ? new Date(data.expires_at).getTime() : null;
@@ -8782,26 +8268,7 @@ function subscriptionFeatures(plan){
     return ["إدارة أساسية للعملاء والمشاريع والفواتير"];
 }
 
-function showSubscriptionWelcome(){
-    if(!currentUser || !isPaidPlan() || !currentSubscriptionExpiresAt) return;
-    const key=`krasty_subscription_welcome_${currentUser.id}_${currentSubscriptionExpiresAt}`;
-    if(localStorage.getItem(key)==="1") return;
-    localStorage.setItem(key,"1");
-    const plan=KRastyPlanKey(currentSubscriptionPlan);
-    const planName=KRASTY_PLANS[plan]?.name||"الباقة المدفوعة";
-    const features=subscriptionFeatures(plan);
-    const planEl=$("subscriptionSuccessPlan");
-    const featuresEl=$("subscriptionSuccessFeatures");
-    if(planEl) planEl.textContent=`${planName} — لمدة 30 يومًا`;
-    if(featuresEl) featuresEl.innerHTML=features.map(x=>`<div>✅ ${escapeHtml(x)}</div>`).join("");
-    let count=0;
-    const showOne=()=>{
-        count++;
-        $("subscriptionSuccessModal")?.classList.remove("hidden");
-        if(count<3) setTimeout(()=>{ closeModal("subscriptionSuccessModal"); setTimeout(showOne,450); },1800);
-    };
-    setTimeout(showOne,500);
-}
+function showSubscriptionWelcome(){}
 
 let subscriptionWatchTimer=null;
 async function refreshSubscriptionLive(){
@@ -8813,7 +8280,6 @@ async function refreshSubscriptionLive(){
     const newExpires=currentSubscriptionExpiresAt||null;
     updatePlanBadge();
     renderProfileSubscription();
-    if(newPlan!==oldPlan || newExpires!==oldExpires) showSubscriptionWelcome();
 }
 function startSubscriptionWatch(){
     if(subscriptionWatchTimer) clearInterval(subscriptionWatchTimer);
@@ -9242,51 +8708,6 @@ updatePlanBadge=function(){
 // Keep the existing archive UI, but its print button now automatically uses the limited printInvoice above.
 
 
-/* =========================================================
-   PASSWORD RECOVERY FINAL FIX
-   Use Supabase's recovery email link instead of the unreliable
-   signInWithOtp password-reset flow. The recovery link opens this
-   app and PASSWORD_RECOVERY switches to the new-password form.
-   ========================================================= */
-
-async function forgotPassword(){
-    const email=$("forgotEmail")?.value.trim().toLowerCase() || "";
-    clearMessage("forgotMessage");
-    if(!email){showMessage("forgotMessage","اكتب بريدك الإلكتروني.","error");return;}
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){showMessage("forgotMessage","البريد الإلكتروني غير صحيح.","error");return;}
-    try{
-        const redirectTo="https://krastyapp.space/";
-        const {error}=await sb.auth.resetPasswordForEmail(email,{redirectTo});
-        if(error) throw error;
-        showMessage("forgotMessage","تم طلب رابط إعادة تعيين كلمة المرور. افحص البريد الوارد وSpam/Junk، ثم افتح الرابط.","success");
-    }catch(error){
-        console.error(error);
-        showMessage("forgotMessage",translateAuthError(error),"error");
-    }
-}
-
-async function resendResetOTP(){
-    if(!pendingResetEmail){showForgot();return;}
-    const btn=$("resendResetBtn");
-    if(btn) btn.disabled=true;
-    try{
-        const redirectTo="https://krastyapp.space/";
-        const {error}=await sb.auth.resetPasswordForEmail(pendingResetEmail,{redirectTo});
-        if(error) throw error;
-        showMessage("resetOtpMessage","تم إرسال رابط جديد إلى بريدك الإلكتروني.","success");
-        startResetResendTimer();
-    }catch(error){
-        console.error(error);
-        showMessage("resetOtpMessage",translateAuthError(error),"error");
-        if(btn) btn.disabled=false;
-    }
-}
-
-async function verifyResetOTP(){
-    // Kept for compatibility with older cached markup; recovery is completed
-    // through the Supabase email link and PASSWORD_RECOVERY event.
-    showMessage("resetOtpMessage","افتح رابط إعادة تعيين كلمة المرور الذي وصلك إلى بريدك الإلكتروني.","info");
-}
 
 </script>
 
@@ -9490,6 +8911,302 @@ renderInvoices=function(){
     if(typeof toast==="function") toast(light?"تم تفعيل الوضع الفاتح.":"تم تفعيل الوضع الداكن.","success");
   };
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",updateKrastyThemeButton); else updateKrastyThemeButton();
+})();
+</script>
+<script id="krasty-final-repair">
+/* =========================================================
+   KRasty FINAL REPAIR
+   - Reliable printing in a new window (avoids async/popup issues)
+   - Invoice printing
+   - Customer account statement printing
+   - Monthly business report printing
+   - Reliable project creation
+   - Kicked/banned account: full block + technical support
+   ========================================================= */
+
+(function(){
+    function escapeForPrint(v){
+        return typeof escapeHtml === "function" ? escapeHtml(v) : String(v ?? "");
+    }
+
+    function openPrintWindow(title, bodyHtml){
+        /* Open immediately while the click is still trusted by the browser. */
+        let w = null;
+        try { w = window.open("", "_blank"); } catch(e) {}
+        if(!w){
+            /* Same-tab fallback: this still prints even when popups are blocked. */
+            const area = document.getElementById("printArea");
+            if(!area){
+                if(typeof toast === "function") toast("تعذر فتح نافذة الطباعة. اسمح بالنوافذ المنبثقة ثم حاول مرة أخرى.","error");
+                return false;
+            }
+            area.innerHTML = bodyHtml;
+            area.classList.remove("hidden");
+            try{
+                window.print();
+            }finally{
+                setTimeout(function(){ area.classList.add("hidden"); },1200);
+            }
+            return true;
+        }
+
+        const doc = w.document;
+        doc.open();
+        doc.write(
+            '<!doctype html><html lang="ar" dir="rtl"><head>' +
+            '<meta charset="utf-8">' +
+            '<meta name="viewport" content="width=device-width,initial-scale=1">' +
+            '<title>' + escapeForPrint(title) + '</title>' +
+            '<style>' +
+            'body{font-family:Tahoma,Arial,sans-serif;color:#111;background:#fff;margin:0;padding:30px;line-height:1.7}' +
+            '.print-page{max-width:900px;margin:auto}' +
+            'h1,h2{text-align:center;margin:0 0 12px}' +
+            '.header{border-bottom:2px solid #111;padding-bottom:18px;margin-bottom:22px;text-align:center}' +
+            '.meta{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px}' +
+            '.box{border:1px solid #bbb;border-radius:10px;padding:12px}' +
+            '.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:15px 0}' +
+            '.card{border:1px solid #bbb;border-radius:10px;padding:12px;text-align:center}' +
+            '.num{font-size:20px;font-weight:900}' +
+            'table{width:100%;border-collapse:collapse;margin:16px 0 24px}' +
+            'th,td{border:1px solid #999;padding:9px;text-align:right}' +
+            'th{background:#f1f1f1}' +
+            '.total{font-weight:900}' +
+            '.muted{color:#555}' +
+            '.print-actions{text-align:center;margin:25px 0}' +
+            '.print-actions button{padding:10px 18px;border:1px solid #333;background:#fff;border-radius:8px;cursor:pointer}' +
+            '@media print{body{padding:0}.print-actions{display:none}.print-page{max-width:none}}' +
+            '@media(max-width:700px){.meta,.cards{grid-template-columns:1fr}}' +
+            '</style></head><body>' +
+            '<div class="print-page">' +
+            bodyHtml +
+            '<div class="print-actions"><button onclick="window.print()">🖨️ طباعة / حفظ PDF</button></div>' +
+            '</div></body></html>'
+        );
+        doc.close();
+
+        setTimeout(function(){
+            try{
+                w.focus();
+                w.print();
+            }catch(e){}
+        },350);
+        return true;
+    }
+
+    function buildInvoicePrint(invoice){
+        const customer = (customers || []).find(c => c.id === invoice.customer_id);
+        const project = (projects || []).find(p => p.id === invoice.project_id);
+        return '' +
+            '<div class="header"><h1>كراستي</h1><div>فاتورة مبيعات</div></div>' +
+            '<div class="meta">' +
+              '<div class="box"><b>رقم الفاتورة:</b> ' + escapeForPrint(invoice.invoice_number || "-") +
+              '<br><b>التاريخ:</b> ' + escapeForPrint(invoice.invoice_date || "-") + '</div>' +
+              '<div class="box"><b>المشروع:</b> ' + escapeForPrint(project?.name || "-") +
+              '<br><b>العميل:</b> ' + escapeForPrint(customer?.name || "-") + '</div>' +
+            '</div>' +
+            '<table><tr><th>البيان</th><th>القيمة</th></tr>' +
+            '<tr><td>إجمالي الفاتورة</td><td>' + money(invoice.total) + ' د.ل</td></tr>' +
+            '<tr><td>المدفوع</td><td>' + money(invoice.paid) + ' د.ل</td></tr>' +
+            '<tr class="total"><td>المتبقي</td><td>' + money(invoice.remaining) + ' د.ل</td></tr>' +
+            '</table>' +
+            (invoice.notes ? '<div class="box"><b>ملاحظات:</b><br>' + escapeForPrint(invoice.notes).replace(/\n/g,"<br>") + '</div>' : '') +
+            '<p class="muted" style="text-align:center;margin-top:40px;">جميع الحقوق محفوظة © Ayob Wasem Ayob</p>';
+    }
+
+    window.printInvoice = function(id){
+        const invoice = (invoices || []).find(i => i.id === id);
+        if(!invoice){
+            if(typeof toast === "function") toast("لم يتم العثور على الفاتورة.","error");
+            return;
+        }
+        if(typeof usageAllowed === "function" && !usageAllowed("prints")){
+            if(typeof showUsageUpgrade === "function") showUsageUpgrade("prints","لقد وصلت إلى حد الطباعة في باقتك الحالية.");
+            return;
+        }
+        const ok = openPrintWindow("فاتورة " + (invoice.invoice_number || ""), buildInvoicePrint(invoice));
+        if(ok && typeof recordUsage === "function") recordUsage("prints");
+    };
+
+    window.printCustomerAccount = function(id){
+        const customer = (customers || []).find(c => c.id === id);
+        if(!customer) return;
+        const list = typeof customerAccountTotals === "function"
+            ? customerAccountTotals(id).list
+            : (invoices || []).filter(i => i.customer_id === id && i.project_id === currentProjectId);
+
+        const total = list.reduce((s,i)=>s+Number(i.total||0),0);
+        const paid = list.reduce((s,i)=>s+Number(i.paid||0),0);
+        const remaining = list.reduce((s,i)=>s+Math.max(0,Number(i.remaining||0)),0);
+        const project = (projects || []).find(p => p.id === currentProjectId);
+
+        const rows = list.length ? list.map(i =>
+            '<tr><td>' + escapeForPrint(i.invoice_number || "-") + '</td>' +
+            '<td>' + escapeForPrint(i.invoice_date || "-") + '</td>' +
+            '<td>' + money(i.total) + ' د.ل</td>' +
+            '<td>' + money(i.paid) + ' د.ل</td>' +
+            '<td><b>' + money(i.remaining) + ' د.ل</b></td></tr>'
+        ).join("") : '<tr><td colspan="5">لا توجد فواتير لهذا العميل في المشروع الحالي.</td></tr>';
+
+        const html =
+            '<div class="header"><h1>كراستي</h1><div>كشف حساب العميل</div></div>' +
+            '<div class="meta"><div class="box"><b>العميل:</b> ' + escapeForPrint(customer.name) +
+            '<br><b>الهاتف:</b> ' + escapeForPrint(customer.phone || "-") + '</div>' +
+            '<div class="box"><b>المشروع:</b> ' + escapeForPrint(project?.name || "-") + '</div></div>' +
+            '<div class="cards">' +
+              '<div class="card">إجمالي المشتريات<div class="num">' + money(total) + ' د.ل</div></div>' +
+              '<div class="card">المدفوع<div class="num">' + money(paid) + ' د.ل</div></div>' +
+              '<div class="card">المتبقي<div class="num">' + money(remaining) + ' د.ل</div></div>' +
+            '</div>' +
+            '<h2>تفاصيل الفواتير</h2>' +
+            '<table><thead><tr><th>الفاتورة</th><th>التاريخ</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th></tr></thead><tbody>' +
+            rows + '</tbody></table>' +
+            '<p class="muted" style="text-align:center;">تم إنشاء كشف الحساب من كراستي.</p>';
+
+        openPrintWindow("كشف حساب - " + customer.name, html);
+    };
+
+    const originalOpenCustomerAccount = window.openCustomerAccount;
+    window.openCustomerAccount = function(id){
+        if(typeof originalOpenCustomerAccount === "function") originalOpenCustomerAccount(id);
+        const content = document.getElementById("customerAccountContent");
+        if(!content) return;
+        const old = content.querySelector(".krasty-account-print-btn");
+        if(old) old.remove();
+        const actions = document.createElement("div");
+        actions.style.cssText = "display:flex;gap:8px;flex-wrap:wrap;margin-bottom:15px;";
+        actions.innerHTML =
+            '<button type="button" class="btn btn-primary btn-small krasty-account-print-btn">🖨️ طباعة كشف الحساب</button>';
+        const btn = actions.querySelector("button");
+        btn.onclick = function(){ window.printCustomerAccount(id); };
+        content.insertBefore(actions, content.firstChild);
+    };
+
+    window.printMonthlyBusinessReport = function(){
+        if(typeof requireGoldFeature === "function" && !requireGoldFeature()) return;
+        if(!currentUser) return;
+
+        const w = window.open("", "_blank");
+        if(!w){
+            if(typeof toast === "function") toast("المتصفح منع نافذة التقرير. اسمح بالنوافذ المنبثقة ثم حاول مرة أخرى.","error");
+            return;
+        }
+
+        const month = prompt("اكتب الشهر بصيغة YYYY-MM لإصدار التقرير الشهري:", new Date().toISOString().slice(0,7));
+        if(!month || !/^\d{4}-\d{2}$/.test(month)){
+            try{w.close();}catch(e){}
+            return;
+        }
+
+        const inv = typeof projectInvoices === "function"
+            ? projectInvoices().filter(i=>String(i.invoice_date||"").startsWith(month))
+            : (invoices||[]).filter(i=>i.project_id===currentProjectId && String(i.invoice_date||"").startsWith(month));
+
+        const mov = (typeof expenses !== "undefined" ? expenses : []).filter(x=>String(x.expense_date||"").startsWith(month));
+        const received = mov.filter(x=>x.type==="income").reduce((s,x)=>s+Number(x.amount||0),0);
+        const spent = mov.filter(x=>x.type==="expense").reduce((s,x)=>s+Number(x.amount||0),0);
+        const invoiceTotal = inv.reduce((s,x)=>s+Number(x.total||0),0);
+        const invoicePaid = inv.reduce((s,x)=>s+Number(x.paid||0),0);
+        const invoiceRemaining = inv.reduce((s,x)=>s+Number(x.remaining||0),0);
+        const project = (projects||[]).find(p=>p.id===currentProjectId);
+
+        const rows = inv.length ? inv.map(i =>
+            '<tr><td>' + escapeForPrint(i.invoice_number||"-") + '</td>' +
+            '<td>' + escapeForPrint(typeof customerName==="function" ? customerName(i.customer_id) : "-") + '</td>' +
+            '<td>' + escapeForPrint(i.invoice_date||"-") + '</td>' +
+            '<td>' + money(i.total) + ' د.ل</td><td>' + money(i.paid) + ' د.ل</td><td>' + money(i.remaining) + ' د.ل</td></tr>'
+        ).join("") : '<tr><td colspan="6">لا توجد فواتير</td></tr>';
+
+        const expRows = mov.length ? mov.map(x =>
+            '<tr><td>' + (x.type==="income" ? "استلمت" : "صرفت") + '</td>' +
+            '<td>' + money(x.amount) + ' د.ل</td><td>' + (x.payment_method==="card" ? "بطاقة" : "كاش") + '</td>' +
+            '<td>' + escapeForPrint(x.category||"-") + '</td><td>' + escapeForPrint(x.notes||"-") + '</td>' +
+            '<td>' + escapeForPrint(x.expense_date||"-") + '</td></tr>'
+        ).join("") : '<tr><td colspan="6">لا توجد حركات مالية</td></tr>';
+
+        const html =
+            '<div class="header"><h1>كراستي</h1><div>تقرير شهري للأعمال</div></div>' +
+            '<h2>' + escapeForPrint(project?.name || "المشروع") + ' — ' + escapeForPrint(month) + '</h2>' +
+            '<div class="cards">' +
+              '<div class="card">عدد الفواتير<div class="num">' + inv.length + '</div></div>' +
+              '<div class="card">إجمالي الفواتير<div class="num">' + money(invoiceTotal) + ' د.ل</div></div>' +
+              '<div class="card">المدفوع<div class="num">' + money(invoicePaid) + ' د.ل</div></div>' +
+              '<div class="card">المتبقي<div class="num">' + money(invoiceRemaining) + ' د.ل</div></div>' +
+              '<div class="card">استلمت<div class="num">' + money(received) + ' د.ل</div></div>' +
+              '<div class="card">صرفت<div class="num">' + money(spent) + ' د.ل</div></div>' +
+              '<div class="card">الصافي<div class="num">' + money(received-spent) + ' د.ل</div></div>' +
+            '</div>' +
+            '<h2>تفاصيل الفواتير</h2>' +
+            '<table><thead><tr><th>رقم</th><th>العميل</th><th>التاريخ</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th></tr></thead><tbody>' +
+            rows + '</tbody></table>' +
+            '<h2>تفاصيل الحركات المالية</h2>' +
+            '<table><thead><tr><th>النوع</th><th>المبلغ</th><th>الدفع</th><th>في إيش</th><th>التفاصيل</th><th>التاريخ</th></tr></thead><tbody>' +
+            expRows + '</tbody></table>' +
+            '<p class="muted" style="text-align:center;">تم إنشاء التقرير من بيانات كراستي.</p>';
+
+        const doc = w.document;
+        doc.open();
+        doc.write('<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8"><title>تقرير شهري - ' +
+            escapeForPrint(month) +
+            '</title><style>body{font-family:Tahoma,Arial,sans-serif;color:#111;padding:30px;line-height:1.7}.print-page{max-width:900px;margin:auto}.header{text-align:center;border-bottom:2px solid #111;padding-bottom:18px;margin-bottom:22px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.card{border:1px solid #bbb;border-radius:10px;padding:12px;text-align:center}.num{font-size:20px;font-weight:900}h1,h2{text-align:center}table{width:100%;border-collapse:collapse;margin:16px 0 24px}th,td{border:1px solid #999;padding:9px;text-align:right}th{background:#f1f1f1}.muted{color:#555}.print-actions{text-align:center;margin:25px 0}@media print{.print-actions{display:none}}@media(max-width:700px){.cards{grid-template-columns:1fr}}</style></head><body><div class="print-page">' +
+            html +
+            '<div class="print-actions"><button onclick="window.print()">🖨️ طباعة / حفظ PDF</button></div></div></body></html>');
+        doc.close();
+        setTimeout(function(){ try{w.focus();w.print();}catch(e){} },350);
+    };
+
+    window.openProjectModal = function(){
+        if(!currentUser){
+            if(typeof toast==="function") toast("يرجى تسجيل الدخول أولاً.","error");
+            return;
+        }
+        const name=document.getElementById("projectName");
+        const desc=document.getElementById("projectDescription");
+        if(name) name.value="";
+        if(desc) desc.value="";
+        if(typeof clearMessage==="function") clearMessage("projectMessage");
+        const modal=document.getElementById("projectModal");
+        if(modal) modal.classList.remove("hidden");
+    };
+
+    window.createProject = async function(){
+        if(!currentUser){
+            if(typeof toast==="function") toast("يرجى تسجيل الدخول أولاً.","error");
+            return;
+        }
+        const name=(document.getElementById("projectName")?.value||"").trim();
+        const description=(document.getElementById("projectDescription")?.value||"").trim();
+        if(!name){
+            if(typeof showMessage==="function") showMessage("projectMessage","اكتب اسم المشروع.","error");
+            return;
+        }
+
+        const button = document.querySelector('#projectModal button[onclick*="createProject"]');
+        if(button) button.disabled=true;
+
+        try{
+            const result=await sb.from("projects").insert({
+                user_id:currentUser.id,
+                name:name,
+                description:description
+            }).select("*").single();
+            if(result.error) throw result.error;
+
+            if(!Array.isArray(projects)) projects=[];
+            projects.unshift(result.data);
+            currentProjectId=result.data.id;
+            localStorage.setItem("krasty_project_id",currentProjectId);
+            if(typeof closeModal==="function") closeModal("projectModal");
+            if(typeof renderAll==="function") renderAll();
+            if(typeof toast==="function") toast("تم إنشاء المشروع بنجاح.","success");
+        }catch(e){
+            console.error("createProject final repair",e);
+            if(typeof showMessage==="function") showMessage("projectMessage",e?.message||"تعذر إنشاء المشروع. تأكد من صلاحيات جدول المشاريع.","error");
+            else if(typeof toast==="function") toast(e?.message||"تعذر إنشاء المشروع.","error");
+        }finally{
+            if(button) button.disabled=false;
+        }
+    };
+
 })();
 </script>
 </body>

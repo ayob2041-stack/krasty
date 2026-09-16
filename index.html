@@ -3,8 +3,6 @@
 <head>
 
 <meta charset="UTF-8">
-    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5622727691236080"
-     crossorigin="anonymous"></script>
 
 <meta name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
@@ -1619,17 +1617,6 @@ tr:hover td{
 
 @media(max-width:600px){
 
-    .phone-row{
-        display:grid;
-        grid-template-columns:minmax(112px,.85fr) minmax(0,1.4fr);
-        gap:8px;
-        width:100%;
-    }
-
-    .phone-row .input{
-        min-width:0;
-    }
-
     .auth-wrapper{
 
         padding:14px;
@@ -2131,7 +2118,7 @@ tr:hover td{
 
                     <div class="field">
                         <label>رقم الهاتف</label>
-                        <div class="phone-row">
+                        <div style="display:grid;grid-template-columns:minmax(145px,0.9fr) 1.6fr;gap:8px;">
                             <select id="signupCountryCode" class="input" aria-label="رمز الدولة"></select>
                             <input id="signupPhone" class="input" type="tel" inputmode="tel" placeholder="رقم الهاتف" autocomplete="tel">
                         </div>
@@ -2903,7 +2890,7 @@ tr:hover td{
                                 <li>إدارة موسعة للمشاريع والعملاء والفواتير</li>
                                 <li>متابعة الدفعات وتصفير حساب العميل</li>
                                 <li>بحث وتقارير أكثر سهولة</li>
-                                <li>بدون نافذة العروض الترويجية داخل التطبيق</li>
+                                <li>إعلانات Google داخل التطبيق</li>
                             </ul>
                             <button class="btn btn-primary" style="width:100%;" onclick="openPaymentModal('premium')">الاشتراك بـ 20 د.ل</button>
                         </div>
@@ -2918,7 +2905,9 @@ tr:hover td{
                                 <li>رفع صور الفواتير وأرشفتها بشكل موسع</li>
                                 <li>الوصول السريع إلى أرشيف الصور</li>
                                 <li>متابعة حسابات العملاء والدفعات بسهولة</li>
-                                <li>بدون نافذة العروض الترويجية داخل التطبيق</li>
+                                <li>💾 نسخ احتياطي واسترجاع البيانات على Android وiPhone</li>
+                                <li>🆘 رد سريع من الدعم الفني</li>
+                                <li>🚫 بدون إعلانات Google داخل التطبيق</li>
                             </ul>
                             <button class="btn btn-cyan" style="width:100%;" onclick="openPaymentModal('business')">الاشتراك بـ 50 د.ل</button>
                         </div>
@@ -3582,31 +3571,20 @@ tr:hover td{
             <div class="field"><label>اسم الأب</label><input id="profileFatherName" class="input" type="text"></div>
             <div class="field">
                 <label>رقم الهاتف</label>
-                <div class="phone-row">
+                <div style="display:grid;grid-template-columns:minmax(145px,0.9fr) 1.6fr;gap:8px;">
                     <select id="profileCountryCode" class="input" aria-label="الدولة"></select>
                     <input id="profilePhone" class="input" type="tel" inputmode="numeric" pattern="[0-9]*" autocomplete="tel-national" dir="ltr" placeholder="رقم الهاتف بدون رمز الدولة">
                 </div>
             </div>
             <div class="field"><label>البريد الإلكتروني</label><input id="profileEmail" class="input" type="email" disabled></div>
-
-            <div class="card" style="margin-top:15px;padding:15px;">
-                <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-bottom:12px;">
-                    <div class="card-title" style="font-size:16px;">💎 اشتراك كراستي</div>
-                    <span id="profileSubscriptionStatus" class="badge badge-success">مفعل</span>
-                </div>
-                <div class="account-summary" style="margin:0;">
-                    <div class="account-box"><small>الباقة</small><strong id="profileSubscriptionPlan">الباقة المجانية</strong></div>
-                    <div class="account-box"><small>الحالة</small><strong id="profileSubscriptionState">غير مفعل</strong></div>
-                    <div class="account-box"><small>ينتهي في</small><strong id="profileSubscriptionExpires">—</strong></div>
-                </div>
-            </div>
-
             <div id="profileMessage"></div>
 
             <div class="card" style="margin-top:15px;padding:14px;">
-                <div class="card-title" style="font-size:16px;margin-bottom:8px;">🔐 كلمة المرور</div>
-                <div class="muted" style="font-size:12px;line-height:1.7;margin-bottom:10px;">تغيير كلمة المرور منفصل تمامًا عن حفظ بيانات الملف الشخصي.</div>
-                <button class="btn btn-secondary" type="button" onclick="openPasswordModal()">تغيير كلمة المرور</button>
+                <div class="card-title" style="font-size:16px;margin-bottom:10px;">🔐 تغيير كلمة المرور</div>
+                <div id="profilePasswordMessage"></div>
+                <div class="field"><label>كلمة المرور الجديدة</label><input id="profileNewPassword" class="input" type="password" placeholder="6 أحرف على الأقل"></div>
+                <div class="field"><label>تأكيد كلمة المرور</label><input id="profileNewPassword2" class="input" type="password" placeholder="أعد كتابة كلمة المرور"></div>
+                <button class="btn btn-secondary" onclick="changeProfilePassword()">تغيير كلمة المرور</button>
             </div>
 
             </div>
@@ -3623,32 +3601,6 @@ tr:hover td{
 
 </div>
 
-<!-- =====================================================
-     PASSWORD MODAL
-===================================================== -->
-<div id="passwordModal" class="modal hidden">
-    <div class="modal-box">
-        <div class="modal-header">
-            <div class="modal-title">🔐 تغيير كلمة المرور</div>
-            <button class="close-btn" type="button" onclick="closeModal('passwordModal')">×</button>
-        </div>
-        <div class="modal-body">
-            <div id="profilePasswordMessage"></div>
-            <div class="field">
-                <label>كلمة المرور الجديدة</label>
-                <input id="profileNewPassword" class="input" type="password" minlength="6" autocomplete="new-password" placeholder="6 أحرف على الأقل">
-            </div>
-            <div class="field">
-                <label>تأكيد كلمة المرور</label>
-                <input id="profileNewPassword2" class="input" type="password" minlength="6" autocomplete="new-password" placeholder="أعد كتابة كلمة المرور">
-            </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-secondary" type="button" onclick="closeModal('passwordModal')">إلغاء</button>
-            <button class="btn btn-primary" type="button" onclick="changeProfilePassword()">حفظ كلمة المرور</button>
-        </div>
-    </div>
-</div>
 
 <!-- =====================================================
      PRINT AREA
@@ -3717,7 +3669,6 @@ let pendingOTPEmail = "";
 let pendingResetEmail = "";
 let currentSubscriptionPlan = "free";
 let currentSubscriptionExpiresAt = null;
-let subscriptionWatchTimer = null;
 
 let projects = [];
 
@@ -4605,35 +4556,10 @@ async function openProfile(){
         $("accountName").textContent=p.full_name||"الملف الشخصي";
         $("accountFather").textContent=p.father_name?`اسم الأب: ${p.father_name}`:"";
         $("accountEmail").textContent=currentUser.email||"";
-        await loadCurrentSubscription();
-        renderProfileSubscription();
+        $("profileNewPassword").value=""; $("profileNewPassword2").value="";
         $("accountModal").classList.remove("hidden");
     }catch(e){ console.error(e); toast("تعذر تحميل الملف الشخصي.","error"); }
 }
-function openPasswordModal(){
-    clearMessage("profilePasswordMessage");
-    $("profileNewPassword").value="";
-    $("profileNewPassword2").value="";
-    $("passwordModal")?.classList.remove("hidden");
-}
-
-function renderProfileSubscription(){
-    const plan=KRastyPlanKey(currentSubscriptionPlan);
-    const active=plan!=="free" && currentSubscriptionExpiresAt && new Date(currentSubscriptionExpiresAt).getTime()>=Date.now();
-    const status=$("profileSubscriptionStatus");
-    const state=$("profileSubscriptionState");
-    const planEl=$("profileSubscriptionPlan");
-    const exp=$("profileSubscriptionExpires");
-
-    if(planEl) planEl.textContent=KRASTY_PLANS[plan]?.name||"الباقة المجانية";
-    if(state) state.textContent=active ? "مفعل" : "غير مفعل";
-    if(exp) exp.textContent=active ? new Date(currentSubscriptionExpiresAt).toLocaleDateString("ar-LY") : "—";
-    if(status){
-        status.textContent=active ? "مفعل ✓" : "غير مفعل";
-        status.className=active ? "badge badge-success" : "badge badge-danger";
-    }
-}
-
 async function saveProfile(){
     if(!currentUser) return;
     const fullName=$("profileName").value.trim();
@@ -4700,7 +4626,6 @@ async function changeProfilePassword(){
         $("profileNewPassword").value="";
         $("profileNewPassword2").value="";
         showMessage("profilePasswordMessage","تم تغيير كلمة المرور بنجاح.","success");
-        setTimeout(()=>closeModal("passwordModal"),700);
     }catch(e){
         console.error(e);
         showMessage("profilePasswordMessage",e.message||"تعذر تغيير كلمة المرور.","error");
@@ -7945,7 +7870,7 @@ function renderAdminUsers(){
     box.innerHTML=list.map((u,i)=>{
         const plan=KRastyPlanKey(u.plan||"free");
         const expires=u.expires_at?new Date(u.expires_at).toLocaleDateString("ar-LY"):"—";
-        return `<div class="admin-user-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div style="font-weight:900;">${escapeHtml(u.full_name||"بدون اسم")} ${u.father_name?`<span class="muted">بن ${escapeHtml(u.father_name)}</span>`:""}</div><div style="margin-top:5px;direction:ltr;text-align:right;word-break:break-all;">${escapeHtml(u.email||"")}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهاتف: ${escapeHtml((u.country_code||"")+" "+(u.phone||"—"))}</div><div class="muted" style="margin-top:5px;font-size:12px;">تاريخ التسجيل: ${u.created_at ? new Date(u.created_at).toLocaleString('ar-LY') : 'غير متاح'}</div><div class="muted" style="margin-top:4px;">الباقة: <strong>${escapeHtml(KRASTY_PLANS[plan]?.name||plan)}</strong> — الانتهاء: ${escapeHtml(expires)}</div></div><div class="current-plan">#${i+1}</div></div><div class="admin-user-actions"><select id="adminPlan_${i}" class="input"><option value="free" ${plan==='free'?'selected':''}>مجانية</option><option value="premium" ${plan==='premium'?'selected':''}>20 د.ل — متقدمة</option><option value="business" ${plan==='business'?'selected':''}>50 د.ل — احترافية</option></select><button class="btn btn-primary btn-small" onclick="adminActivateUser(${i})">تفعيل 30 يومًا</button><button class="btn btn-secondary btn-small" onclick="adminActivateUser(${i},true)">تجديد 30 يومًا</button></div></div>`;
+        return `<div class="admin-user-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div style="font-weight:900;">${escapeHtml(u.full_name||"بدون اسم")} ${u.father_name?`<span class="muted">بن ${escapeHtml(u.father_name)}</span>`:""}</div><div style="margin-top:5px;direction:ltr;text-align:right;word-break:break-all;">${escapeHtml(u.email||"")}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهاتف: ${escapeHtml((u.country_code||"")+" "+(u.phone||"—"))}</div><div class="muted" style="margin-top:5px;font-size:12px;">تاريخ التسجيل: ${u.created_at ? new Date(u.created_at).toLocaleString('ar-LY') : 'غير متاح'}</div><div class="muted" style="margin-top:4px;">الباقة: <strong>${escapeHtml(KRASTY_PLANS[plan]?.name||plan)}</strong> — الانتهاء: ${escapeHtml(expires)}</div></div><div class="current-plan">#${i+1}</div></div><div class="admin-user-actions"><select id="adminPlan_${i}" class="input"><option value="free" ${plan==='free'?'selected':''}>مجانية</option><option value="premium" ${plan==='premium'?'selected':''}>20 د.ل — متقدمة</option><option value="business" ${plan==='business'?'selected':''}>50 د.ل — احترافية</option></select><button class="btn btn-primary btn-small" onclick="adminActivateUser(${i})">تفعيل 30 يومًا</button><button class="btn btn-secondary btn-small" onclick="adminActivateUser(${i},true)">تجديد 30 يومًا</button><button class="btn btn-small" style="background:#b91c1c;color:#fff;border:none;" onclick="adminCancelUser(${i})">🚫 إلغاء الاشتراك</button></div></div>`;
     }).join("");
     box._filteredUsers=list;
 }
@@ -7966,6 +7891,30 @@ async function adminActivateUser(index,renew=false){
     }catch(error){
         console.error(error);
         toast("تعذر تعديل الباقة. تأكد من تشغيل ملف إعداد الإدارة في Supabase.","error");
+    }
+}
+
+async function adminCancelUser(index){
+    if(!isAdminUser()) return;
+    const box=$("adminUsersList");
+    const list=box?box._filteredUsers||[]:[];
+    const u=list[index];
+    if(!u?.id){ toast("تعذر تحديد المستخدم.","error"); return; }
+    const name=u.full_name || u.email || "هذا المستخدم";
+    if(!confirm(`هل تريد إلغاء اشتراك ${name} فورًا؟\nسيتم تحويله إلى الباقة المجانية وإيقاف الاشتراك المدفوع.`)) return;
+    try{
+        const {error}=await sb.rpc("krasty_admin_set_subscription",{
+            p_user_id:u.id,
+            p_plan:"free",
+            p_days:0,
+            p_renew:false
+        });
+        if(error) throw error;
+        toast("تم إلغاء الاشتراك وتحويل الحساب إلى الباقة المجانية.","success");
+        await loadAdminUsers();
+    }catch(error){
+        console.error("adminCancelUser",error);
+        toast("تعذر إلغاء الاشتراك. تأكد من تشغيل دالة الإدارة في Supabase.","error");
     }
 }
 
@@ -8051,7 +8000,6 @@ function updatePlanBadge(){
     if(b) b.textContent=plan==="free"?"الباقة المجانية":"الباقة المدفوعة — "+(plan==="business"?"الاحترافية":"المتقدمة");
     const wb=$("whatsappUsageBadge");
     if(wb) wb.textContent=plan==="free" ? `واتساب: ${getWhatsAppUsage()}/10` : "واتساب: غير محدود";
-    renderProfileSubscription();
 }
 function openPlansOffer(){
     updatePlanBadge();
@@ -8237,29 +8185,9 @@ showApp = async function(){
     await loadCurrentSubscription();
     updatePlanBadge();
     showSubscriptionWelcome();
-    startSubscriptionWatch();
     scheduleKrastyOffer();
 };
-async function refreshSubscriptionLive(){
-    if(!currentUser) return;
-    const oldPlan=KRastyPlanKey(currentSubscriptionPlan);
-    const oldExpires=currentSubscriptionExpiresAt||null;
-    await loadCurrentSubscription();
-    const newPlan=KRastyPlanKey(currentSubscriptionPlan);
-    const newExpires=currentSubscriptionExpiresAt||null;
-    updatePlanBadge();
-    renderProfileSubscription();
-    if(newPlan!==oldPlan || newExpires!==oldExpires){
-        showSubscriptionWelcome();
-    }
-}
-
-function startSubscriptionWatch(){
-    if(subscriptionWatchTimer) clearInterval(subscriptionWatchTimer);
-    subscriptionWatchTimer=setInterval(refreshSubscriptionLive,10000);
-}
-
-window.addEventListener("focus",refreshSubscriptionLive);
+window.addEventListener("focus",()=>updatePlanBadge());
 
 
 /* Android-friendly print: use a dedicated printable document, with window.print fallback */
@@ -8302,6 +8230,288 @@ printInvoice = async function(id){
     w.document.open(); w.document.write(html); w.document.close();
     setTimeout(()=>{try{w.focus();w.print();}catch(e){}},450);
 };
+
+
+/* =========================================================
+   KRASTY SUBSCRIPTION ACCESS + BACKUP + CONDITIONAL ADS
+   Added as a final compatibility layer so all existing UI
+   actions remain available, but paid features are gated.
+========================================================= */
+(function(){
+    const KR_BACKUP_VERSION = 1;
+
+    function krPlanRank(plan){
+        return plan === "business" ? 2 : plan === "premium" ? 1 : 0;
+    }
+
+    function krHasPlan(required){
+        return krPlanRank(getCurrentPlan()) >= krPlanRank(required);
+    }
+
+    function krPlanLabel(plan){
+        return plan === "business" ? "الباقة الاحترافية 💎 (50 د.ل)" :
+               plan === "premium" ? "الباقة المتقدمة ⭐ (20 د.ل)" :
+               "الباقة المجانية";
+    }
+
+    window.krRequirePlan = function(required, feature){
+        if(!currentUser){
+            toast("سجّل الدخول أولاً.", "error");
+            return false;
+        }
+        if(krHasPlan(required)) return true;
+
+        const requiredName = required === "business"
+            ? "الباقة الاحترافية — 50 د.ل"
+            : "الباقة المتقدمة — 20 د.ل";
+
+        toast(`🔒 ${feature || "هذه الميزة"} متاحة في ${requiredName}.`, "info");
+        openPlansOffer();
+        return false;
+    };
+
+    /* ---------- Google AdSense: free + premium only ---------- */
+    function syncKrastyGoogleAds(){
+        const business = getCurrentPlan() === "business";
+        document.documentElement.classList.toggle("krasty-no-google-ads", business);
+
+        document.querySelectorAll("ins.adsbygoogle,.google-ad,.krasty-google-ad").forEach(el=>{
+            el.style.display = business ? "none" : "";
+        });
+
+        if(business) return;
+
+        if(!document.getElementById("krastyGoogleAdsScript")){
+            const script=document.createElement("script");
+            script.id="krastyGoogleAdsScript";
+            script.async=true;
+            script.src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5622727691236080";
+            script.crossOrigin="anonymous";
+            document.head.appendChild(script);
+        }
+    }
+
+    /* ---------- Backup UI ---------- */
+    function addBackupSection(){
+        const modal=document.getElementById("accountModal");
+        if(!modal || modal.querySelector("#krastyBackupCard")) return;
+
+        const body=modal.querySelector(".modal-body");
+        if(!body) return;
+
+        const card=document.createElement("div");
+        card.id="krastyBackupCard";
+        card.className="card";
+        card.style.cssText="margin-top:15px;padding:14px;";
+        card.innerHTML=`
+            <div class="card-title" style="font-size:16px;margin-bottom:6px;">💾 النسخ الاحتياطي للبيانات</div>
+            <div class="muted" style="line-height:1.8;font-size:13px;">
+                احفظ نسخة من مشاريعك وعملائك وفواتيرك على جهازك.
+                الميزة متاحة ضمن الباقة الاحترافية فقط وتعمل على Android وiPhone.
+            </div>
+            <div id="krastyBackupStatus" class="muted" style="margin-top:8px;font-size:12px;"></div>
+            <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:12px;">
+                <button type="button" class="btn btn-secondary btn-small" onclick="krastyCreateBackup()">💾 حفظ نسخة احتياطية</button>
+                <button type="button" class="btn btn-secondary btn-small" onclick="document.getElementById('krastyBackupFile').click()">📥 استرجاع نسخة</button>
+                <input id="krastyBackupFile" type="file" accept=".json,application/json" hidden onchange="krastyRestoreBackup(event)">
+            </div>
+        `;
+        const footer=modal.querySelector(".modal-footer");
+        if(footer) body.insertBefore(card, footer);
+        else body.appendChild(card);
+    }
+
+    function setBackupStatus(text, type){
+        const el=document.getElementById("krastyBackupStatus");
+        if(el){
+            el.textContent=text;
+            el.style.color=type==="error" ? "#fca5a5" : type==="success" ? "#86efac" : "";
+        }
+    }
+
+    window.krastyCreateBackup = function(){
+        if(!krRequirePlan("business","النسخ الاحتياطي واسترجاع البيانات")) return;
+
+        const backup={
+            app:"Krasty",
+            version:KR_BACKUP_VERSION,
+            created_at:new Date().toISOString(),
+            user_id:currentUser?.id || null,
+            profile:{
+                full_name:currentUser?.user_metadata?.full_name || "",
+                father_name:currentUser?.user_metadata?.father_name || "",
+            },
+            data:{
+                projects:Array.isArray(projects)?projects:[],
+                customers:Array.isArray(customers)?customers:[],
+                invoices:Array.isArray(invoices)?invoices:[]
+            }
+        };
+
+        const blob=new Blob([JSON.stringify(backup,null,2)],{type:"application/json"});
+        const url=URL.createObjectURL(blob);
+        const a=document.createElement("a");
+        const date=new Date().toISOString().slice(0,10);
+        a.href=url;
+        a.download=`Krasty-Backup-${date}.json`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(()=>URL.revokeObjectURL(url),1000);
+
+        setBackupStatus("تم إنشاء النسخة الاحتياطية. احفظ الملف في ملفات الهاتف أو iCloud/Google Drive.", "success");
+        toast("💾 تم حفظ نسخة كراستي على جهازك.", "success");
+    };
+
+    window.krastyRestoreBackup = async function(event){
+        if(!krRequirePlan("business","استرجاع النسخة الاحتياطية")){
+            event.target.value="";
+            return;
+        }
+
+        const file=event.target.files?.[0];
+        event.target.value="";
+        if(!file) return;
+
+        try{
+            const text=await file.text();
+            const backup=JSON.parse(text);
+
+            if(backup?.app!=="Krasty" || !backup?.data ||
+               !Array.isArray(backup.data.projects) ||
+               !Array.isArray(backup.data.customers) ||
+               !Array.isArray(backup.data.invoices)){
+                throw new Error("ملف النسخة الاحتياطية غير صالح.");
+            }
+
+            if(backup.user_id && currentUser?.id && backup.user_id!==currentUser.id){
+                throw new Error("هذه النسخة الاحتياطية مرتبطة بحساب آخر.");
+            }
+
+            const ok=confirm(
+                "استرجاع النسخة الاحتياطية سيحدّث البيانات الموجودة في حسابك. تأكد أن الملف يخص هذا الحساب قبل المتابعة. هل تريد الاستمرار؟"
+            );
+            if(!ok) return;
+
+            setBackupStatus("جاري استرجاع البيانات...", "");
+
+            const clean=(row)=>{
+                const x={...row};
+                x.user_id=currentUser.id;
+                return x;
+            };
+
+            if(backup.data.projects.length){
+                const {error}=await sb.from("projects").upsert(
+                    backup.data.projects.map(clean),
+                    {onConflict:"id"}
+                );
+                if(error) throw error;
+            }
+
+            if(backup.data.customers.length){
+                const {error}=await sb.from("customers").upsert(
+                    backup.data.customers.map(clean),
+                    {onConflict:"id"}
+                );
+                if(error) throw error;
+            }
+
+            if(backup.data.invoices.length){
+                const {error}=await sb.from("invoices").upsert(
+                    backup.data.invoices.map(clean),
+                    {onConflict:"id"}
+                );
+                if(error) throw error;
+            }
+
+            await refreshApp();
+            setBackupStatus("تم استرجاع النسخة الاحتياطية بنجاح.", "success");
+            toast("📥 تم استرجاع النسخة الاحتياطية بنجاح.", "success");
+        }catch(error){
+            console.error("krastyRestoreBackup",error);
+            setBackupStatus(error?.message || "تعذر استرجاع النسخة الاحتياطية.", "error");
+            toast(error?.message || "تعذر استرجاع النسخة الاحتياطية.", "error");
+        }
+    };
+
+    /* ---------- Premium / Business feature gates ---------- */
+    if(typeof openCustomerPayment==="function"){
+        const oldOpenCustomerPayment=openCustomerPayment;
+        window.openCustomerPayment=function(id){
+            if(!krRequirePlan("premium","متابعة دفعات العملاء وتصفير الحساب")) return;
+            return oldOpenCustomerPayment(id);
+        };
+    }
+
+    if(typeof setInvoiceImageFile==="function"){
+        const oldSetInvoiceImageFile=setInvoiceImageFile;
+        window.setInvoiceImageFile=function(file){
+            if(!krRequirePlan("business","رفع وأرشفة صور الفواتير")) return;
+            return oldSetInvoiceImageFile(file);
+        };
+    }
+
+    /* Clicking the image inputs themselves should also show the subscription prompt. */
+    document.addEventListener("click",function(e){
+        const target=e.target.closest("#invoiceCamera,#invoiceGallery");
+        if(target && !krHasPlan("business")){
+            e.preventDefault();
+            e.stopPropagation();
+            krRequirePlan("business","تصوير ورفع صور الفواتير");
+        }
+    },true);
+
+    /* Add backup section whenever the profile opens. */
+    const oldOpenProfile=window.openProfile;
+    if(typeof oldOpenProfile==="function"){
+        window.openProfile=function(){
+            const result=oldOpenProfile.apply(this,arguments);
+            setTimeout(addBackupSection,0);
+            setTimeout(syncKrastyGoogleAds,0);
+            return result;
+        };
+    }
+
+    /* Refresh subscription state whenever the app is shown. */
+    const oldShowApp=window.showApp;
+    if(typeof oldShowApp==="function"){
+        window.showApp=async function(){
+            const result=await oldShowApp.apply(this,arguments);
+            await loadCurrentSubscription();
+            updatePlanBadge();
+            addBackupSection();
+            syncKrastyGoogleAds();
+            return result;
+        };
+    }
+
+    /* Also sync ads whenever the window regains focus (subscription can be changed by admin). */
+    window.addEventListener("focus",async()=>{
+        if(!currentUser) return;
+        await loadCurrentSubscription();
+        updatePlanBadge();
+        syncKrastyGoogleAds();
+    });
+
+    /* CSS: business plan has no Google ad surfaces. */
+    const style=document.createElement("style");
+    style.textContent=`
+        html.krasty-no-google-ads ins.adsbygoogle,
+        html.krasty-no-google-ads .google-ad,
+        html.krasty-no-google-ads .krasty-google-ad{display:none!important;}
+        #krastyBackupCard .btn{min-height:42px;}
+        @media(max-width:600px){
+            #krastyBackupCard .btn{flex:1 1 100%;width:100%;}
+        }
+    `;
+    document.head.appendChild(style);
+
+    document.addEventListener("DOMContentLoaded",()=>{
+        addBackupSection();
+        setTimeout(syncKrastyGoogleAds,1200);
+    });
+})();
 
 </script>
 </body>

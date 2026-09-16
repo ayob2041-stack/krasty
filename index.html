@@ -9193,19 +9193,18 @@ renderInvoices=function(){
         if(typeof requireGoldFeature === "function" && !requireGoldFeature()) return;
         if(!currentUser){ toast("يرجى تسجيل الدخول أولاً.","error"); return; }
 
-        // افتح النافذة فوراً حتى لا يمنعها المتصفح لاحقاً.
-        const w=window.open("","_blank");
-        if(!w){
-            toast("المتصفح منع نافذة السجل الشهري. اسمح بالنوافذ المنبثقة ثم حاول مرة أخرى.","error");
-            return;
-        }
-
-        const month=prompt(
+        // اطلب الشهر أولاً من نفس الصفحة. لا تفتح نافذة جديدة قبل prompt
+        // حتى لا يمنع Chrome نافذة الحوار لأنها لم تعد في الواجهة الأمامية.
+        const month=window.prompt(
             "اكتب الشهر بصيغة YYYY-MM لإصدار السجل الشهري:",
             new Date().toISOString().slice(0,7)
         );
-        if(!month || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)){
-            try{w.close();}catch(e){}
+        if(!month || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) return;
+
+        // بعد اختيار الشهر افتح نافذة التقرير مباشرة من نفس تفاعل المستخدم.
+        const w=window.open("","_blank");
+        if(!w){
+            toast("المتصفح منع نافذة السجل الشهري. اسمح بالنوافذ المنبثقة ثم حاول مرة أخرى.","error");
             return;
         }
 

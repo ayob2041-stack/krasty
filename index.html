@@ -2115,7 +2115,7 @@ html.krasty-light td{color:#1e293b;}
 
                         <button
                             class="auth-link"
-                            onclick="showForgot()"
+                            onclick="openPasswordSupport()"
                         >
                             نسيت كلمة المرور؟
                         </button>
@@ -2169,7 +2169,6 @@ html.krasty-light td{color:#1e293b;}
                     <div class="field">
                         <label>نوع الهوية</label>
                         <select id="signupIdentityType" class="input">
-                            <option value="national_id">البطاقة الشخصية</option>
                             <option value="passport">جواز السفر</option>
                             <option value="license">رخصة القيادة</option>
                         </select>
@@ -3740,8 +3739,8 @@ html.krasty-light td{color:#1e293b;}
                     <input id="profilePhone" class="input" type="tel" inputmode="numeric" pattern="[0-9]*" autocomplete="tel-national" dir="ltr" placeholder="رقم الهاتف بدون رمز الدولة">
                 </div>
             </div>
-            <div class="field"><label>نوع الهوية</label><select id="profileIdentityType" class="input"><option value="national_id">البطاقة الشخصية</option><option value="passport">جواز السفر</option><option value="license">رخصة القيادة</option></select></div>
-            <div class="field"><label>رقم الهوية</label><input id="profileIdentityNumber" class="input" type="text" inputmode="numeric" autocomplete="off" placeholder="رقم الهوية"></div>
+            <div class="field"><label>نوع الهوية</label><select id="profileIdentityType" class="input"><option value="passport">جواز السفر</option><option value="license">رخصة القيادة</option></select></div>
+            <div class="field"><label>رقم الهوية</label><input id="profileIdentityNumber" class="input" type="text" inputmode="numeric" autocomplete="off" placeholder="رقم الهوية"><div id="profileIdentityLockNote" class="muted" style="margin-top:7px;font-size:12px;"></div><button type="button" class="btn btn-secondary btn-small" style="margin-top:8px;" onclick="requestIdentityChange()">🔐 طلب تغيير الهوية عبر الدعم الفني</button></div>
             <div class="field"><label>البريد الإلكتروني</label><input id="profileEmail" class="input" type="email" disabled style="display:none"></div>
             <div id="profileMessage"></div>
 
@@ -4110,6 +4109,12 @@ function showSignup(e){
 
 }
 
+function openPasswordSupport(){
+    const phone="218915932595";
+    const message="السلام عليكم، نسيت كلمة المرور في تطبيق كراستي وأحتاج مساعدة لإعادة تعيينها.";
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`,"_blank","noopener,noreferrer");
+}
+
 function showForgot(e){
 
     if(e) e.preventDefault();
@@ -4160,7 +4165,7 @@ async function signup(e){
     const fatherName=$("signupFatherName").value.trim();
     const countryCode=$("signupCountryCode").value;
     const phone=$("signupPhone").value.replace(/\s+/g,"").trim();
-    const identityType=$("signupIdentityType")?.value || "national_id";
+    const identityType=$("signupIdentityType")?.value || "passport";
     const identityNumber=$("signupIdentityNumber")?.value.trim() || "";
     const email=$("signupEmail").value.trim().toLowerCase();
     const password=$("signupPassword").value;
@@ -4735,11 +4740,15 @@ function initCountrySelectors(){ fillCountrySelect("signupCountryCode","+218"); 
 async function saveProfileRecordFromAuth(user){
     if(!user?.id) return;
     const m=user.user_metadata||{};
-    const row={user_id:user.id,full_name:m.full_name||"",father_name:m.father_name||"",country_code:m.country_code||"+218",phone:m.phone||"",identity_type:m.identity_type||"national_id",identity_number:m.identity_number||"",updated_at:new Date().toISOString()};
+    const row={user_id:user.id,full_name:m.full_name||"",father_name:m.father_name||"",country_code:m.country_code||"+218",phone:m.phone||"",identity_type:m.identity_type||"passport",identity_number:m.identity_number||"",updated_at:new Date().toISOString()};
     const {error}=await sb.from("krasty_profiles").upsert(row,{onConflict:"user_id"});
     if(error) console.warn("profile sync",error);
 }
 let profileNameChangedAt = null;
+let identityChangeUsed = false;
+let identitySupportUnlocked = false;
+// ضع هنا كود الدعم الذي تعطيه للمستخدم عبر واتساب عند السماح له بتعديل الهوية.
+const IDENTITY_CHANGE_SUPPORT_CODE = "CHANGE-ID-2026";
 let invoiceCameraStream = null;
 
 function formatRemainingDays(ms){
@@ -4768,9 +4777,9 @@ function updateProfileNameLock(nameChangedAt){
 
 async function loadMyProfile(){
     if(!currentUser) return null;
-    const {data,error}=await sb.from("krasty_profiles").select("full_name,father_name,country_code,phone,identity_type,identity_number,name_changed_at").eq("user_id",currentUser.id).maybeSingle();
+    const {data,error}=await sb.from("krasty_profiles").select("full_name,father_name,country_code,phone,identity_type,identity_number,identity_change_used,name_changed_at").eq("user_id",currentUser.id).maybeSingle();
     if(error) throw error;
-    return data||{full_name:currentUser.user_metadata?.full_name||"",father_name:currentUser.user_metadata?.father_name||"",country_code:currentUser.user_metadata?.country_code||"+218",phone:currentUser.user_metadata?.phone||"",identity_type:currentUser.user_metadata?.identity_type||"national_id",identity_number:currentUser.user_metadata?.identity_number||"",name_changed_at:null};
+    return data||{full_name:currentUser.user_metadata?.full_name||"",father_name:currentUser.user_metadata?.father_name||"",country_code:currentUser.user_metadata?.country_code||"+218",phone:currentUser.user_metadata?.phone||"",identity_type:currentUser.user_metadata?.identity_type||"passport",identity_number:currentUser.user_metadata?.identity_number||"",name_changed_at:null};
 }
 async function openProfile(){
     if(!currentUser) return;
@@ -4783,8 +4792,13 @@ async function openProfile(){
         $("profileFatherName").value=p.father_name||"";
         $("profileCountryCode").value=p.country_code||"+218";
         $("profilePhone").value=p.phone||"";
-        $("profileIdentityType").value=p.identity_type||"national_id";
+        $("profileIdentityType").value=p.identity_type||"passport";
         $("profileIdentityNumber").value=p.identity_number||"";
+        $("profileName").dataset.previousIdentityNumber=p.identity_number||"";
+        $("profileName").dataset.previousIdentityType=p.identity_type||"";
+        identityChangeUsed=!!p.identity_change_used;
+        identitySupportUnlocked=false;
+        updateIdentityLock();
         $("profileEmail").value=currentUser.email||"";
         $("accountName").textContent=p.full_name||"الملف الشخصي";
         $("accountFather").textContent=p.father_name?`اسم الأب: ${p.father_name}`:"";
@@ -4796,6 +4810,35 @@ async function openProfile(){
         $("accountModal").classList.remove("hidden");
     }catch(e){ console.error(e); toast("تعذر تحميل الملف الشخصي.","error"); }
 }
+function updateIdentityLock(){
+    const type=$("profileIdentityType"), num=$("profileIdentityNumber");
+    const note=$("profileIdentityLockNote");
+    const locked=!!num?.value && identityChangeUsed && !identitySupportUnlocked;
+    if(type) type.disabled=locked;
+    if(num) num.disabled=locked;
+    if(note){
+        note.textContent=locked
+            ? "🔒 بيانات الهوية مثبتة. لتغييرها مرة واحدة فقط، اطلب كود فتح من الدعم الفني عبر واتساب."
+            : (identitySupportUnlocked ? "✅ تم فتح تعديل الهوية مرة واحدة. بعد الحفظ لن يتكرر التعديل إلا بموافقة دعم جديدة." : "يجب إدخال جواز السفر أو رخصة القيادة بالرقم.");
+    }
+}
+
+function requestIdentityChange(){
+    if(!currentUser) return;
+    const phone="218915932595";
+    const email=currentUser.email||"";
+    const message=`السلام عليكم، أريد طلب تغيير بيانات الهوية في حساب كراستي.\\nالبريد: ${email}\\nأحتاج كود السماح بتغيير الهوية مرة واحدة.`;
+    window.open(`https://wa.me/${phone}?text=${encodeURIComponent(message)}`,"_blank","noopener,noreferrer");
+    const code=window.prompt("بعد تواصل الدعم معك، أدخل كود السماح الذي أعطاك إياه الدعم:");
+    if(code && code.trim()===IDENTITY_CHANGE_SUPPORT_CODE){
+        identitySupportUnlocked=true;
+        updateIdentityLock();
+        toast("تم فتح تعديل الهوية لمرة واحدة. احفظ البيانات الجديدة.","success");
+    }else if(code){
+        toast("كود الدعم غير صحيح.","error");
+    }
+}
+
 async function saveProfile(){
     if(!currentUser) return;
     const nameInput=$("profileName");
@@ -4804,7 +4847,7 @@ async function saveProfile(){
     const fatherName=$("profileFatherName").value.trim();
     const countryCode=$("profileCountryCode").value;
     const phone=$("profilePhone").value.replace(/\D/g,"").trim();
-    const identityType=$("profileIdentityType")?.value || "national_id";
+    const identityType=$("profileIdentityType")?.value || "passport";
     const identityNumber=$("profileIdentityNumber")?.value.trim() || "";
     const nameChanged=fullName!==originalName;
 
@@ -4819,7 +4862,17 @@ async function saveProfile(){
         return;
     }
     if(!identityNumber){ showMessage("profileMessage","يرجى إدخال رقم الهوية.","error"); return; }
-    if(!/^[A-Za-z0-9\-\s]{4,30}$/.test(identityNumber)){ showMessage("profileMessage","رقم الهوية غير صالح.","error"); return; }
+    if(!["passport","license"].includes(identityType)){ showMessage("profileMessage","اختر جواز السفر أو رخصة القيادة.","error"); return; }
+    if(!/^\d{4,30}$/.test(identityNumber)){ showMessage("profileMessage","رقم الهوية يجب أن يحتوي على أرقام فقط، من 4 إلى 30 رقمًا.","error"); return; }
+
+    const previousIdentityNumber=nameInput?.dataset.previousIdentityNumber || "";
+    const previousIdentityType=nameInput?.dataset.previousIdentityType || "";
+    const hasExistingIdentity=!!previousIdentityNumber;
+    const identityChanged=identityNumber!==previousIdentityNumber || identityType!==previousIdentityType;
+    if(hasExistingIdentity && identityChanged && identityChangeUsed && !identitySupportUnlocked){
+        showMessage("profileMessage","بيانات الهوية مثبتة. اطلب كود تغيير مرة واحدة من الدعم الفني عبر واتساب.","error");
+        return;
+    }
 
     if(nameChanged){
         const locked=updateProfileNameLock(profileNameChangedAt);
@@ -4847,13 +4900,15 @@ async function saveProfile(){
             phone,
             identity_type:identityType,
             identity_number:identityNumber,
+            identity_change_used:true,
+            identity_change_used:hasExistingIdentity ? (identityChanged ? true : identityChangeUsed) : true,
             updated_at:new Date().toISOString()
         },{onConflict:"user_id"});
 
         if(error) throw error;
 
         const {error:authError}=await sb.auth.updateUser({
-            data:{full_name:savedName,father_name:fatherName,country_code:countryCode,phone,identity_type:identityType,identity_number:identityNumber}
+            data:{full_name:savedName,father_name:fatherName,country_code:countryCode,phone,identity_type:identityType,identity_number:identityNumber,identity_change_used:hasExistingIdentity ? (identityChanged ? true : identityChangeUsed) : true}
         });
         if(authError) throw authError;
 
@@ -4861,6 +4916,11 @@ async function saveProfile(){
         updateProfileNameLock(profileNameChangedAt);
         $("accountName").textContent=savedName;
         $("accountFather").textContent=`اسم الأب: ${fatherName}`;
+        identityChangeUsed=hasExistingIdentity ? (identityChanged ? true : identityChangeUsed) : true;
+        identitySupportUnlocked=false;
+        $("profileName").dataset.previousIdentityNumber=identityNumber;
+        $("profileName").dataset.previousIdentityType=identityType;
+        updateIdentityLock();
         showMessage("profileMessage",nameChanged?"تم تحديث الملف الشخصي. تم قفل تغيير الاسم لمدة 7 أيام.":"تم حفظ بيانات الملف الشخصي بنجاح.","success");
         toast(nameChanged?"تم تغيير الاسم بنجاح. لا يمكن تغييره مرة أخرى قبل 7 أيام.":"تم تحديث الملف الشخصي.","success");
     }catch(e){
@@ -8254,7 +8314,7 @@ function renderAdminUsers(){
     box.innerHTML=list.map((u,i)=>{
         const plan=KRastyPlanKey(u.plan||"free");
         const expires=u.expires_at?new Date(u.expires_at).toLocaleDateString("ar-LY"):"—";
-        return `<div class="admin-user-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div style="font-weight:900;">${escapeHtml(u.full_name||"بدون اسم")} ${u.father_name?`<span class="muted">بن ${escapeHtml(u.father_name)}</span>`:""}</div><div style="margin-top:5px;direction:ltr;text-align:right;word-break:break-all;">${escapeHtml(u.email||"")}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهاتف: ${escapeHtml((u.country_code||"")+" "+(u.phone||"—"))}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهوية: ${escapeHtml(u.identity_type||"—")} — ${escapeHtml(u.identity_number||"—")}</div><div class="muted" style="margin-top:5px;font-size:12px;">تاريخ التسجيل: ${u.created_at ? new Date(u.created_at).toLocaleString('ar-LY') : 'غير متاح'}</div><div class="muted" style="margin-top:4px;">الباقة: <strong>${escapeHtml(KRASTY_PLANS[plan]?.name||plan)}</strong> — الانتهاء: ${escapeHtml(expires)}</div></div><div class="current-plan">#${i+1}</div></div><div class="admin-user-actions"><select id="adminPlan_${i}" class="input"><option value="free" ${plan==='free'?'selected':''}>مجانية</option><option value="premium" ${plan==='premium'?'selected':''}>20 د.ل — متقدمة</option><option value="business" ${plan==='business'?'selected':''}>50 د.ل — احترافية</option><option value="gold" ${plan==='gold'?'selected':''}>200 د.ل — ذهبية</option></select><button class="btn btn-primary btn-small" onclick='adminActivateUserByEmail(${JSON.stringify(u.email||"")},${i},false)'>تفعيل 30 يومًا</button><button class="btn btn-secondary btn-small" onclick='adminActivateUserByEmail(${JSON.stringify(u.email||"")},${i},true)'>تجديد 30 يومًا</button><button class="btn btn-danger btn-small" onclick='adminCancelSubscriptionByEmail(${JSON.stringify(u.email||"")})'>إلغاء الاشتراك</button></div></div>`;
+        return `<div class="admin-user-card"><div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;"><div><div style="font-weight:900;">${escapeHtml(u.full_name||"بدون اسم")} ${u.father_name?`<span class="muted">بن ${escapeHtml(u.father_name)}</span>`:""}</div><div style="margin-top:5px;direction:ltr;text-align:right;word-break:break-all;">${escapeHtml(u.email||"")}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهاتف: ${escapeHtml((u.country_code||"")+" "+(u.phone||"—"))}</div><div class="muted" style="margin-top:5px;font-size:12px;">الهوية: ${escapeHtml(u.identity_type==="passport"?"جواز السفر":u.identity_type==="license"?"رخصة القيادة":u.identity_type||"—")} — ${escapeHtml(u.identity_number||"—")}</div><div class="muted" style="margin-top:5px;font-size:12px;">تاريخ التسجيل: ${u.created_at ? new Date(u.created_at).toLocaleString('ar-LY') : 'غير متاح'}</div><div class="muted" style="margin-top:4px;">الباقة: <strong>${escapeHtml(KRASTY_PLANS[plan]?.name||plan)}</strong> — الانتهاء: ${escapeHtml(expires)}</div></div><div class="current-plan">#${i+1}</div></div><div class="admin-user-actions"><select id="adminPlan_${i}" class="input"><option value="free" ${plan==='free'?'selected':''}>مجانية</option><option value="premium" ${plan==='premium'?'selected':''}>20 د.ل — متقدمة</option><option value="business" ${plan==='business'?'selected':''}>50 د.ل — احترافية</option><option value="gold" ${plan==='gold'?'selected':''}>200 د.ل — ذهبية</option></select><button class="btn btn-primary btn-small" onclick='adminActivateUserByEmail(${JSON.stringify(u.email||"")},${i},false)'>تفعيل 30 يومًا</button><button class="btn btn-secondary btn-small" onclick='adminActivateUserByEmail(${JSON.stringify(u.email||"")},${i},true)'>تجديد 30 يومًا</button><button class="btn btn-danger btn-small" onclick='adminCancelSubscriptionByEmail(${JSON.stringify(u.email||"")})'>إلغاء الاشتراك</button></div></div>`;
     }).join("");
     box._filteredUsers=list;
 }

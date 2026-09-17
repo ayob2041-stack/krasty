@@ -1981,6 +1981,115 @@ html.krasty-light td{color:#1e293b;}
 .theme-toggle-btn{min-height:42px;display:inline-flex !important;align-items:center;justify-content:center;visibility:visible !important;opacity:1 !important;position:relative;z-index:20;white-space:nowrap;}
 @media(max-width:600px){.theme-toggle-btn{font-size:14px;min-width:92px;padding:9px 12px;}.user-area{gap:5px;}.user-area .current-plan{display:none;}}
 </style>
+
+<style id="krasty-mobile-fix">
+@media (max-width:600px){
+  /* نوافذ الهاتف */
+  .modal{
+    padding:6px !important;
+    align-items:center !important;
+  }
+  .modal-box{
+    width:100% !important;
+    max-width:100% !important;
+    max-height:calc(100vh - 12px) !important;
+    overflow-y:auto !important;
+    overflow-x:hidden !important;
+    border-radius:16px !important;
+  }
+  .modal-header{
+    padding:13px 14px !important;
+    min-height:52px;
+  }
+  .modal-title{
+    font-size:18px !important;
+    line-height:1.4;
+  }
+  .modal-body{
+    padding:14px !important;
+    overflow-x:hidden !important;
+  }
+  .modal-footer{
+    padding:12px 14px !important;
+    gap:7px !important;
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+  }
+  .modal-footer .btn{
+    width:100% !important;
+    min-width:0 !important;
+    padding:11px 8px !important;
+    font-size:13px !important;
+  }
+
+  /* إضافة عميل */
+  #customerModal .modal-box{
+    width:min(100%,430px) !important;
+  }
+  #customerModal .field{
+    margin-bottom:13px !important;
+  }
+  #customerModal .input{
+    width:100% !important;
+    min-width:0 !important;
+    font-size:15px !important;
+  }
+  #customerModal textarea.input{
+    min-height:82px !important;
+  }
+
+  /* الباقات */
+  .plan-grid{
+    display:grid !important;
+    grid-template-columns:1fr !important;
+    gap:12px !important;
+    width:100% !important;
+  }
+  .plan-card{
+    width:100% !important;
+    min-width:0 !important;
+    padding:16px !important;
+    border-radius:17px !important;
+    overflow:hidden !important;
+  }
+  .plan-title{
+    font-size:19px !important;
+  }
+  .plan-price{
+    font-size:29px !important;
+    line-height:1.2 !important;
+  }
+  .plan-subtitle{
+    font-size:12px !important;
+    line-height:1.7 !important;
+  }
+  .plan-features{
+    gap:7px !important;
+    margin:12px 0 15px !important;
+  }
+  .plan-features li{
+    font-size:12px !important;
+    line-height:1.6 !important;
+    overflow-wrap:anywhere !important;
+  }
+  .plan-card .btn{
+    width:100% !important;
+    min-width:0 !important;
+    white-space:normal !important;
+    font-size:13px !important;
+    padding:10px 8px !important;
+  }
+
+  /* منع أي عنصر أفقي من توسيع شاشة الهاتف */
+  .card-body,
+  .card-header,
+  .page-header,
+  .project-bar{
+    min-width:0 !important;
+  }
+}
+</style>
+
 </head>
 
 <body>

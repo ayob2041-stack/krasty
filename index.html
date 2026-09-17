@@ -2012,6 +2012,57 @@ table{max-width:100%!important}
 }
 </style>
 
+
+<style id="krasty-mobile-buttons-back-ui">
+@media (max-width:600px){
+  /* Keep every modal action visible above the phone navigation area */
+  .modal{
+    padding:8px !important;
+  }
+
+  .modal-box{
+    max-height:calc(100dvh - 16px) !important;
+  }
+
+  .modal-footer{
+    position:sticky !important;
+    bottom:0 !important;
+    z-index:20 !important;
+    background:inherit !important;
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom, 0px)) !important;
+    box-sizing:border-box !important;
+  }
+
+  .modal-footer .btn{
+    min-height:44px !important;
+    height:auto !important;
+    line-height:1.25 !important;
+    display:flex !important;
+    align-items:center !important;
+    justify-content:center !important;
+    overflow:visible !important;
+  }
+
+  /* Make action buttons stay inside the screen */
+  .modal-body + .modal-footer{
+    flex-shrink:0 !important;
+  }
+
+  /* Very small phones */
+  @media (max-width:380px){
+    .modal-footer{
+      padding-left:10px !important;
+      padding-right:10px !important;
+    }
+    .modal-footer .btn{
+      min-height:42px !important;
+      font-size:12px !important;
+      padding:9px 5px !important;
+    }
+  }
+}
+</style>
+
 </head>
 
 <body>

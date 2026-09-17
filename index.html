@@ -1982,140 +1982,134 @@ html.krasty-light td{color:#1e293b;}
 @media(max-width:600px){.theme-toggle-btn{font-size:14px;min-width:92px;padding:9px 12px;}.user-area{gap:5px;}.user-area .current-plan{display:none;}}
 </style>
 
-<style id="krasty-mobile-professional">
-@media (max-width:600px){
-html,body{width:100%;max-width:100%;overflow-x:hidden!important}
-.modal{position:fixed!important;inset:0!important;padding:8px!important;display:flex!important;align-items:center!important;justify-content:center!important;overflow:hidden!important;box-sizing:border-box}
-.modal-box{width:100%!important;max-width:430px!important;max-height:calc(100dvh - 16px)!important;margin:0!important;display:flex!important;flex-direction:column!important;overflow:hidden!important;border-radius:18px!important;box-sizing:border-box}
-.modal-header{flex:0 0 auto!important;padding:12px 14px!important}
-.modal-body{flex:1 1 auto!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;padding:13px 14px!important;-webkit-overflow-scrolling:touch}
-.modal-footer{flex:0 0 auto!important;padding:10px 14px!important;display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}
-.modal-footer .btn{width:100%!important;min-width:0!important;padding:10px 7px!important;font-size:13px!important}
-#customerModal .modal-box{max-width:390px!important}
-#customerModal .field{margin-bottom:10px!important}
-#customerModal .input{width:100%!important;max-width:100%!important;min-width:0!important;min-height:43px!important;box-sizing:border-box!important;font-size:15px!important;padding:9px 11px!important}
-#customerModal textarea.input{min-height:72px!important}
-.plan-grid{width:100%!important;max-width:100%!important;display:grid!important;grid-template-columns:1fr!important;gap:10px!important;margin:0!important}
-.plan-card{width:100%!important;min-width:0!important;max-width:100%!important;box-sizing:border-box!important;padding:14px!important;margin:0!important;border-radius:17px!important;overflow:hidden!important}
-.plan-title{font-size:18px!important;line-height:1.35!important}
-.plan-price{font-size:27px!important;line-height:1.15!important;margin:5px 0!important}
-.plan-subtitle{font-size:12px!important;line-height:1.55!important}
-.plan-features{margin:9px 0 12px!important;padding:0!important;gap:5px!important}
-.plan-features li{font-size:12px!important;line-height:1.5!important;overflow-wrap:anywhere!important}
-.plan-card .btn{width:100%!important;min-width:0!important;box-sizing:border-box!important;padding:10px 8px!important;font-size:13px!important;white-space:normal!important}
-input,textarea,select,button{max-width:100%;box-sizing:border-box}
-table{max-width:100%!important}
-@media(max-width:380px){
-.modal{padding:6px!important}.modal-box{max-height:calc(100dvh - 12px)!important;border-radius:15px!important}
-.modal-body{padding:11px!important}.plan-card{padding:12px!important}.plan-features li{font-size:11.5px!important}
-}
-}
-</style>
+<style id="krasty-android-mobile-clean">
+/* Android/iPhone mobile layout — CSS only. Existing application logic is untouched. */
+@media (max-width: 600px) {
 
-
-<style id="krasty-mobile-final-safe">
-@media (max-width:600px){
-  /* Critical: hidden modals must remain hidden in portrait and landscape. */
-  .modal.hidden{
-    display:none !important;
+  html, body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden !important;
   }
 
-  .modal:not(.hidden){
-    position:fixed !important;
-    inset:0 !important;
-    padding:8px !important;
-    box-sizing:border-box !important;
-    align-items:center !important;
-    justify-content:center !important;
-    overflow:hidden !important;
+  /* The hidden class must ALWAYS win over modal display rules. */
+  .modal.hidden {
+    display: none !important;
   }
 
-  .modal:not(.hidden) .modal-box{
-    width:100% !important;
-    max-width:430px !important;
-    max-height:calc(100dvh - 16px) !important;
-    margin:0 !important;
-    box-sizing:border-box !important;
-    display:flex !important;
-    flex-direction:column !important;
-    overflow:hidden !important;
-    border-radius:18px !important;
+  /* Only an actually opened modal gets the flex layout. */
+  .modal:not(.hidden) {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 500 !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    padding: 8px !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
   }
 
-  .modal:not(.hidden) .modal-body{
-    min-height:0 !important;
-    overflow-y:auto !important;
-    overflow-x:hidden !important;
-    -webkit-overflow-scrolling:touch !important;
+  .modal:not(.hidden) .modal-box {
+    width: 100% !important;
+    max-width: 430px !important;
+    max-height: calc(100vh - 16px) !important;
+    margin: 0 !important;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    display: flex !important;
+    flex-direction: column !important;
+    border-radius: 18px !important;
   }
 
-  .modal:not(.hidden) .modal-footer{
-    flex:0 0 auto !important;
-    position:sticky !important;
-    bottom:0 !important;
-    z-index:20 !important;
-    display:grid !important;
-    grid-template-columns:1fr 1fr !important;
-    gap:8px !important;
-    padding:10px 14px calc(10px + env(safe-area-inset-bottom,0px)) !important;
-    box-sizing:border-box !important;
+  .modal:not(.hidden) .modal-header {
+    flex: 0 0 auto !important;
+    padding: 12px 14px !important;
   }
 
-  .modal:not(.hidden) .modal-footer .btn{
-    width:100% !important;
-    min-width:0 !important;
-    min-height:44px !important;
-    margin:0 !important;
-    box-sizing:border-box !important;
-    display:flex !important;
-    align-items:center !important;
-    justify-content:center !important;
-    white-space:normal !important;
+  .modal:not(.hidden) .modal-body {
+    flex: 1 1 auto !important;
+    min-height: 0 !important;
+    overflow-y: auto !important;
+    overflow-x: hidden !important;
+    padding: 13px 14px !important;
+    -webkit-overflow-scrolling: touch;
   }
 
-  #customerModal:not(.hidden) .modal-box{
-    max-width:390px !important;
+  .modal:not(.hidden) .modal-footer {
+    flex: 0 0 auto !important;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+    padding: 10px 14px !important;
+    box-sizing: border-box !important;
   }
 
-  #customerModal .input{
-    width:100% !important;
-    max-width:100% !important;
-    min-width:0 !important;
-    box-sizing:border-box !important;
+  .modal:not(.hidden) .modal-footer .btn {
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 44px !important;
+    margin: 0 !important;
+    padding: 10px 7px !important;
+    font-size: 13px !important;
+    white-space: normal !important;
+    box-sizing: border-box !important;
   }
 
-  .plan-grid{
-    display:grid !important;
-    grid-template-columns:1fr !important;
-    width:100% !important;
-    max-width:100% !important;
-    gap:10px !important;
+  /* Profile / customer / invoice dialogs */
+  #accountModal .modal-box,
+  #customerModal .modal-box,
+  #projectModal .modal-box,
+  #invoiceModal .modal-box,
+  #paymentModal .modal-box,
+  #customerPaymentModal .modal-box {
+    max-width: 430px !important;
   }
 
-  .plan-card{
-    width:100% !important;
-    min-width:0 !important;
-    max-width:100% !important;
-    box-sizing:border-box !important;
+  #customerModal .input,
+  #accountModal .input,
+  #projectModal .input,
+  #invoiceModal .input {
+    width: 100% !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
   }
 
-  @media (max-width:380px){
-    .modal:not(.hidden){
-      padding:6px !important;
-    }
-    .modal:not(.hidden) .modal-box{
-      max-height:calc(100dvh - 12px) !important;
-      border-radius:15px !important;
-    }
-    .modal:not(.hidden) .modal-footer{
-      padding-left:9px !important;
-      padding-right:9px !important;
-    }
-    .modal:not(.hidden) .modal-footer .btn{
-      min-height:42px !important;
-      font-size:12px !important;
-      padding:9px 5px !important;
-    }
+  /* Plans */
+  .plan-grid {
+    width: 100% !important;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    box-sizing: border-box !important;
+  }
+
+  .plan-card {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+    padding: 14px !important;
+    margin: 0 !important;
+  }
+
+  .plan-card .btn {
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+  }
+
+  /* Tables scroll instead of pushing the whole page sideways. */
+  .table-wrap,
+  .table-container {
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  input, textarea, select, button {
+    max-width: 100%;
+    box-sizing: border-box;
   }
 }
 </style>

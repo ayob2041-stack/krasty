@@ -8646,6 +8646,37 @@ printInvoice = async function(id){
     ${invoice.notes ? "<div class=\"notes\"><b>ملاحظات:</b><br>" + escapeHtml(invoice.notes) + "</div>" : ""}
     <div class="actions"><button onclick="window.print()">🖨️ طباعة / حفظ PDF</button><button onclick="window.close()">إغلاق</button></div>
     </div>
+
+<style id="krasty-initial-tab-fix">
+/* Ensure the app always opens on the main dashboard, not Expenses. */
+</style>
+<script id="krasty-initial-tab-fix-js">
+(function(){
+  function openMainDashboard(){
+    try{
+      const hideIds = [
+        "customersTab","invoicesTab","expensesTab",
+        "projectsTab","plansTab","archiveTab","adminTab"
+      ];
+      const activeIds = [
+        "tabCustomers","tabInvoices","tabExpenses",
+        "tabProjects","tabPlans","tabArchive","tabAdmin"
+      ];
+      hideIds.forEach(id=>document.getElementById(id)?.classList.add("hidden"));
+      activeIds.forEach(id=>document.getElementById(id)?.classList.remove("active"));
+      document.getElementById("dashboardTab")?.classList.remove("hidden");
+      document.getElementById("tabDashboard")?.classList.add("active");
+    }catch(e){}
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",()=>setTimeout(openMainDashboard,0),{once:true});
+  }else{
+    setTimeout(openMainDashboard,0);
+  }
+})();
+</script>
+
 </body></html>`;
 
     const w=window.open("","_blank");

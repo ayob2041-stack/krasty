@@ -8047,25 +8047,82 @@ const KRASTY_PLANS = {
 };
 
 function getCurrentPlan(){
-    return KRastyPlanKey(currentSubscriptionPlan || currentUser?.user_metadata?.plan || "free");
+    // نستخدم آخر حالة اشتراك موثوقة، ولا نعيد المستخدم المدفوع إلى المجانية بسبب
+    // تعثر مؤقت في الاتصال بقاعدة البيانات.
+    const live=KRastyPlanKey(currentSubscriptionPlan || "free");
+    if(live!=="free") return live;
+    try{
+        const cached=JSON.parse(localStorage.getItem("krasty_last_verified_subscription")||"null");
+        if(cached && cached.user_id===currentUser?.id){
+            const expiry=cached.expires_at ? new Date(cached.expires_at).getTime() : null;
+            if(cached.plan && (expiry===null || (!Number.isNaN(expiry) && expiry>=Date.now()))) return KRastyPlanKey(cached.plan);
+        }
+    }catch(e){}
+    return KRastyPlanKey(currentUser?.user_metadata?.plan || "free");
 }
 
 async function loadCurrentSubscription(){
-    currentSubscriptionPlan="free";
-    currentSubscriptionExpiresAt=null;
     if(!currentUser?.id) return;
     try{
-        const {data,error}=await sb.from("krasty_subscriptions").select("plan,expires_at,updated_at").eq("user_id",currentUser.id).order("updated_at",{ascending:false}).limit(1).maybeSingle();
+        // القراءة عبر RPC الآمن تمنع تأثر التحقق من الاشتراك بسياسات RLS المتغيرة.
+        const rpc=await sb.rpc("krasty_get_my_subscription");
+        if(!rpc.error){
+            const data=Array.isArray(rpc.data) ? (rpc.data[0]||null) : rpc.data;
+            if(data){
+                const expiry=data.expires_at ? new Date(data.expires_at).getTime() : null;
+                const expired=expiry!==null && !Number.isNaN(expiry) && expiry < Date.now();
+                currentSubscriptionPlan=expired ? "free" : KRastyPlanKey(data.plan);
+                currentSubscriptionExpiresAt=data.expires_at||null;
+                if(!expired){
+                    localStorage.setItem("krasty_last_verified_subscription",JSON.stringify({
+                        user_id:currentUser.id,
+                        plan:currentSubscriptionPlan,
+                        expires_at:currentSubscriptionExpiresAt,
+                        verified_at:new Date().toISOString()
+                    }));
+                }else{
+                    localStorage.removeItem("krasty_last_verified_subscription");
+                }
+                return;
+            }
+            currentSubscriptionPlan="free";
+            currentSubscriptionExpiresAt=null;
+            localStorage.removeItem("krasty_last_verified_subscription");
+            return;
+        }
+
+        // احتياط إضافي: القراءة المباشرة إذا كانت الدالة غير منشورة بعد.
+        const {data,error}=await sb.from("krasty_subscriptions")
+            .select("plan,expires_at,updated_at")
+            .eq("user_id",currentUser.id)
+            .order("updated_at",{ascending:false})
+            .limit(1).maybeSingle();
         if(error) throw error;
         if(data){
             const expiry=data.expires_at ? new Date(data.expires_at).getTime() : null;
             const expired=expiry!==null && !Number.isNaN(expiry) && expiry < Date.now();
             currentSubscriptionPlan=expired ? "free" : KRastyPlanKey(data.plan);
             currentSubscriptionExpiresAt=data.expires_at||null;
+            if(!expired){
+                localStorage.setItem("krasty_last_verified_subscription",JSON.stringify({
+                    user_id:currentUser.id, plan:currentSubscriptionPlan,
+                    expires_at:currentSubscriptionExpiresAt, verified_at:new Date().toISOString()
+                }));
+            }
         }
     }catch(error){
         console.warn("subscription load",error);
-        // لا نسمح بفشل قراءة الاشتراك أن يتحول إلى تفعيل وهمي؛ نبقى على الحالة الآمنة المجانية.
+        // لا نُسقط اشتراكاً مدفوعاً بسبب خطأ مؤقت في القراءة؛ نحتفظ بآخر حالة موثوقة.
+        try{
+            const cached=JSON.parse(localStorage.getItem("krasty_last_verified_subscription")||"null");
+            if(cached && cached.user_id===currentUser.id){
+                const expiry=cached.expires_at ? new Date(cached.expires_at).getTime() : null;
+                if(cached.plan && (expiry===null || (!Number.isNaN(expiry) && expiry>=Date.now()))){
+                    currentSubscriptionPlan=KRastyPlanKey(cached.plan);
+                    currentSubscriptionExpiresAt=cached.expires_at||null;
+                }
+            }
+        }catch(e){}
     }
 }
 function KRastyPlanKey(raw){
@@ -8855,9 +8912,21 @@ updatePlanBadge=function(){
    ========================================================= */
 function isGoldPlan(){ return KRastyPlanKey(getCurrentPlan()) === "gold"; }
 function requireGoldFeature(){
+    // التحقق من آخر اشتراك موثوق؛ لا نعرض نافذة الاشتراك بسبب خطأ مؤقت في الاتصال.
     if(isGoldPlan()) return true;
+    try{
+        const cached=JSON.parse(localStorage.getItem("krasty_last_verified_subscription")||"null");
+        if(cached && cached.user_id===currentUser?.id && KRastyPlanKey(cached.plan)==="gold"){
+            const expiry=cached.expires_at ? new Date(cached.expires_at).getTime() : null;
+            if(expiry===null || (!Number.isNaN(expiry) && expiry>=Date.now())){
+                currentSubscriptionPlan="gold";
+                currentSubscriptionExpiresAt=cached.expires_at||null;
+                return true;
+            }
+        }
+    }catch(e){}
     openPlansOffer();
-    setTimeout(()=>toast("هذه الميزة متاحة ضمن الباقة الذهبية 200 د.ل شهرياً. اشترك أو فعّل الباقة الذهبية لاستخدامها.","info"),120);
+    setTimeout(()=>toast("هذه الميزة متاحة ضمن الباقة الذهبية بقيمة 200 د.ل شهريًا. اشترك أو فعّل الباقة الذهبية لاستخدامها.","info"),120);
     return false;
 }
 

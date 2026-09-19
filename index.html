@@ -8773,63 +8773,6 @@ printInvoice = async function(id){
     ${invoice.notes ? "<div class=\"notes\"><b>ملاحظات:</b><br>" + escapeHtml(invoice.notes) + "</div>" : ""}
     <div class="actions"><button onclick="window.print()">🖨️ طباعة / حفظ PDF</button><button onclick="window.close()">إغلاق</button></div>
     </div>
-<style id="krasty-safe-mobile-fix">
-@media (max-width:700px){
-  html,body{overflow-x:hidden!important;}
-  .table-wrap{overflow-x:auto!important;}
-  .table-wrap table{min-width:720px!important;}
-  .table-wrap th:last-child,.table-wrap td:last-child{
-    position:sticky!important;right:0!important;z-index:5!important;
-    background:var(--card-bg,#fff)!important;
-    box-shadow:-5px 0 8px rgba(0,0,0,.08)!important;
-    min-width:150px!important;width:150px!important;
-  }
-  .table-wrap td:last-child > div{display:flex!important;flex-wrap:wrap!important;gap:6px!important;}
-  .table-wrap td:last-child .btn{flex:0 0 auto!important;min-width:62px!important;font-size:12px!important;padding:8px 8px!important;}
-  #invoicesList .table-wrap td:last-child,#invoicesList .table-wrap th:last-child{min-width:158px!important;width:158px!important;}
-  #projectsList .table-wrap td:last-child,#projectsList .table-wrap th:last-child{min-width:158px!important;width:158px!important;}
-}
-</style>
-<script id="krasty-monthly-print-safe-override">
-(function(){
-  function monthlyPrint(projectId){
-    if(typeof requireGoldFeature==='function' && !requireGoldFeature()) return;
-    if(!currentUser){ if(typeof toast==='function') toast("يرجى تسجيل الدخول أولاً.","error"); return; }
-    const month=window.prompt("اكتب الشهر بصيغة YYYY-MM لإصدار التقرير الشهري:",new Date().toISOString().slice(0,7));
-    if(!month || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) return;
-    const selected=projectId||currentProjectId||null;
-    const project=selected && Array.isArray(projects) ? projects.find(p=>p.id===selected) : null;
-    const inv=(Array.isArray(invoices)?invoices:[]).filter(i=>(!selected||i.project_id===selected)&&String(i.invoice_date||'').startsWith(month));
-    const mov=(Array.isArray(expenses)?expenses:[]).filter(x=>(!selected||!x.project_id||x.project_id===selected)&&String(x.expense_date||'').startsWith(month));
-    const received=mov.filter(x=>x.type==='income').reduce((a,x)=>a+Number(x.amount||0),0);
-    const spent=mov.filter(x=>x.type==='expense').reduce((a,x)=>a+Number(x.amount||0),0);
-    const total=inv.reduce((a,x)=>a+Number(x.total||0),0);
-    const paid=inv.reduce((a,x)=>a+Number(x.paid||0),0);
-    const remaining=inv.reduce((a,x)=>a+Number(x.remaining||0),0);
-    const esc=v=>typeof escapeHtml==='function'?escapeHtml(v):String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
-    const moneyFn=v=>typeof money==='function'?money(v):Number(v||0).toFixed(2);
-    const rows=inv.map(i=>`<tr><td>${esc(i.invoice_number||'-')}</td><td>${esc(typeof customerName==='function'?customerName(i.customer_id):'-')}</td><td>${esc(i.invoice_date||'-')}</td><td>${moneyFn(i.total)} د.ل</td><td>${moneyFn(i.paid)} د.ل</td><td>${moneyFn(i.remaining)} د.ل</td></tr>`).join('');
-    const exprows=mov.map(x=>`<tr><td>${x.type==='income'?'استلمت':'صرفت'}</td><td>${moneyFn(x.amount)} د.ل</td><td>${esc(x.category||'-')}</td><td>${esc(x.notes||'-')}</td><td>${esc(x.expense_date||'-')}</td></tr>`).join('');
-    const area=document.getElementById('printArea');
-    if(!area){ if(typeof toast==='function') toast('تعذر تجهيز التقرير للطباعة.','error'); return; }
-    area.innerHTML=`<div class="krasty-print-page" dir="rtl"><div class="krasty-print-head"><h1>كراستي</h1><h2>التقرير الشهري</h2><div>${esc(project?.name||'جميع المشاريع')} — ${esc(month)}</div></div><div class="krasty-print-cards"><div>عدد الفواتير<strong>${inv.length}</strong></div><div>إجمالي الفواتير<strong>${moneyFn(total)} د.ل</strong></div><div>المدفوع<strong>${moneyFn(paid)} د.ل</strong></div><div>المتبقي<strong>${moneyFn(remaining)} د.ل</strong></div><div>استلمت<strong>${moneyFn(received)} د.ل</strong></div><div>صرفت<strong>${moneyFn(spent)} د.ل</strong></div><div>الصافي<strong>${moneyFn(received-spent)} د.ل</strong></div></div><h3>تفاصيل الفواتير</h3><table><thead><tr><th>رقم</th><th>العميل</th><th>التاريخ</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th></tr></thead><tbody>${rows||'<tr><td colspan="6">لا توجد فواتير</td></tr>'}</tbody></table><h3>تفاصيل الحركات المالية</h3><table><thead><tr><th>النوع</th><th>المبلغ</th><th>التصنيف</th><th>التفاصيل</th><th>التاريخ</th></tr></thead><tbody>${exprows||'<tr><td colspan="5">لا توجد حركات</td></tr>'}</tbody></table></div>`;
-    area.classList.remove('hidden');
-    const cleanup=()=>{area.classList.add('hidden');area.innerHTML='';};
-    setTimeout(()=>{try{window.focus();window.print();}catch(e){if(typeof toast==='function')toast('تعذر فتح الطباعة.','error');}setTimeout(cleanup,1200);},120);
-  }
-  window.openKrastyMonthlyProjectReport=monthlyPrint;
-  window.printMonthlyBusinessReport=function(){return monthlyPrint(currentProjectId||null);};
-  const st=document.createElement('style');st.id='krasty-monthly-print-style';st.textContent=`
-    .krasty-print-page{max-width:950px;margin:auto;background:#fff;color:#111;padding:25px;font-family:Tahoma,Arial,sans-serif}
-    .krasty-print-head{text-align:center;border-bottom:2px solid #111;padding-bottom:18px;margin-bottom:20px}
-    .krasty-print-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
-    .krasty-print-cards>div{border:1px solid #bbb;border-radius:10px;padding:12px;text-align:center}.krasty-print-cards strong{display:block;font-size:18px;margin-top:5px}
-    .krasty-print-page table{width:100%;border-collapse:collapse;margin:12px 0 25px}.krasty-print-page th,.krasty-print-page td{border:1px solid #999;padding:8px;text-align:right}
-    @media print{body>*:not(#printArea){display:none!important}#printArea{display:block!important;position:static!important;background:#fff!important}.krasty-print-page{max-width:none;padding:0}.krasty-print-cards{grid-template-columns:repeat(3,1fr)}}
-    @media(max-width:700px){.krasty-print-cards{grid-template-columns:1fr 1fr}}
-  `;document.head.appendChild(st);
-})();
-</script>
 </body></html>`;
 
     const w=window.open("","_blank");

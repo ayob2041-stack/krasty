@@ -2190,6 +2190,98 @@ html.krasty-light td{color:#1e293b;}
 }
 </style>
 
+
+<style id="krasty-mobile-actions-final">
+@media screen and (max-width: 700px){
+  html, body{
+    width:100% !important;
+    max-width:100% !important;
+    overflow-x:hidden !important;
+  }
+
+  .main, .container, .card, .card-body, .table-wrap{
+    max-width:100% !important;
+    min-width:0 !important;
+  }
+
+  .table-wrap{
+    width:100% !important;
+    overflow-x:hidden !important;
+    overflow-y:visible !important;
+  }
+
+  .table-wrap table{
+    width:100% !important;
+    min-width:0 !important;
+    table-layout:fixed !important;
+  }
+
+  .table-wrap th,
+  .table-wrap td{
+    padding:7px 5px !important;
+    font-size:11px !important;
+    white-space:normal !important;
+    word-break:break-word !important;
+  }
+
+  .table-wrap td:last-child,
+  .table-wrap th:last-child{
+    width:132px !important;
+  }
+
+  .table-wrap td:last-child > div{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:5px !important;
+    width:100% !important;
+  }
+
+  .table-wrap td:last-child .btn{
+    width:100% !important;
+    min-width:0 !important;
+    padding:7px 4px !important;
+    font-size:11px !important;
+    white-space:nowrap !important;
+  }
+
+  /* Projects: keep all project actions visible without horizontal swiping. */
+  #projectsList .table-wrap td:last-child,
+  #projectsList .table-wrap th:last-child{
+    width:145px !important;
+  }
+
+  #projectsList .table-wrap td:last-child > div{
+    grid-template-columns:1fr 1fr !important;
+  }
+
+  /* Invoice actions: four controls in a compact 2x2 grid. */
+  #invoicesList .table-wrap td:last-child{
+    width:138px !important;
+  }
+
+  #invoicesList .table-wrap td:last-child > div{
+    grid-template-columns:1fr 1fr !important;
+  }
+
+  /* Recent invoice table follows the same compact layout. */
+  #recentInvoices .table-wrap td:last-child{
+    width:120px !important;
+  }
+
+  /* Avoid oversized search/tool rows on phones. */
+  .invoice-search-tools,
+  .header-actions{
+    min-width:0 !important;
+    flex-wrap:wrap !important;
+  }
+
+  .invoice-search-tools > *,
+  .header-actions > *{
+    max-width:100% !important;
+  }
+}
+</style>
+
 </head>
 
 <body>
@@ -9253,19 +9345,136 @@ async function deleteExpense(id){
     try{const {error}=await sb.from("krasty_expenses").delete().eq("id",id).eq("user_id",currentUser.id);if(error)throw error;expenses=expenses.filter(e=>e.id!==id);renderExpenses();toast("تم حذف الحركة.","success");}catch(e){toast(e.message||"تعذر الحذف.","error");}
 }
 function clearExpenseFilters(){ $("expenseDateFrom").value="";$("expenseDateTo").value="";$("expenseTypeFilter").value="";renderExpenses(); }
-function printMonthlyBusinessReport(){
+async function printMonthlyBusinessReport(){
     if(!requireGoldFeature()) return;
-    const month=prompt("اكتب الشهر بصيغة YYYY-MM لإصدار التقرير الشهري:",new Date().toISOString().slice(0,7)); if(!month||!/^[0-9]{4}-[0-9]{2}$/.test(month))return;
+
+    const month=prompt(
+        "اكتب الشهر بصيغة YYYY-MM لإصدار التقرير الشهري:",
+        new Date().toISOString().slice(0,7)
+    );
+    if(!month || !/^[0-9]{4}-[0-9]{2}$/.test(month)) return;
+
     const inv=projectInvoices().filter(i=>String(i.invoice_date||"").startsWith(month));
     const mov=expenses.filter(x=>String(x.expense_date||"").startsWith(month));
-    const received=mov.filter(x=>x.type==="income").reduce((s,x)=>s+Number(x.amount||0),0);
-    const spent=mov.filter(x=>x.type==="expense").reduce((s,x)=>s+Number(x.amount||0),0);
-    const invoiceTotal=inv.reduce((s,x)=>s+Number(x.total||0),0), invoicePaid=inv.reduce((s,x)=>s+Number(x.paid||0),0), invoiceRemaining=inv.reduce((s,x)=>s+Number(x.remaining||0),0);
+
+    const received=mov
+        .filter(x=>x.type==="income")
+        .reduce((s,x)=>s+Number(x.amount||0),0);
+
+    const spent=mov
+        .filter(x=>x.type==="expense")
+        .reduce((s,x)=>s+Number(x.amount||0),0);
+
+    const invoiceTotal=inv.reduce((s,x)=>s+Number(x.total||0),0);
+    const invoicePaid=inv.reduce((s,x)=>s+Number(x.paid||0),0);
+    const invoiceRemaining=inv.reduce((s,x)=>s+Number(x.remaining||0),0);
+
     const project=projects.find(p=>p.id===currentProjectId);
-    const rows=inv.map(i=>`<tr><td>${escapeHtml(i.invoice_number||"-")}</td><td>${escapeHtml(customerName(i.customer_id))}</td><td>${escapeHtml(i.invoice_date||"-")}</td><td>${money(i.total)} د.ل</td><td>${money(i.paid)} د.ل</td><td>${money(i.remaining)} د.ل</td></tr>`).join("");
-    const expRows=mov.map(x=>`<tr><td>${x.type==="income"?"استلمت":"صرفت"}</td><td>${money(x.amount)} د.ل</td><td>${x.payment_method==="card"?"بطاقة":"كاش"}</td><td>${escapeHtml(x.category||"-")}</td><td>${escapeHtml(x.notes||"-")}</td><td>${escapeHtml(x.expense_date||"-")}</td></tr>`).join("");
-    const w=window.open("","_blank"); if(!w){toast("المتصفح منع نافذة التقرير.","error");return;}
-    w.document.write(`<html dir="rtl"><head><meta charset="utf-8"><title>تقرير شهري - ${month}</title><style>body{font-family:Arial,sans-serif;padding:30px;color:#111}h1,h2{text-align:center}.cards{display:flex;gap:10px;flex-wrap:wrap}.card{border:1px solid #ddd;border-radius:10px;padding:12px;flex:1;min-width:150px}.num{font-size:20px;font-weight:800}table{width:100%;border-collapse:collapse;margin:15px 0}th,td{border:1px solid #ddd;padding:8px;text-align:right}th{background:#f3f4f6}.muted{color:#666}</style></head><body><h1>تقرير شهري للأعمال</h1><h2>${escapeHtml(project?.name||"المشروع")} — ${month}</h2><div class="cards"><div class="card">عدد الفواتير<div class="num">${inv.length}</div></div><div class="card">إجمالي الفواتير<div class="num">${money(invoiceTotal)} د.ل</div></div><div class="card">المدفوع<div class="num">${money(invoicePaid)} د.ل</div></div><div class="card">المتبقي<div class="num">${money(invoiceRemaining)} د.ل</div></div><div class="card">استلمت<div class="num">${money(received)} د.ل</div></div><div class="card">صرفت<div class="num">${money(spent)} د.ل</div></div><div class="card">الصافي<div class="num">${money(received-spent)} د.ل</div></div></div><h2>تفاصيل الفواتير</h2><table><thead><tr><th>رقم</th><th>العميل</th><th>التاريخ</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th></tr></thead><tbody>${rows||'<tr><td colspan="6">لا توجد فواتير</td></tr>'}</tbody></table><h2>تفاصيل الحركات المالية</h2><table><thead><tr><th>النوع</th><th>المبلغ</th><th>الدفع</th><th>في إيش</th><th>التفاصيل</th><th>التاريخ</th></tr></thead><tbody>${expRows||'<tr><td colspan="6">لا توجد حركات</td></tr>'}</tbody></table><p class="muted">تم إنشاء التقرير من بيانات كراستي.</p></body></html>`); w.document.close(); setTimeout(()=>{w.focus();w.print();},500);
+
+    const rows=inv.map(i=>`
+        <tr>
+            <td>${escapeHtml(i.invoice_number||"-")}</td>
+            <td>${escapeHtml(customerName(i.customer_id))}</td>
+            <td>${escapeHtml(i.invoice_date||"-")}</td>
+            <td>${money(i.total)} د.ل</td>
+            <td>${money(i.paid)} د.ل</td>
+            <td>${money(i.remaining)} د.ل</td>
+        </tr>
+    `).join("");
+
+    const expRows=mov.map(x=>`
+        <tr>
+            <td>${x.type==="income"?"استلمت":"صرفت"}</td>
+            <td>${money(x.amount)} د.ل</td>
+            <td>${x.payment_method==="card"?"بطاقة":"كاش"}</td>
+            <td>${escapeHtml(x.category||"-")}</td>
+            <td>${escapeHtml(x.notes||"-")}</td>
+            <td>${escapeHtml(x.expense_date||"-")}</td>
+        </tr>
+    `).join("");
+
+    const area=$("printArea");
+    if(!area){
+        toast("تعذر تجهيز التقرير للطباعة.","error");
+        return;
+    }
+
+    area.innerHTML=`
+        <div style="max-width:950px;margin:auto;direction:rtl;font-family:Tahoma,Arial,sans-serif;color:#111;background:#fff;padding:25px;">
+            <div style="text-align:center;border-bottom:2px solid #111;padding-bottom:18px;margin-bottom:22px;">
+                <h1 style="margin:0 0 8px;">كراستي</h1>
+                <div>التقرير الشهري</div>
+                <div style="margin-top:6px;">${escapeHtml(month)}</div>
+                <div style="margin-top:6px;">المشروع: ${escapeHtml(project?.name||"جميع المشاريع")}</div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px;">
+                <div style="border:1px solid #bbb;border-radius:10px;padding:12px;text-align:center;">
+                    <div>إجمالي الفواتير</div><strong>${money(invoiceTotal)} د.ل</strong>
+                </div>
+                <div style="border:1px solid #bbb;border-radius:10px;padding:12px;text-align:center;">
+                    <div>المدفوع</div><strong>${money(invoicePaid)} د.ل</strong>
+                </div>
+                <div style="border:1px solid #bbb;border-radius:10px;padding:12px;text-align:center;">
+                    <div>المتبقي</div><strong>${money(invoiceRemaining)} د.ل</strong>
+                </div>
+            </div>
+
+            <h2>الفواتير</h2>
+            <table style="width:100%;border-collapse:collapse;margin:12px 0 25px;">
+                <thead>
+                    <tr>
+                        <th style="border:1px solid #999;padding:8px;">رقم الفاتورة</th>
+                        <th style="border:1px solid #999;padding:8px;">العميل</th>
+                        <th style="border:1px solid #999;padding:8px;">التاريخ</th>
+                        <th style="border:1px solid #999;padding:8px;">الإجمالي</th>
+                        <th style="border:1px solid #999;padding:8px;">المدفوع</th>
+                        <th style="border:1px solid #999;padding:8px;">المتبقي</th>
+                    </tr>
+                </thead>
+                <tbody>${rows || '<tr><td colspan="6" style="border:1px solid #999;padding:10px;text-align:center;">لا توجد فواتير في هذا الشهر.</td></tr>'}</tbody>
+            </table>
+
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:22px;">
+                <div style="border:1px solid #bbb;border-radius:10px;padding:12px;text-align:center;">
+                    <div>إجمالي المبالغ المستلمة</div><strong>${money(received)} د.ل</strong>
+                </div>
+                <div style="border:1px solid #bbb;border-radius:10px;padding:12px;text-align:center;">
+                    <div>إجمالي المصروفات</div><strong>${money(spent)} د.ل</strong>
+                </div>
+            </div>
+
+            <h2>الحركات المالية</h2>
+            <table style="width:100%;border-collapse:collapse;margin:12px 0;">
+                <thead>
+                    <tr>
+                        <th style="border:1px solid #999;padding:8px;">النوع</th>
+                        <th style="border:1px solid #999;padding:8px;">المبلغ</th>
+                        <th style="border:1px solid #999;padding:8px;">طريقة الدفع</th>
+                        <th style="border:1px solid #999;padding:8px;">التصنيف</th>
+                        <th style="border:1px solid #999;padding:8px;">التفاصيل</th>
+                        <th style="border:1px solid #999;padding:8px;">التاريخ</th>
+                    </tr>
+                </thead>
+                <tbody>${expRows || '<tr><td colspan="6" style="border:1px solid #999;padding:10px;text-align:center;">لا توجد حركات مالية في هذا الشهر.</td></tr>'}</tbody>
+            </table>
+        </div>
+    `;
+
+    area.classList.remove("hidden");
+
+    try{
+        window.focus();
+        window.print();
+        recordUsage("prints");
+    }catch(e){
+        toast("تعذر فتح نافذة الطباعة.","error");
+    }finally{
+        setTimeout(()=>{
+            area.classList.add("hidden");
+            area.innerHTML="";
+        },1500);
+    }
 }
 
 // Expense modal markup injected once, so it stays compatible with the existing single-file app.
@@ -9501,16 +9710,28 @@ renderInvoices=function(){
         if(typeof requireGoldFeature === "function" && !requireGoldFeature()) return;
         if(!currentUser){ toast("يرجى تسجيل الدخول أولاً.","error"); return; }
 
+        // اطلب الشهر أولاً من نفس الصفحة. لا تفتح نافذة جديدة قبل prompt
+        // حتى لا يمنع Chrome نافذة الحوار لأنها لم تعد في الواجهة الأمامية.
         const month=window.prompt(
-            "اكتب الشهر بصيغة YYYY-MM لإصدار التقرير الشهري:",
+            "اكتب الشهر بصيغة YYYY-MM لإصدار السجل الشهري:",
             new Date().toISOString().slice(0,7)
         );
         if(!month || !/^\d{4}-(0[1-9]|1[0-2])$/.test(month)) return;
 
+        // بعد اختيار الشهر افتح نافذة التقرير مباشرة من نفس تفاعل المستخدم.
+        const w=window.open("","_blank");
+        if(!w){
+            toast("المتصفح منع نافذة السجل الشهري. اسمح بالنوافذ المنبثقة ثم حاول مرة أخرى.","error");
+            return;
+        }
+
         try{
             const selectedProjectId=projectId||currentProjectId||null;
-            const project=selectedProjectId ? (projects||[]).find(p=>p.id===selectedProjectId) : null;
+            const project=selectedProjectId
+                ? (projects||[]).find(p=>p.id===selectedProjectId)
+                : null;
 
+            // إذا كان هناك مشروع محدد، نعرض فواتيره. وإذا لم يوجد مشروع، نعرض فواتير المستخدم كلها.
             const inv=(invoices||[]).filter(i =>
                 (!selectedProjectId || i.project_id===selectedProjectId) &&
                 String(i.invoice_date||"").startsWith(month)
@@ -9518,16 +9739,20 @@ renderInvoices=function(){
 
             let mov=[];
             if(sb && currentUser?.id){
-                const nextMonth=new Date(Number(month.slice(0,4)),Number(month.slice(5,7)),1)
-                    .toISOString().slice(0,10);
                 let q=sb.from("krasty_expenses")
                     .select("*")
                     .eq("user_id",currentUser.id)
                     .gte("expense_date",month+"-01")
-                    .lt("expense_date",nextMonth)
+                    .lt("expense_date",new Date(
+                        Number(month.slice(0,4)),
+                        Number(month.slice(5,7)),
+                        1
+                    ).toISOString().slice(0,10))
                     .order("expense_date",{ascending:true})
                     .order("created_at",{ascending:true});
+
                 if(selectedProjectId) q=q.eq("project_id",selectedProjectId);
+
                 const {data,error}=await q;
                 if(error) throw error;
                 mov=data||[];
@@ -9538,8 +9763,8 @@ renderInvoices=function(){
             const invoiceTotal=inv.reduce((sum,x)=>sum+Number(x.total||0),0);
             const invoicePaid=inv.reduce((sum,x)=>sum+Number(x.paid||0),0);
             const invoiceRemaining=inv.reduce((sum,x)=>sum+Number(x.remaining||0),0);
-            const reportName=project?.name||"جميع المشاريع";
 
+            const reportName=project?.name||"جميع المشاريع";
             const rows=inv.length ? inv.map(i =>
                 '<tr><td>'+escapeForPrint(i.invoice_number||"-")+'</td>'+
                 '<td>'+escapeForPrint(typeof customerName==="function" ? customerName(i.customer_id) : "-")+'</td>'+
@@ -9558,49 +9783,47 @@ renderInvoices=function(){
                 '<td>'+escapeForPrint(x.expense_date||"-")+'</td></tr>'
             ).join("") : '<tr><td colspan="6">لا توجد حركات مالية في هذا الشهر</td></tr>';
 
-            const area=document.getElementById("printArea");
-            if(!area){ toast("تعذر العثور على منطقة الطباعة في التطبيق.","error"); return; }
+            const content=
+                '<div class="header"><h1>كراستي</h1><div>التقرير الشهري</div></div>'+
+                '<h2>'+escapeForPrint(reportName)+' — '+escapeForPrint(month)+'</h2>'+
+                '<div class="cards">'+
+                '<div class="card">عدد الفواتير<div class="num">'+inv.length+'</div></div>'+
+                '<div class="card">إجمالي الفواتير<div class="num">'+money(invoiceTotal)+' د.ل</div></div>'+
+                '<div class="card">المدفوع<div class="num">'+money(invoicePaid)+' د.ل</div></div>'+
+                '<div class="card">المتبقي<div class="num">'+money(invoiceRemaining)+' د.ل</div></div>'+
+                '<div class="card">استلمت<div class="num">'+money(received)+' د.ل</div></div>'+
+                '<div class="card">صرفت<div class="num">'+money(spent)+' د.ل</div></div>'+
+                '<div class="card">الصافي<div class="num">'+money(received-spent)+' د.ل</div></div>'+
+                '</div>'+
+                '<h2>تفاصيل الفواتير</h2>'+
+                '<table><thead><tr><th>رقم</th><th>العميل</th><th>التاريخ</th><th>الإجمالي</th><th>المدفوع</th><th>المتبقي</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+                '<h2>تفاصيل الحركات المالية</h2>'+
+                '<table><thead><tr><th>النوع</th><th>المبلغ</th><th>الدفع</th><th>في إيش</th><th>التفاصيل</th><th>التاريخ</th></tr></thead><tbody>'+expRows+'</tbody></table>'+
+                '<p class="muted">تم إنشاء التقرير من بيانات كراستي.</p>';
 
-            area.innerHTML=
-                '<div class="krasty-monthly-print-page" dir="rtl">'+
-                '<div style="text-align:center;border-bottom:2px solid #111;padding-bottom:18px;margin-bottom:22px;">'+
-                '<h1 style="margin:0 0 6px;">كراستي</h1><div>التقرير الشهري</div></div>'+
-                '<h2 style="text-align:center;">'+escapeForPrint(reportName)+' — '+escapeForPrint(month)+'</h2>'+ 
-                '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:18px 0;">'+
-                '<div style="border:1px solid #999;padding:12px;text-align:center;">عدد الفواتير<div style="font-size:20px;font-weight:900;">'+inv.length+'</div></div>'+
-                '<div style="border:1px solid #999;padding:12px;text-align:center;">إجمالي الفواتير<div style="font-size:20px;font-weight:900;">'+money(invoiceTotal)+' د.ل</div></div>'+
-                '<div style="border:1px solid #999;padding:12px;text-align:center;">المدفوع<div style="font-size:20px;font-weight:900;">'+money(invoicePaid)+' د.ل</div></div>'+
-                '<div style="border:1px solid #999;padding:12px;text-align:center;">المتبقي<div style="font-size:20px;font-weight:900;">'+money(invoiceRemaining)+' د.ل</div></div>'+
-                '<div style="border:1px solid #999;padding:12px;text-align:center;">استلمت<div style="font-size:20px;font-weight:900;">'+money(received)+' د.ل</div></div>'+
-                '<div style="border:1px solid #999;padding:12px;text-align:center;">صرفت<div style="font-size:20px;font-weight:900;">'+money(spent)+' د.ل</div></div>'+
-                '<div style="border:1px solid #999;padding:12px;text-align:center;">الصافي<div style="font-size:20px;font-weight:900;">'+money(received-spent)+' د.ل</div></div>'+
-                '</div>'+ 
-                '<h2>تفاصيل الفواتير</h2>'+ 
-                '<table style="width:100%;border-collapse:collapse;margin:16px 0 24px;"><thead><tr>'+ 
-                '<th style="border:1px solid #999;padding:9px;text-align:right;">رقم</th><th style="border:1px solid #999;padding:9px;text-align:right;">العميل</th><th style="border:1px solid #999;padding:9px;text-align:right;">التاريخ</th><th style="border:1px solid #999;padding:9px;text-align:right;">الإجمالي</th><th style="border:1px solid #999;padding:9px;text-align:right;">المدفوع</th><th style="border:1px solid #999;padding:9px;text-align:right;">المتبقي</th>'+ 
-                '</tr></thead><tbody>'+rows+'</tbody></table>'+ 
-                '<h2>تفاصيل الحركات المالية</h2>'+ 
-                '<table style="width:100%;border-collapse:collapse;margin:16px 0 24px;"><thead><tr>'+ 
-                '<th style="border:1px solid #999;padding:9px;text-align:right;">النوع</th><th style="border:1px solid #999;padding:9px;text-align:right;">المبلغ</th><th style="border:1px solid #999;padding:9px;text-align:right;">الدفع</th><th style="border:1px solid #999;padding:9px;text-align:right;">في إيش</th><th style="border:1px solid #999;padding:9px;text-align:right;">التفاصيل</th><th style="border:1px solid #999;padding:9px;text-align:right;">التاريخ</th>'+ 
-                '</tr></thead><tbody>'+expRows+'</tbody></table>'+ 
-                '<p style="text-align:center;color:#555;">تم إنشاء التقرير من بيانات كراستي.</p>'+ 
-                '</div>';
+            w.document.open();
+            w.document.write('<!doctype html><html lang="ar" dir="rtl"><head><meta charset="utf-8">'+
+                '<title>التقرير الشهري - '+escapeForPrint(reportName)+' - '+escapeForPrint(month)+'</title>'+
+                '<style>body{font-family:Tahoma,Arial,sans-serif;color:#111;background:#fff;padding:30px;line-height:1.7}.print-page{max-width:950px;margin:auto}.header{text-align:center;border-bottom:2px solid #111;padding-bottom:18px;margin-bottom:22px}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}.card{border:1px solid #bbb;border-radius:10px;padding:12px;text-align:center}.num{font-size:20px;font-weight:900}h1,h2{text-align:center}table{width:100%;border-collapse:collapse;margin:16px 0 24px}th,td{border:1px solid #999;padding:9px;text-align:right}th{background:#f1f1f1}.muted{color:#555}.print-actions{text-align:center;margin:25px 0}.print-btn{border:0;border-radius:9px;padding:12px 20px;font-weight:800;cursor:pointer}@media print{.print-actions{display:none}}@media(max-width:700px){.cards{grid-template-columns:1fr}}</style>'+
+                '</head><body><div class="print-page">'+content+
+                '<div class="print-actions"><button class="print-btn" onclick="window.focus();window.print()">🖨️ طباعة / حفظ PDF</button></div>'+
+                '</div></body></html>');
+            w.document.close();
 
-            area.classList.remove("hidden");
-            const oldTitle=document.title;
-            document.title="التقرير الشهري - "+reportName+" - "+month;
-            setTimeout(function(){
-                try{ window.focus(); window.print(); }
-                catch(e){ toast("تعذر فتح الطباعة على هذا الجهاز.","error"); }
-                setTimeout(function(){
-                    area.classList.add("hidden");
-                    area.innerHTML="";
-                    document.title=oldTitle;
-                },1500);
-            },150);
+            // الطباعة تلقائياً بعد اكتمال تحميل نافذة التقرير.
+            const doPrint=()=>{
+                try{
+                    w.focus();
+                    setTimeout(()=>{try{w.print();}catch(e){}},300);
+                }catch(e){}
+            };
+            if(w.document.readyState==="complete") setTimeout(doPrint,400);
+            else w.addEventListener("load",doPrint,{once:true});
+
         }catch(error){
             console.error("monthly report",error);
-            toast(error?.message||"تعذر تجهيز التقرير الشهري. تأكد من اتصال الإنترنت وحاول مرة أخرى.","error");
+            try{w.close();}catch(e){}
+            toast("تعذر تجهيز التقرير الشهري. تأكد من اتصال الإنترنت وحاول مرة أخرى.","error");
         }
     };
 
@@ -9666,3 +9889,6 @@ window.openProjectModal = function(){
 </script>
 </body>
 </html>
+<script>
+window.printMonthlyBusinessReport = printMonthlyBusinessReport;
+</script>
